@@ -7,8 +7,14 @@
   <meta name="description" content="A comprehensive study and productivity tracking PWA with chronometer, analytics, and session planning.">
   <meta property="og:title" content="Study Flow">
   <meta property="og:description" content="A comprehensive study and productivity tracking PWA with chronometer, analytics, and session planning.">
-  <link rel="manifest" href="Manifest.json">
-  <link rel="icon" type="image/png" href="icon.png">
+  <link rel="manifest" href="/manifest.json">
+  <link rel="icon" type="image/png" sizes="192x192" href="/icon-192.png">
+  <link rel="apple-touch-icon" href="/apple-touch-icon.png">
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="default">
+  <meta name="apple-mobile-web-app-title" content="Study Flow">
+  <meta name="theme-color" content="#4285f4">
   <script type="text/javascript" src="https://www.gstatic.com/charts/loader.js"></script>
   <script>
     // Iframe-friendly non-blocking notification replacing window.alert
@@ -119,6 +125,73 @@
     }
 
     .theme-selector select:hover { box-shadow: 0 4px 12px rgba(0,0,0,0.1); }
+
+    .pwa-install-btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      background: var(--primary);
+      color: #ffffff;
+      border: none;
+      border-radius: 8px;
+      padding: 7px 14px;
+      font-size: 12px;
+      font-weight: 700;
+      cursor: pointer;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.15);
+      transition: transform 0.15s ease, filter 0.2s ease, box-shadow 0.2s ease;
+      user-select: none;
+    }
+    .pwa-install-btn:hover {
+      transform: translateY(-1px);
+      box-shadow: 0 4px 10px rgba(0,0,0,0.2);
+      filter: brightness(1.1);
+    }
+    .pwa-install-btn:active {
+      transform: translateY(0);
+    }
+    .pwa-modal-backdrop {
+      position: fixed;
+      inset: 0;
+      background: rgba(0, 0, 0, 0.55);
+      backdrop-filter: blur(2px);
+      z-index: 999999;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 16px;
+    }
+    .pwa-modal-content {
+      background: var(--card-bg);
+      color: var(--text);
+      border-radius: 14px;
+      max-width: 420px;
+      width: 100%;
+      padding: 22px;
+      box-shadow: 0 16px 36px rgba(0,0,0,0.3);
+      border: 1px solid var(--border-color);
+      animation: pwaFadeIn 0.2s ease-out;
+    }
+    @keyframes pwaFadeIn {
+      from { opacity: 0; transform: scale(0.95); }
+      to { opacity: 1; transform: scale(1); }
+    }
+    .pwa-modal-close-btn {
+      margin-top: 18px;
+      width: 100%;
+      padding: 10px 16px;
+      border-radius: 8px;
+      border: none;
+      background: var(--primary);
+      color: #fff;
+      font-weight: 700;
+      cursor: pointer;
+      font-size: 13px;
+      transition: filter 0.2s ease;
+    }
+    .pwa-modal-close-btn:hover {
+      filter: brightness(1.1);
+    }
 
     .dashboard-container {
       display: grid; grid-template-columns: repeat(auto-fit, minmax(380px, 1fr));
@@ -347,6 +420,14 @@
 <body>
 
   <div class="theme-selector">
+    <button id="pwaInstallBtn" class="pwa-install-btn" onclick="handlePWAInstallClick()" title="Install Study Flow as an app">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="display:inline-block; vertical-align:middle;">
+        <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+        <polyline points="7 10 12 15 17 10"></polyline>
+        <line x1="12" y1="15" x2="12" y2="3"></line>
+      </svg>
+      <span>Install App</span>
+    </button>
     <label for="themeSelect">🎨 Theme:</label>
     <select id="themeSelect" onchange="changeTheme(this.value)">
       <option value="default">Light</option>
@@ -1580,6 +1661,112 @@ function loadActiveHoursChart() {
 
   }).catch(err => console.error('Active hours error:', err));
 }
+
+// ============= PWA SERVICE WORKER & INSTALLATION =============
+let deferredInstallPrompt = null;
+
+function isRunningStandalone() {
+  return window.matchMedia('(display-mode: standalone)').matches ||
+         (window.navigator && window.navigator.standalone === true);
+}
+
+function updateInstallButtonVisibility() {
+  const btn = document.getElementById('pwaInstallBtn');
+  if (!btn) return;
+  if (isRunningStandalone()) {
+    btn.style.display = 'none';
+  } else {
+    btn.style.display = 'inline-flex';
+  }
+}
+
+window.addEventListener('beforeinstallprompt', (e) => {
+  e.preventDefault();
+  deferredInstallPrompt = e;
+  updateInstallButtonVisibility();
+});
+
+window.addEventListener('appinstalled', () => {
+  deferredInstallPrompt = null;
+  updateInstallButtonVisibility();
+  console.log('Study Flow installed successfully.');
+});
+
+function handlePWAInstallClick() {
+  if (deferredInstallPrompt) {
+    deferredInstallPrompt.prompt();
+    deferredInstallPrompt.userChoice.then((choiceResult) => {
+      if (choiceResult.outcome === 'accepted') {
+        deferredInstallPrompt = null;
+        updateInstallButtonVisibility();
+      }
+    });
+    return;
+  }
+
+  const ua = navigator.userAgent.toLowerCase();
+  const isIOS = /iphone|ipad|ipod/.test(ua);
+  const modal = document.getElementById('pwaInstallModal');
+  const modalBody = document.getElementById('pwaModalBody');
+
+  if (isIOS) {
+    modalBody.innerHTML = `
+      <p style="margin-top:0;">To install <strong>Study Flow</strong> on your iPhone or iPad:</p>
+      <ol style="padding-left:20px; margin:12px 0; line-height: 1.8;">
+        <li>Tap the <strong>Share</strong> button <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="vertical-align:middle;"><path d="M4 12v8a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-8"/><polyline points="16 6 12 2 8 6"/><line x1="12" y1="2" x2="12" y2="15"/></svg> in Safari.</li>
+        <li>Scroll down and tap <strong>Add to Home Screen</strong>.</li>
+        <li>Tap <strong>Add</strong> in the top-right corner.</li>
+      </ol>
+    `;
+  } else {
+    modalBody.innerHTML = `
+      <p style="margin-top:0;">To install <strong>Study Flow</strong> directly on your device:</p>
+      <ul style="padding-left:20px; margin:12px 0; line-height: 1.8;">
+        <li><strong>Chrome / Edge:</strong> Click the <strong>Install</strong> icon (⊕) in the browser address bar, or click menu (⋮) &rarr; <em>Install Study Flow</em>.</li>
+        <li><strong>Android:</strong> Tap the browser menu (⋮) &rarr; <strong>Install app</strong> or <em>Add to Home screen</em>.</li>
+        <li><strong>Preview mode:</strong> Open the app directly in a browser tab to install with one click.</li>
+      </ul>
+      <div style="margin-top:14px; text-align:center;">
+        <a href="${window.location.href}" target="_blank" style="display:inline-block; padding:7px 16px; background:var(--input-bg); border:1px solid var(--border-color); border-radius:6px; color:var(--primary); font-weight:700; text-decoration:none;">Open in new tab ↗</a>
+      </div>
+    `;
+  }
+  if (modal) modal.style.display = 'flex';
+}
+
+function closePWAModal(e) {
+  if (e && e.target !== e.currentTarget && !e.target.classList.contains('pwa-modal-backdrop') && !e.target.classList.contains('pwa-modal-close-btn')) {
+    return;
+  }
+  const modal = document.getElementById('pwaInstallModal');
+  if (modal) modal.style.display = 'none';
+}
+
+if ('serviceWorker' in navigator) {
+  window.addEventListener('load', () => {
+    navigator.serviceWorker.register('/sw.js')
+      .then(reg => console.log('PWA Service Worker registered:', reg.scope))
+      .catch(err => console.log('Service Worker registration failed:', err));
+  });
+}
+
+document.addEventListener('DOMContentLoaded', updateInstallButtonVisibility);
+updateInstallButtonVisibility();
   </script>
+
+  <!-- PWA Installation Helper Modal -->
+  <div id="pwaInstallModal" class="pwa-modal-backdrop" style="display: none;" onclick="closePWAModal(event)">
+    <div class="pwa-modal-content" onclick="event.stopPropagation()">
+      <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 14px;">
+        <div style="display: flex; align-items: center; gap: 8px;">
+          <img src="/icon-192.png" alt="App Icon" style="width: 28px; height: 28px; border-radius: 6px;">
+          <h4 style="margin: 0; font-size: 16px; font-weight: 700;">Install Study Flow</h4>
+        </div>
+        <button onclick="closePWAModal()" style="background: none; border: none; font-size: 22px; cursor: pointer; color: var(--text-secondary); line-height: 1;">&times;</button>
+      </div>
+      <div id="pwaModalBody" style="font-size: 13px; line-height: 1.6; color: var(--text);"></div>
+      <button onclick="closePWAModal()" class="pwa-modal-close-btn">Got it</button>
+    </div>
+  </div>
 </body>
 </html>
