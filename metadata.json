@@ -1,0 +1,7 @@
+{
+  "name": "Study Flow",
+  "description": "A comprehensive study and productivity tracking PWA with chronometer, analytics, and session planning.",
+  "capabilities": [
+    "MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"
+  ]
+}

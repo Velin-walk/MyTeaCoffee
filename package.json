@@ -1,0 +1,15 @@
+{
+  "name": "my-tea-wpa",
+  "version": "1.0.0",
+  "description": "A comprehensive study and productivity tracking PWA with chronometer, analytics, and session planning.",
+  "type": "module",
+  "main": "server.js",
+  "scripts": {
+    "dev": "node server.js",
+    "start": "node server.js",
+    "build": "echo 'Build complete'"
+  },
+  "dependencies": {
+    "express": "^4.21.2"
+  }
+}

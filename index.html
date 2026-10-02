@@ -1,0 +1,1585 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Study Flow</title>
+  <meta name="description" content="A comprehensive study and productivity tracking PWA with chronometer, analytics, and session planning.">
+  <meta property="og:title" content="Study Flow">
+  <meta property="og:description" content="A comprehensive study and productivity tracking PWA with chronometer, analytics, and session planning.">
+  <link rel="manifest" href="Manifest.json">
+  <link rel="icon" type="image/png" href="icon.png">
+  <script type="text/javascript" src="https://www.gstatic.com/charts/loader.js"></script>
+  <script>
+    // Iframe-friendly non-blocking notification replacing window.alert
+    window.alert = function(msg) {
+      console.log('[Notice]', msg);
+      const toast = document.createElement('div');
+      toast.textContent = msg;
+      toast.style.cssText = 'position:fixed;bottom:24px;left:50%;transform:translateX(-50%);background:#1f2937;color:#fff;padding:10px 18px;border-radius:8px;z-index:99999;font-size:13px;font-weight:600;box-shadow:0 6px 16px rgba(0,0,0,0.25);transition:opacity 0.3s;pointer-events:none;';
+      document.body.appendChild(toast);
+      setTimeout(() => {
+        toast.style.opacity = '0';
+        setTimeout(() => { if (toast.parentNode) toast.parentNode.removeChild(toast); }, 300);
+      }, 2500);
+    };
+  </script>
+  <style>
+    /* ============= THEME DEFINITIONS ============= */
+    :root {
+      --primary: #4285f4;
+      --success: #34a853;
+      --danger: #ea4335;
+      --warning: #fbbc05;
+      --bg: #eaeef5;
+      --text: #202124;
+      --card-bg: #ffffff;
+      --card-shadow: 0 10px 25px rgba(0,0,0,0.05), 0 5px 10px rgba(0,0,0,0.05);
+      --border-color: rgba(255,255,255,0.8);
+      --input-border: #eee;
+      --input-bg: #ffffff;
+      --button-bg: #fdfdfd;
+      --button-text: #2e7d32;
+      --cal-event: #00acc1;
+      --study-event: #8B4513;
+      --text-secondary: #5f6368;
+      --text-tertiary: #999;
+    }
+
+    body.theme-paper {
+      --primary: #8B7355; --success: #6B5344; --danger: #A0522D; --warning: #CD853F;
+      --bg: #F5E6D3; --text: #3E2723; --card-bg: #FFF8DC; --card-shadow: 0 4px 8px rgba(0,0,0,0.1);
+      --border-color: rgba(139, 115, 85, 0.2); --input-border: #D2B48C; --input-bg: #FFFAF0;
+      --button-bg: #F0E68C; --button-text: #654321; --text-secondary: #5D4037; --text-tertiary: #8B7355;
+    }
+
+    body.theme-blackboard {
+      --primary: #FFD700; --success: #90EE90; --danger: #FF6B6B; --warning: #FFB6C1;
+      --bg: #1A1A1A; --text: #FFFFFF; --card-bg: #2D2D2D; --card-shadow: 0 4px 12px rgba(0,0,0,0.4);
+      --border-color: rgba(255, 215, 0, 0.2); --input-border: #FFD700; --input-bg: #3D3D3D;
+      --button-bg: #404040; --button-text: #FFD700; --text-secondary: #BFBFBF; --text-tertiary: #909090;
+    }
+
+    body.theme-sketch {
+      --primary: #4A4A4A; --success: #5A5A5A; --danger: #3A3A3A; --warning: #6A6A6A;
+      --bg: #ECECEC; --text: #1A1A1A; --card-bg: #F5F5F5; --card-shadow: 0 3px 8px rgba(0, 0, 0, 0.15);
+      --border-color: rgba(74, 74, 74, 0.15); --input-border: #BFBFBF; --input-bg: #FAFAFA;
+      --button-bg: #E0E0E0; --button-text: #4A4A4A; --text-secondary: #5A5A5A; --text-tertiary: #8A8A8A;
+    }
+
+    body.theme-galaxy {
+      --primary: #00D4FF; --success: #00FF88; --danger: #FF006E; --warning: #FFB703;
+      --bg: #0a0e27; --text: #E0E7FF; --card-bg: #16213E; --card-shadow: 0 8px 16px rgba(0, 212, 255, 0.15);
+      --border-color: rgba(0, 212, 255, 0.2); --input-border: #00D4FF; --input-bg: #1a2847;
+      --button-bg: #1F2937; --button-text: #00D4FF; --text-secondary: #9CA3AF; --text-tertiary: #6B7280;
+    }
+
+    body.theme-forest {
+      --primary: #2D5016; --success: #52B788; --danger: #D62828; --warning: #F77F00;
+      --bg: #1B3A1B; --text: #E8F5E9; --card-bg: #2C5F2D; --card-shadow: 0 6px 14px rgba(0,0,0,0.3);
+      --border-color: rgba(82, 183, 136, 0.2); --input-border: #52B788; --input-bg: #1E4620;
+      --button-bg: #2D5016; --button-text: #81C784; --text-secondary: #A5D6A7; --text-tertiary: #66BB6A;
+    }
+
+    body.theme-cyberpunk {
+      --primary: #FF006E; --success: #00F5FF; --danger: #FF006E; --warning: #FFBE0B;
+      --bg: #0D0221; --text: #FFFFFF; --card-bg: #1A0033; --card-shadow: 0 0 20px rgba(255, 0, 110, 0.3);
+      --border-color: rgba(255, 0, 110, 0.5); --input-border: #FF006E; --input-bg: #240046;
+      --button-bg: #3A0061; --button-text: #00F5FF; --text-secondary: #B5179E; --text-tertiary: #7209B7;
+    }
+
+    body.theme-ocean {
+      --primary: #0077BE; --success: #00D9FF; --danger: #FF6B6B; --warning: #FFA502;
+      --bg: #0A1929; --text: #E3F2FD; --card-bg: #132F4C; --card-shadow: 0 6px 16px rgba(0, 119, 190, 0.2);
+      --border-color: rgba(0, 217, 255, 0.15); --input-border: #0077BE; --input-bg: #0D2440;
+      --button-bg: #1565A0; --button-text: #00D9FF; --text-secondary: #90CAF9; --text-tertiary: #64B5F6;
+    }
+
+    body { 
+      font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; 
+      padding: 0; margin: 0; background: var(--bg); color: var(--text);
+      transition: background 0.3s ease, color 0.3s ease;
+    }
+
+    .theme-selector {
+      position: fixed; top: 10px; right: 10px; z-index: 9999;
+      background: var(--card-bg); padding: 12px 16px; border-radius: 12px;
+      box-shadow: var(--card-shadow); display: flex; align-items: center; gap: 10px; flex-wrap: wrap;
+    }
+
+    .theme-selector label {
+      font-size: 12px; font-weight: 600; color: var(--text-secondary);
+      text-transform: uppercase; letter-spacing: 0.5px;
+    }
+
+    .theme-selector select {
+      padding: 8px 12px; border: 2px solid var(--primary); border-radius: 8px;
+      background: var(--input-bg); color: var(--text); font-weight: 600;
+      cursor: pointer; font-size: 12px; transition: all 0.3s ease;
+    }
+
+    .theme-selector select:hover { box-shadow: 0 4px 12px rgba(0,0,0,0.1); }
+
+    .dashboard-container {
+      display: grid; grid-template-columns: repeat(auto-fit, minmax(380px, 1fr));
+      gap: 20px; max-width: 100%; margin: 80px auto 0; padding: 20px; align-items: start;
+    }
+
+    @media (max-width: 950px) { .dashboard-container { grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); } }
+    @media (max-width: 650px) {
+      .dashboard-container { grid-template-columns: 1fr; padding: 10px; margin-top: 150px; }
+      .theme-selector { position: relative; top: auto; right: auto; margin-bottom: 10px; width: 100%; }
+    }
+
+    .card {
+      background: var(--card-bg); padding: 20px; border-radius: 12px;
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08); border: 1px solid var(--border-color);
+      min-height: 450px; cursor: grab; position: relative;
+    }
+
+    .card.dragging { opacity: 0.7; z-index: 1000; }
+    .card:active { cursor: grabbing; }
+    .card.hidden { display: none !important; }
+
+    .timer-card-horizontal { grid-column: auto; max-width: 100%; width: 100%; }
+
+    #chart_div_daily, #chart_div_weekly, #chart_div_monthly,
+    #hourly_dist_chart, #mountain_chart, #scatter_chart,
+    #dailyProgressChart, #weeklySessionsChart { height: 300px; }
+
+    #gridWrapper { height: 400px; }
+
+    #chart_div_daily { height: 200px; }
+    #chart_div_weekly { height: 250px; }
+    #chart_div_monthly { height: 400px; }
+
+    #hourly_dist_chart, #mountain_chart, #scatter_chart, #dailyProgressChart {
+      width: 100%; overflow: hidden; box-sizing: border-box;
+    }
+
+    #chart_div_daily svg g[clip-path] rect,
+    #chart_div_weekly svg g[clip-path] rect,
+    #chart_div_monthly svg g[clip-path] rect { 
+      transition: all 0.4s ease; filter: drop-shadow(0px 8px 12px rgba(0,0,0,0.15)); rx: 15; ry: 15;
+    }
+
+    #chart_div_daily svg text[font-weight="bold"],
+    #chart_div_weekly svg text[font-weight="bold"],
+    #chart_div_monthly svg text[font-weight="bold"] {
+      fill: var(--primary) !important; font-size: 9px !important;
+    }
+   
+    h3 {
+      margin: 0 0 12px 0; font-size: 13px; font-weight: 700;
+      color: var(--text-secondary); text-transform: uppercase; letter-spacing: 0.5px;
+    }
+
+    .display {
+      font-size: 36px; font-weight: 800; margin: 8px 0;
+      font-family: 'Courier New', monospace; color: var(--text);
+    }
+ 
+    .controls { display: flex; justify-content: center; gap: 8px; margin-top: 8px; }
+
+    .btn-view {
+      padding: 6px 12px; font-size: 11px; background: var(--input-bg);
+      color: var(--primary); border: 1px solid var(--input-border);
+    }
+    .btn-view.active { background: var(--primary); color: white; border-color: var(--primary); }
+
+    button {
+      padding: 10px 16px; font-size: 13px; font-weight: 600; border-radius: 8px;
+      border: 1px solid var(--input-border); background: var(--button-bg);
+      color: var(--button-text); cursor: pointer; transition: all 0.2s ease;
+    }
+
+    button:hover:not(:disabled) { transform: translateY(-2px); box-shadow: 0 4px 12px rgba(0,0,0,0.1); }
+    button:active:not(:disabled) { transform: translateY(0); }
+    button:disabled { opacity: 0.5; cursor: not-allowed; }
+
+    .btn-start { color: var(--success); }
+    .btn-stop { color: var(--danger); }
+
+    input[type="number"], input[type="time"] {
+      padding: 10px 12px; border: 2px solid var(--input-border); border-radius: 8px;
+      font-size: 14px; background: var(--input-bg); color: var(--text); transition: all 0.2s ease;
+    }
+
+    input[type="number"]:focus, input[type="time"]:focus {
+      border-color: var(--primary); box-shadow: 0 0 0 3px rgba(0,0,0,0.1);
+    }
+
+    input[type="time"] { 
+      width: 120px; padding: 8px 12px; border: 2px solid var(--input-border); 
+      border-radius: 8px; font-size: 16px; text-align: center; outline: none;
+      cursor: pointer; background: var(--input-bg); color: var(--text); transition: all 0.3s ease;
+    }
+    input[type="time"]:focus { border-color: var(--primary); box-shadow: 0 0 8px rgba(0,0,0,0.1); }
+
+    .chart-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; }
+    .chart-tabs { display: flex; gap: 6px; }
+
+    #calendarContainer {
+      display: grid;
+      grid-template-columns: repeat(7, 1fr);
+      gap: 4px;
+      padding: 10px;
+      background: var(--input-bg);
+      border-radius: 8px;
+    }
+
+    .calendar-header {
+      font-weight: 700;
+      text-align: center;
+      padding: 8px;
+      color: var(--text-secondary);
+      text-transform: uppercase;
+      font-size: 9px;
+    }
+
+    .calendar-day {
+      aspect-ratio: 1;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      background: #FFA500;
+      border-radius: 4px;
+      opacity: 0.3;
+      font-size: 9px;
+      font-weight: 700;
+      color: rgba(0, 0, 0, 0.7);
+      text-shadow: 0 0 2px rgba(255, 255, 255, 0.9);
+      padding: 4px;
+      text-align: center;
+      line-height: 1.2;
+    }
+
+    .calendar-day.lvl-1 { opacity: 0.5; }
+    .calendar-day.lvl-2 { opacity: 0.7; }
+    .calendar-day.lvl-3 { opacity: 0.85; }
+    .calendar-day.lvl-4 { opacity: 1; }
+
+    .calendar-day.empty {
+      background: transparent;
+      opacity: 0.1;
+    }
+
+    .calendar-day-number {
+      font-size: 10px;
+      font-weight: 800;
+      color: rgba(0, 0, 0, 0.9);
+    }
+
+    .calendar-day-hours {
+      font-size: 8px;
+      color: rgba(0, 0, 0, 0.7);
+    }
+
+    .grid-wrapper { position: relative; height: auto; overflow-y: auto; overflow-x: auto; border-radius: 12px; background: var(--bg); border: 1px solid var(--border-color); }
+    .timeline-grid { display: grid; grid-template-columns: 40px repeat(7, 1fr); width: 100%; min-width: 100px; position: relative; }
+    .time-label-col { border-right: 1px solid var(--border-color); background: var(--card-bg); position: sticky; left: 0; z-index: 25; }
+    .day-col { position: relative; border-right: 1px solid var(--border-color); height: 430px; background: var(--card-bg); }
+    .day-header { position: sticky; top: 0; height: 35px; line-height: 35px; background: var(--card-bg); z-index: 30; font-size: 10px; font-weight: bold; color: var(--text-secondary); border-bottom: 2px solid var(--primary); text-align: center; }
+    .timeline-block { position: absolute; left: 2px; right: 2px; border-radius: 4px; font-size: 7px; font-weight: 600; color: #fff; box-shadow: 0 2px 4px rgba(0,0,0,0.1); display: flex; align-items: center; justify-content: center; z-index: 10; overflow: hidden; background: var(--success); }
+    .timeline-block.calendar { background: var(--primary); }
+
+    .master-watch-container { display: flex; justify-content: center; align-items: center; width: 100%; }
+
+    .schedule-info { 
+      background: var(--input-bg); border-left: 4px solid var(--primary); 
+      padding: 12px; border-radius: 8px; margin: 12px 0; font-size: 13px; text-align: left; color: var(--text);
+    }
+    .schedule-info strong { color: var(--primary); }
+
+    .schedule-row { display: flex; align-items: center; gap: 8px; margin: 8px 0; font-size: 12px; flex-wrap: wrap; color: var(--text); }
+
+    .schedule-block { display: inline-block; padding: 6px 12px; border-radius: 6px; font-weight: 600; font-size: 11px; }
+    .schedule-study { background: var(--primary); color: white; }
+    .schedule-break { background: var(--text-tertiary); color: var(--text-secondary); opacity: 0.7; }
+
+    #scheduleTimeline { width: 100%; margin-top: 12px; }
+
+    .feasibility-badge { display: inline-block; padding: 8px 16px; border-radius: 20px; font-size: 11px; font-weight: 700; margin-top: 8px; }
+    .feasibility-good { background: var(--success); color: white; opacity: 0.9; }
+    .feasibility-warning { background: var(--warning); color: white; opacity: 0.9; }
+    .feasibility-bad { background: var(--danger); color: white; opacity: 0.9; }
+
+    .card-compact {
+      display: flex; align-items: center; justify-content: space-between; gap: 12px;
+      padding: 10px 20px !important; max-width: 100% !important; position: relative;
+      overflow: hidden; transition: background 0.5s ease; background: var(--card-bg); z-index: 1;
+    }
+    .card-compact h3, .card-compact .display, .card-compact .controls, .card-compact input { position: relative; z-index: 2; }
+    .card-compact h3 { margin: 0; min-width: 110px; text-align: left; }
+    .card-compact .display { font-size: 24px; margin: 0; min-width: 80px; }
+    .card-compact .controls { gap: 4px; }
+    .card-compact button { padding: 6px 12px; font-size: 11px; border-radius: 8px; }
+    .card-compact input { margin: 0; }
+
+    .top-row { 
+      grid-column: 1 / -1; display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px;
+    }
+    @media (max-width: 1100px) { .top-row { grid-column: 1 / -1; grid-template-columns: repeat(2, 1fr); } }
+    @media (max-width: 650px) { .top-row { grid-column: 1 / -1; grid-template-columns: 1fr; } }
+
+    .watch-label-master { font-size: 11px; font-weight: 700; fill: var(--text-secondary); fill-opacity: 0.4; text-transform: uppercase; }
+    .bg-donut-goal { fill: var(--bg); }
+    .bg-donut-temporal { fill: var(--input-bg); }
+    .center-hub-bg { fill: var(--card-bg); }
+
+    input[type="number"]#goalInput {
+      width: 65px; height: 35px; font-size: 18px; border: 2px solid var(--input-border);
+      color: var(--primary); background: var(--input-bg);
+    }
+
+    .card-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; }
+    .card-header h3 { margin: 0; flex-grow: 1; }
+
+    .btn-hide {
+      background: none; border: none; font-size: 18px; cursor: pointer;
+      padding: 4px 8px; color: var(--text-tertiary); transition: color 0.2s;
+    }
+    .btn-hide:hover { color: var(--text); }
+  </style>
+<base target="_blank">
+</head>
+<body>
+
+  <div class="theme-selector">
+    <label for="themeSelect">🎨 Theme:</label>
+    <select id="themeSelect" onchange="changeTheme(this.value)">
+      <option value="default">Light</option>
+      <option value="theme-paper">Old Paper</option>
+      <option value="theme-blackboard">Blackboard</option>
+      <option value="theme-sketch">Pencil Sketch</option>
+      <option value="theme-galaxy">Galaxy</option>
+      <option value="theme-forest">Forest</option>
+      <option value="theme-cyberpunk">Cyberpunk</option>
+      <option value="theme-ocean">Ocean</option>
+    </select>
+  </div>
+
+  <div class="dashboard-container">
+    
+    <div class="card">
+      <h3>⏱️ SESSION CONTROLS</h3>
+      <div style="display: flex; flex-direction: column; gap: 12px; margin-top: 16px;">
+        <div id="card-open" style="background: var(--text); color: white; padding: 16px; border-radius: 6px;">
+          <div style="font-size: 10px; font-weight: 700; margin-bottom: 8px; text-transform: uppercase; letter-spacing: 1px;">⏱️ Open Timer</div>
+          <div id="openDisplay" style="color: white; font-size: 36px; font-family: monospace; font-weight: 800; margin-bottom: 14px; letter-spacing: 2px;">00:00:00</div>
+          <div style="display: flex; gap: 8px;">
+            <button id="startO" onclick="startOpen()" style="flex: 1; padding: 10px; background: white; color: var(--text); border: none; border-radius: 4px; font-weight: 700; cursor: pointer; font-size: 12px;">▶ START</button>
+            <button id="stopO" onclick="stopOpen()" style="flex: 1; padding: 10px; background: var(--danger); color: white; border: none; border-radius: 4px; font-weight: 700; cursor: pointer; font-size: 12px;">⏹ STOP</button>
+          </div>
+        </div>
+        <div style="background: var(--input-bg); color: var(--text); padding: 16px; border-radius: 6px; border: 2px solid var(--text);">
+          <div style="font-size: 10px; font-weight: 700; margin-bottom: 8px; text-transform: uppercase; letter-spacing: 1px;">🏆 Daily Goal</div>
+          <div style="display: flex; gap: 6px; margin-bottom: 12px; align-items: center; justify-content: center;">
+            <input type="number" id="goalInput" value="4" min="0.5" step="0.5" style="width: 60px; padding: 8px; font-size: 14px; font-weight: 600; border: 1px solid var(--text); border-radius: 4px; background: white; color: var(--text);">
+            <span style="font-weight: 700; font-size: 11px;">hrs</span>
+          </div>
+          <button onclick="saveGoal()" style="width: 100%; padding: 10px; background: var(--text); color: white; border: none; border-radius: 4px; font-weight: 700; cursor: pointer; font-size: 12px;">💾 SAVE</button>
+        </div>
+      </div>
+<div style="background: var(--input-bg); color: var(--text); padding: 16px; border-radius: 6px; margin-top: 12px; text-align: center;">
+  <div style="display: flex; justify-content: center; align-items: center; gap: 12px;">
+    <div id="realTimeWatch" style="font-size: 36px; font-family: 'Courier New', 'Lucida Console', monospace; font-weight: 700; color: #000000; letter-spacing: 2px; font-variant-numeric: tabular-nums;">00:00:00</div>
+    <div style="font-size: 9px; font-weight: 600; color: var(--text-secondary);" id="realTimeDate">--:--</div>
+  </div>
+</div>
+</div>
+
+    <div class="card">
+      <h3>⏰ Master Study Chronometer</h3>
+      <div class="master-watch-container">
+        <svg id="masterWatch" width="300" height="300" viewBox="0 0 300 300" style="filter: drop-shadow(0 8px 15px rgba(0,0,0,0.05));">
+          <defs>
+            <filter id="softHubShadow" x="-20%" y="-20%" width="140%" height="140%">
+              <feDropShadow dx="0" dy="4" stdDeviation="6" flood-opacity="0.08"/>
+            </filter>
+          </defs>
+          <path class="bg-donut-temporal" d="M 150 10 A 140 140 0 1 1 149.9 10 L 149.9 45 A 105 105 0 1 0 150 45 Z" />
+          <path class="bg-donut-goal" d="M 150 45 A 105 105 0 1 1 149.9 45 L 149.9 80 A 70 70 0 1 0 150 80 Z" />
+          <g id="masterGoalRing"></g>
+          <g id="masterTemporalRing"></g>
+          <text x="150" y="32" text-anchor="middle" class="watch-label-master">0</text>
+          <text x="268" y="154" text-anchor="middle" class="watch-label-master">6</text>
+          <text x="150" y="278" text-anchor="middle" class="watch-label-master">12</text>
+          <text x="32" y="154" text-anchor="middle" class="watch-label-master">18</text>
+          <circle cx="150" cy="150" r="70" class="center-hub-bg" filter="url(#softHubShadow)"/>
+          <text id="masterTotalHours" x="150" y="145" text-anchor="middle" font-size="32" font-weight="900" fill="var(--primary)" font-family="'Courier New', monospace">0.0h</text>
+          <text id="masterGoalPercent" x="150" y="170" text-anchor="middle" font-size="16" font-weight="800" fill="var(--success)">0%</text>
+          <text x="150" y="185" text-anchor="middle" font-size="8" font-weight="800" fill="var(--text-tertiary)" style="text-transform:uppercase;">reached</text>
+        </svg>
+      </div>
+      <div style="display: flex; justify-content: space-around; width: 100%; margin-top: 15px; padding-top: 15px; border-top: 1px solid var(--border-color);">
+        <div style="text-align: center;">
+          <span id="masterBreak" style="display: block; font-size: 16px; font-weight: 800; color: var(--warning);">0m</span>
+          <span style="font-size: 8px; font-weight: 800; color: var(--text-tertiary); text-transform: uppercase;">Breaks</span>
+        </div>
+        <div style="text-align: center;">
+          <span id="masterRest" style="display: block; font-size: 16px; font-weight: 800; color: var(--success);">0.0h</span>
+          <span style="font-size: 8px; font-weight: 800; color: var(--text-tertiary); text-transform: uppercase;">Deep Rest</span>
+        </div>
+      </div>
+    </div>
+
+<div class="card">
+  <h3>📅 Daily Study Schedule</h3>
+
+  <!-- Time Setter — Top Right -->
+  <div style="position: absolute; top: 16px; right: 50px; display: flex; gap: 8px; align-items: center; z-index: 10;">
+    <span style="font-size: 11px; color: var(--text-secondary);">End:</span>
+    <input type="time" id="endTimeInput" onchange="generateSchedule()" style="padding: 4px 8px; font-size: 12px;">
+      </div>
+
+  <div id="scheduleContainer" style="margin-top: 8px;">
+    <div style="text-align: center; color: var(--text-tertiary); font-size: 12px; padding: 20px;">Set an end time to generate schedule</div>
+  </div>
+</div>
+
+    <div class="card">
+      <h3>✅ Daily Study Actual</h3>
+      <div id="actualContainer" style="margin-top: 12px;">
+        <div style="text-align: center; color: var(--text-tertiary); font-size: 12px; padding: 20px;">No sessions logged today yet</div>
+      </div>
+      <div style="display: flex; justify-content: space-around; width: 100%; margin-top: 15px; padding-top: 15px; border-top: 1px solid var(--border-color);">
+        <div style="text-align: center;">
+          <span id="actualTotalHours" style="display: block; font-size: 16px; font-weight: 800; color: var(--primary);">0.0h</span>
+          <span style="font-size: 8px; font-weight: 800; color: var(--text-tertiary); text-transform: uppercase;">Total Study</span>
+        </div>
+        <div style="text-align: center;">
+          <span id="actualSessionCount" style="display: block; font-size: 16px; font-weight: 800; color: var(--primary);">0</span>
+          <span style="font-size: 8px; font-weight: 800; color: var(--text-tertiary); text-transform: uppercase;">Sessions</span>
+        </div>
+        <div style="text-align: center;">
+          <span id="actualBreakTime" style="display: block; font-size: 16px; font-weight: 800; color: var(--warning);">0m</span>
+          <span style="font-size: 8px; font-weight: 800; color: var(--text-tertiary); text-transform: uppercase;">Breaks</span>
+        </div>
+      </div>
+    </div>
+    
+    <div class="card">
+      <div class="chart-header">
+        <h3>📅 Weekly Timeline</h3>
+        <button class="btn-view" onclick="loadPlannerWithCache()" style="font-size: 10px;">🔄 Sync</button>
+      </div>
+      <div class="grid-wrapper" id="gridWrapper"></div>
+    </div>
+
+    <div class="card">
+      <h3 style="margin-bottom: 4px;">🔥 Consistency</h3>
+
+      <!-- Month/Year Navigation -->
+      <div style="display: flex; gap: 6px; margin-bottom: 0; justify-content: flex-end; align-items: center; position: absolute; top: 16px; right: 50px; z-index: 10;">
+                <select id="monthSelect" onchange="updateCalendar()" style="padding: 6px 10px; border: 1px solid var(--input-border); border-radius: 8px; background: var(--input-bg); color: var(--text); cursor: pointer; font-size: 12px; font-weight: 600;">
+          <option value="0">January</option>
+          <option value="1">February</option>
+          <option value="2">March</option>
+          <option value="3">April</option>
+          <option value="4">May</option>
+          <option value="5">June</option>
+          <option value="6">July</option>
+          <option value="7">August</option>
+          <option value="8">September</option>
+          <option value="9">October</option>
+          <option value="10">November</option>
+          <option value="11">December</option>
+        </select>
+
+        <select id="yearSelect" onchange="updateCalendar()" style="padding: 6px 10px; border: 1px solid var(--input-border); border-radius: 8px; background: var(--input-bg); color: var(--text); cursor: pointer; font-size: 12px; font-weight: 600;">
+        </select>
+      </div>
+
+      <!-- Calendar Container -->
+      <div id="calendarContainer" style="font-size: 12px; margin-top: -6px;"></div>
+
+      <!-- Stats -->
+      <div style="display:flex; justify-content: space-around; width:100%; border-top:1px solid var(--border-color); padding-top:10px; font-size:10px; margin-top: 10px;">
+        <div>Avg<span id="statAvg" style="display:block; font-weight:bold; color:var(--success);">0h</span></div>
+        <div>Streak<span id="statStreak" style="display:block; font-weight:bold; color:var(--success);">0d</span></div>
+        <div>Best<span id="statLongest" style="display:block; font-weight:bold; color:var(--success);">0d</span></div>
+      </div>
+    </div>
+     
+    <div class="card">
+      <h3>⏰ Most Active Hours</h3>
+      <div style="margin-top: 40px;">
+        <div style="font-size: 9px; font-weight: 700; color: var(--text-secondary); text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 6px;">🌅 Morning</div>
+        <div id="activeHoursChartAM" style="height: 170px; width: 100%;"></div>
+        <div style="font-size: 9px; font-weight: 700; color: var(--text-secondary); text-transform: uppercase; letter-spacing: 0.5px; margin: 14px 0 6px 0;">🌙 Afternoon / Evening</div>
+        <div id="activeHoursChartPM" style="height: 170px; width: 100%;"></div>
+      </div>
+    </div>
+
+    <div class="card">
+      <h3>📊 Daily Analytics</h3>
+      <div id="chart_div_daily" style="height: 400px;"></div>
+    </div>
+ 
+    <div class="card">
+      <h3>📊 Weekly Analytics</h3>
+      <div id="chart_div_weekly" style="height: 400px;"></div>
+    </div>
+ 
+    <div class="card">
+      <h3>📊 Monthly Analytics</h3>
+      <div id="chart_div_monthly" style="height: 400px;"></div>
+    </div>
+
+    <div class="card">
+      <h3>📈 Weekly Sessions Pattern</h3>
+      <div id="weeklySessionsChart" style="height: 350px; width: 100%;"></div>
+    </div>
+
+    <div class="card">
+      <h3>📈 Daily Progress</h3>
+      <div id="dailyProgressChart" style="height: 300px;"></div>
+    </div>
+
+    <div class="card">
+      <h3>⚡ Productivity Peaks</h3>
+      <div id="hourly_dist_chart" style="height: 150px; width: 100%;"></div>
+    </div>
+
+    <div class="card">
+      <h3>🏔️ Knowledge Mountain</h3>
+      <div id="mountain_chart" style="height: 150px; width: 100%;"></div>
+    </div>
+
+
+    <div class="card">
+      <h3>🎯 Goal Accuracy</h3>
+      <div id="scatter_chart" style="height: 150px; width: 100%;"></div>
+    </div>
+</div>
+
+
+
+  <script>
+function formatHours(decimalHours) {
+  const hours = Math.floor(decimalHours);
+  const minutes = Math.round((decimalHours % 1) * 60);
+  return hours > 0 ? `${hours}h ${minutes}m` : `${minutes}m`;
+}
+    // ============= INDEXEDDB SETUP =============
+    const WEB_APP_URL = "https://script.google.com/macros/s/AKfycbwXOTn__dyqNI-8JvsTPEGtC4OPJYuC9-_jqIlq-lutQZDeQzlmM-46XwWAmWYQu8mT/exec";
+    let db;
+    let openInt, openSecs = 0, openStartTime;
+
+    // Initialize IndexedDB
+    function initIndexedDB() {
+      return new Promise((resolve, reject) => {
+        const request = indexedDB.open('StudyDashboardDB', 1);
+        request.onerror = () => { console.error('IndexedDB error:', request.error); reject(request.error); };
+        request.onsuccess = () => { db = request.result; console.log('IndexedDB initialized'); resolve(db); };
+        request.onupgradeneeded = (event) => {
+          const database = event.target.result;
+          if (!database.objectStoreNames.contains('dailyData')) database.createObjectStore('dailyData', { keyPath: 'id' });
+          if (!database.objectStoreNames.contains('weeklyData')) database.createObjectStore('weeklyData', { keyPath: 'id' });
+          if (!database.objectStoreNames.contains('monthlyData')) database.createObjectStore('monthlyData', { keyPath: 'id' });
+          if (!database.objectStoreNames.contains('watchData')) database.createObjectStore('watchData', { keyPath: 'id' });
+          if (!database.objectStoreNames.contains('plannerData')) database.createObjectStore('plannerData', { keyPath: 'id' });
+        };
+      });
+    }
+
+    // Save to IndexedDB
+    function saveToIndexedDB(storeName, data) {
+      return new Promise((resolve) => {
+        if (!db) { resolve(); return; }
+        const transaction = db.transaction([storeName], 'readwrite');
+        const store = transaction.objectStore(storeName);
+        store.clear();
+        store.add({ id: 1, data: data, timestamp: Date.now() });
+        transaction.oncomplete = () => resolve();
+      });
+    }
+
+    // Get from IndexedDB
+    function getFromIndexedDB(storeName) {
+      return new Promise((resolve) => {
+        if (!db) { resolve(null); return; }
+        const transaction = db.transaction([storeName], 'readonly');
+        const store = transaction.objectStore(storeName);
+        const request = store.get(1);
+        request.onsuccess = () => resolve(request.result ? request.result.data : null);
+        request.onerror = () => resolve(null);
+      });
+    }
+
+    // ============= CACHE WRAPPER FUNCTIONS =============
+
+    async function loadChartDailyWithCache() {
+      const cachedData = await getFromIndexedDB('dailyData');
+      if (cachedData) { loadChart('Daily', 'chart_div_daily', cachedData); }
+      fetch(`${WEB_APP_URL}?view=Daily`).then(res => res.json()).then(newData => {
+        saveToIndexedDB('dailyData', newData);
+        loadChart('Daily', 'chart_div_daily', newData);
+      }).catch(err => { if (!cachedData) document.getElementById('chart_div_daily').innerHTML = 'Error loading chart'; });
+    }
+
+    async function loadChartWeeklyWithCache() {
+      const cachedData = await getFromIndexedDB('weeklyData');
+      if (cachedData) { loadChart('Weekly', 'chart_div_weekly', cachedData); }
+      fetch(`${WEB_APP_URL}?view=Weekly`).then(res => res.json()).then(newData => {
+        saveToIndexedDB('weeklyData', newData);
+        loadChart('Weekly', 'chart_div_weekly', newData);
+      }).catch(err => { if (!cachedData) document.getElementById('chart_div_weekly').innerHTML = 'Error loading chart'; });
+    }
+
+    async function loadChartMonthlyWithCache() {
+      const cachedData = await getFromIndexedDB('monthlyData');
+      if (cachedData) { loadChart('Monthly', 'chart_div_monthly', cachedData); }
+      fetch(`${WEB_APP_URL}?view=Monthly`).then(res => res.json()).then(newData => {
+        saveToIndexedDB('monthlyData', newData);
+        loadChart('Monthly', 'chart_div_monthly', newData);
+      }).catch(err => { if (!cachedData) document.getElementById('chart_div_monthly').innerHTML = 'Error loading chart'; });
+    }
+
+    async function load24HourWatchWithCache() {
+      const cachedData = await getFromIndexedDB('watchData');
+      if (cachedData) { updateWatchDisplay(cachedData); }
+      fetch(`${WEB_APP_URL}?action=getWatchData`).then(res => res.json()).then(newData => {
+        saveToIndexedDB('watchData', newData);
+        updateWatchDisplay(newData);
+      }).catch(err => console.error("Watch error:", err));
+    }
+
+    async function loadPlannerWithCache() {
+      const cachedData = await getFromIndexedDB('plannerData');
+      if (cachedData) { displayPlannerTable(cachedData); }
+      fetch(`${WEB_APP_URL}?action=getPlannerData`).then(res => res.json()).then(newData => {
+        saveToIndexedDB('plannerData', newData);
+        displayPlannerTable(newData);
+      }).catch(err => { if (!cachedData) document.getElementById('gridWrapper').innerHTML = `<div style="text-align: center; padding: 20px; color: var(--danger);">Error loading planner</div>`; });
+    }
+
+    // ============= DISPLAY FUNCTIONS (NO CHANGES) =============
+
+    function updateWatchDisplay(sessions) {
+      let totalStudyH = 0, totalBreakM = 0, totalRestH = 0;
+      if (sessions && sessions.length > 0) {
+        sessions.sort((a, b) => a.start - b.start);
+        sessions.forEach((sess, i) => {
+          totalStudyH += sess.hrs;
+          if (i < sessions.length - 1) {
+            let gap = sessions[i+1].start - (sess.start + sess.hrs);
+            if (gap > 0) { if (gap >= 6) totalRestH += gap; else totalBreakM += (gap * 60); }
+          }
+        });
+        let firstGap = sessions[0].start, lastGap = 24 - (sessions[sessions.length-1].start + sessions[sessions.length-1].hrs);
+        [firstGap, lastGap].forEach(gap => { if (gap >= 6) totalRestH += gap; else if (gap > 0) totalBreakM += (gap * 60); });
+      }
+      const masterTotalHours = document.getElementById('masterTotalHours');
+      const masterBreak = document.getElementById('masterBreak');
+      const masterRest = document.getElementById('masterRest');
+      if (masterTotalHours) masterTotalHours.innerText = formatHours(totalStudyH);
+      if (masterBreak) masterBreak.innerText = Math.round(totalBreakM) + 'm';
+      if (masterRest) masterRest.innerText = formatHours(totalRestH);
+    }
+
+    function displayPlannerTable(data) {
+      if (!Array.isArray(data) || data.length === 0) {
+        document.getElementById('gridWrapper').innerHTML = '<div style="text-align: center; padding: 20px; color: var(--text-tertiary); font-size: 11px;">No schedule data</div>';
+        return;
+      }
+      const last7Days = data.slice(-7);
+      const tableData = last7Days.map((row) => {
+        const dateStr = row[0];
+        const dayOfWeek = new Date(dateStr + ' 2026').toLocaleDateString('en-US', { weekday: 'short' });
+        let sessionCount = 0, totalStudyHours = 0;
+        for (let j = 1; j < row.length; j += 3) { const hours = row[j]; if (typeof hours === 'number' && hours > 0) { sessionCount++; totalStudyHours += hours; } }
+        return { dayOfWeek, dateStr, sessionCount, totalStudyHours };
+      });
+      const weeklyTotals = { totalSessions: tableData.reduce((sum, d) => sum + d.sessionCount, 0), totalStudyHours: tableData.reduce((sum, d) => sum + d.totalStudyHours, 0) };
+      let html = `<div style="overflow-x: auto; width: 100%;"><table style="width: 100%; border-collapse: collapse; font-size: 16px;"><thead><tr style="background: var(--input-bg); border-bottom: 1px solid var(--primary);"><th style="padding: 6px 8px; text-align: left; font-weight: 700; color: var(--text); font-size: 10px;">Day</th><th style="padding: 6px 8px; text-align: center; font-weight: 700; color: var(--text); font-size: 10px;">Sessions</th><th style="padding: 6px 8px; text-align: center; font-weight: 700; color: var(--text); font-size: 10px;">Study Time</th><th style="padding: 6px 8px; text-align: right; font-weight: 700; color: var(--text); font-size: 10px;">Efficiency</th></tr></thead><tbody>`;
+      tableData.forEach((day, idx) => {
+        const efficiency = Math.round((day.totalStudyHours / 16) * 100);
+        const bgColor = idx >= 5 ? 'rgba(0,0,0,0.02)' : 'transparent';
+        html += `<tr style="background: ${bgColor}; border-bottom: 1px solid var(--border-color);"><td style="padding: 6px 8px; font-weight: 600; color: var(--primary); font-size: 10px;">${day.dayOfWeek} <span style="font-size: 9px; color: var(--text-tertiary);">${day.dateStr}</span></td><td style="padding: 6px 8px; text-align: center;"><span style="background: var(--primary); color: white; padding: 2px 4px; border-radius: 3px; font-weight: 600; font-size: 9px;">${day.sessionCount}</span></td><td style="padding: 6px 8px; text-align: center; font-weight: 700; color: var(--primary); font-size: 10px;">${formatHours(day.totalStudyHours)}</td><td style="padding: 6px 8px; text-align: right;"><div style="display: flex; align-items: center; justify-content: flex-end; gap: 4px;"><div style="width: 30px; height: 4px; background: var(--border-color); border-radius: 2px; overflow: hidden;"><div style="width: ${Math.min(100, efficiency)}%; height: 100%; background: ${efficiency > 80 ? 'var(--success)' : efficiency > 50 ? 'var(--warning)' : 'var(--danger)'}; transition: width 0.3s;"></div></div><span style="font-weight: 600; font-size: 9px; min-width: 30px;">${efficiency}%</span></div></td></tr>`;
+      });
+      const weeklyEfficiency = Math.round((weeklyTotals.totalStudyHours / 12) * 100);
+      html += `<tr style="background: var(--primary); color: white; font-weight: 700; font-size: 10px;"><td style="padding: 6px 8px; font-weight: 800;">7-DAY</td><td style="padding: 6px 8px; text-align: center;"><span style="background: rgba(255,255,255,0.3); padding: 2px 4px; border-radius: 3px; font-size: 9px;">${weeklyTotals.totalSessions}</span></td><td style="padding: 6px 8px; text-align: center;">${weeklyTotals.totalStudyHours.toFixed(1)}h</td><td style="padding: 6px 8px; text-align: right;"><div style="display: flex; align-items: center; justify-content: flex-end; gap: 4px;"><div style="width: 30px; height: 4px; background: rgba(255,255,255,0.3); border-radius: 2px; overflow: hidden;"><div style="width: ${Math.min(100, weeklyEfficiency)}%; height: 100%; background: rgba(255,255,255,0.8);"></div></div><span style="font-size: 9px; min-width: 30px;">${weeklyEfficiency}%</span></div></td></tr></tbody></table></div>`;
+      html += `<div style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; margin-top: 12px; padding-top: 12px; border-top: 1px solid var(--border-color);"><div style="text-align: center;"><span style="display: block; font-size: 9px; font-weight: 600; color: var(--text-secondary); text-transform: uppercase;">Avg/Day</span><span style="font-size: 13px; font-weight: 800; color: var(--primary);">${formatHours(weeklyTotals.totalStudyHours / 7)}</span></div><div style="text-align: center;"><span style="display: block; font-size: 9px; font-weight: 600; color: var(--text-secondary); text-transform: uppercase;">Peak</span><span style="font-size: 13px; font-weight: 800; color: var(--success);">${tableData.reduce((max, d) => d.totalStudyHours > max.totalStudyHours ? d : max).dayOfWeek}</span></div><div style="text-align: center;"><span style="display: block; font-size: 9px; font-weight: 600; color: var(--text-secondary); text-transform: uppercase;">Avg Sess</span><span style="font-size: 13px; font-weight: 800; color: var(--primary);">${(weeklyTotals.totalSessions / 7).toFixed(1)}</span></div><div style="text-align: center;"><span style="display: block; font-size: 9px; font-weight: 600; color: var(--text-secondary); text-transform: uppercase;">Active</span><span style="font-size: 13px; font-weight: 800; color: var(--warning);">${Math.round((tableData.filter(d => d.sessionCount > 0).length / 7) * 100)}%</span></div></div>`;
+      document.getElementById('gridWrapper').innerHTML = html;
+    }
+
+    // ============= ORIGINAL CODE (UNCHANGED) =============
+
+    function getThemeColors() {
+      const style = getComputedStyle(document.body);
+      return {
+        primary: style.getPropertyValue('--primary').trim(),
+        success: style.getPropertyValue('--success').trim(),
+        danger: style.getPropertyValue('--danger').trim(),
+        warning: style.getPropertyValue('--warning').trim(),
+        calEvent: style.getPropertyValue('--cal-event').trim(),
+        studyEvent: style.getPropertyValue('--study-event').trim(),
+      };
+    }
+
+    function changeTheme(themeName) {
+      document.body.classList.remove('theme-paper', 'theme-blackboard', 'theme-galaxy', 'theme-forest', 'theme-cyberpunk', 'theme-ocean', 'theme-sketch');
+      if (themeName !== 'default') { document.body.classList.add(themeName); }
+      localStorage.setItem('selectedTheme', themeName);
+      setTimeout(() => {
+        loadChartDailyWithCache(); loadChartWeeklyWithCache(); loadChartMonthlyWithCache();
+        loadHourlyDist(); loadMountain(); loadScatter();
+        loadMasterChronometer(); loadDailyProgressChart();
+      }, 100);
+    }
+
+    function saveGoal() {
+      const newGoal = parseFloat(document.getElementById('goalInput').value);
+      if (newGoal <= 0) { alert('Goal must be greater than 0'); return; }
+      fetch(WEB_APP_URL, {
+        method: "POST", mode: "no-cors",
+        body: JSON.stringify({ action: "setGoal", goal: newGoal })
+      }).then(() => {
+        load24HourWatchWithCache();
+        generateSchedule();
+        alert('Goal updated to ' + newGoal + ' hours!');
+      });
+    }
+
+    window.onload = async function() {
+      const savedTheme = localStorage.getItem('selectedTheme') || 'default';
+      document.getElementById('themeSelect').value = savedTheme;
+      changeTheme(savedTheme);
+
+      // Initialize IndexedDB
+      await initIndexedDB().catch(err => console.error('Failed to init IndexedDB:', err));
+
+      fetch(`${WEB_APP_URL}?action=getGoal`).then(res => res.json()).then(data => {
+        document.getElementById('goalInput').value = data.goal;
+      }).catch(() => null);
+      
+      fetch(`${WEB_APP_URL}?action=getState`).then(res => res.json()).then(props => restoreSessions(props)).catch(() => null);
+      
+      google.charts.load('current', {packages:['corechart']});
+      google.charts.setOnLoadCallback(async () => {
+        loadChartDailyWithCache(); loadChartWeeklyWithCache(); loadChartMonthlyWithCache(); loadCalendarData(); loadHourlyDist();
+        load24HourWatchWithCache(); loadMountain(); loadScatter(); loadMasterChronometer();
+        loadActualStudySessions(); loadDailyProgressChart(); loadWeeklySessionsChart(); 
+      });
+      loadPlannerWithCache();
+      setDefaultEndTime();
+      updateRealTimeClock();
+      initCardControls();
+      loadActiveHoursChart(); // Add with other chart updates
+    };
+
+    function restoreSessions(props) {
+      if (props.Open_startTime) { 
+        openStartTime = parseInt(props.Open_startTime); 
+        startOpen(true); 
+      }
+    }
+
+    function startOpen(isRestoring = false) {
+      if (openInt) clearInterval(openInt);
+      if (!isRestoring) { 
+        openStartTime = Date.now(); 
+        saveState("Open", Date.now()); 
+      }
+      const openDisplay = document.getElementById('openDisplay');
+      if (openDisplay) openDisplay.style.color = '#FFD700';
+
+      toggleButtons('O', true);
+      openInt = setInterval(() => {
+        openSecs = Math.floor((Date.now() - openStartTime) / 1000);
+        document.getElementById('openDisplay').innerText = fmt(openSecs, true);
+        let progress = ((openSecs % 3600) / 3600) * 100;
+       document.getElementById('card-open').style.background = 
+  `linear-gradient(to right, white ${progress}%, var(--text) ${progress}%)`;
+      }, 500);
+    }
+
+    function stopOpen() {
+      clearInterval(openInt); openInt = null;
+      document.getElementById('card-open').style.background = "var(--card-bg)";
+      const logDuration = fmt(openSecs, true);
+      openSecs = 0; openStartTime = null;
+      document.getElementById('openDisplay').innerText = "00:00:00";
+      toggleButtons('O', false);
+      logData("Open", logDuration, "");
+    }
+
+    function saveState(type, startTime, targetDuration = null) {
+      fetch(WEB_APP_URL, { method: "POST", mode: "no-cors", body: JSON.stringify({ action: "saveState", type, startTime, targetDuration }) });
+    }
+
+    function logData(type, duration, target) {
+      fetch(WEB_APP_URL, { method: "POST", mode: "no-cors", body: JSON.stringify({ type, duration, target }) }).then(() => {
+        setTimeout(() => { 
+          loadChartDailyWithCache(); loadChartWeeklyWithCache(); loadChartMonthlyWithCache();
+          loadPlannerWithCache(); loadCalendarData(); loadHourlyDist();
+          load24HourWatchWithCache(); loadMountain(); loadScatter();
+          generateSchedule(); loadActualStudySessions(); loadDailyProgressChart();
+        }, 1500);
+      });
+    }
+
+    function loadChartDaily() { loadChart('Daily', 'chart_div_daily'); }
+    function loadChartWeekly() { loadChart('Weekly', 'chart_div_weekly'); }
+    function loadChartMonthly() { loadChart('Monthly', 'chart_div_monthly'); }
+
+    function loadChart(view, chartDivId, cachedData = null) {
+      const fetchView = (view === 'Weekly' || view === 'Daily') ? 'Daily' : view;
+      const themeColors = getThemeColors();
+     
+      const processChart = (rawData) => {
+        if (rawData.length <= 1) { 
+          document.getElementById(chartDivId).innerHTML = "No logs."; 
+          return; 
+        }
+        let finalData = [];
+        let globalMax = 0;
+     
+        if (view === 'Daily') {
+          const today = new Date();
+          const todayKey = today.toLocaleDateString('en-US', { month: 'short', day: '2-digit' });
+          let todayRow = rawData.find(row => row[0] === todayKey);
+          if (!todayRow) { document.getElementById(chartDivId).innerHTML = "No sessions today."; return; }
+          
+          finalData.push(['Session', 'Hours', { role: 'style' }, { role: 'annotation' }]);
+          let sessionCount = 1;
+          for (let j = 1; j < todayRow.length; j += 3) {
+            let hrs = todayRow[j];
+            let color = todayRow[j + 1];
+            if (typeof hrs === 'number' && hrs > 0 && typeof color === 'string' && color.startsWith('#')) {
+              let mins = Math.round(hrs * 60);
+              finalData.push(['S' + sessionCount, hrs, `color: ${color}; fill-opacity: 0.8`, Math.floor(mins/60) + "h " + (mins%60) + "m"]);
+              if (hrs > globalMax) globalMax = hrs;
+              sessionCount++;
+            }
+          }
+          const chartData = google.visualization.arrayToDataTable(finalData);
+          const options = {
+            legend: 'none', backgroundColor: 'transparent', chartArea: { width: '95%', height: '85%', top: 10, bottom: 25 },
+            bar: { groupWidth: '70%' }, vAxis: { gridlines: { color: 'transparent' }, baselineColor: themeColors.primary, viewWindow: { min: 0, max: globalMax > 0 ? (globalMax * 1.1) : 1 }, textPosition: 'none' },
+            hAxis: { textStyle: { fontSize: 8, color: themeColors.primary }, baselineColor: 'transparent', gridlines: { color: 'transparent' } },
+            annotations: { alwaysOutside: true, textStyle: { fontSize: 10, bold: true, color: themeColors.primary }, stem: { color: 'transparent', length: 0 } },
+            animation: { startup: true, duration: 600, easing: 'out' }
+          };
+          new google.visualization.ColumnChart(document.getElementById(chartDivId)).draw(chartData, options);
+        } 
+        else if (view === 'Weekly') {
+          let data = rawData.length > 8 ? [rawData[0], ...rawData.slice(-7)] : rawData;
+          let totals = [];
+          for (let i = 1; i < data.length; i++) {
+            let dailyTotal = 0;
+            for (let j = 1; j < data[i].length; j += 3) { if (typeof data[i][j] === 'number') dailyTotal += data[i][j]; }
+            totals.push(dailyTotal); if (dailyTotal > globalMax) globalMax = dailyTotal;
+          }
+          data[0].splice(1, 0, "Base", { role: "style" }, { role: "tooltip" });
+          data[0].push({ role: "annotation" });
+          for (let i = 1; i < data.length; i++) {
+            let row = data[i], dailyTotal = totals[i - 1];
+            row.splice(1, 0, 0.05, 'none', '');
+            let tm = Math.round(dailyTotal * 60);
+            row.push(dailyTotal > 0 ? (Math.floor(tm / 60) + "h " + (tm % 60) + "m") : "");
+          }
+          const chartData = google.visualization.arrayToDataTable(data);
+          const options = {
+            isStacked: true, legend: 'none', backgroundColor: 'transparent', chartArea: { width: '95%', height: '85%', top: 10, bottom: 25 },
+            bar: { groupWidth: '70%' }, vAxis: { gridlines: { color: 'transparent' }, baselineColor: themeColors.primary, viewWindow: { min: 0, max: globalMax > 0 ? (globalMax * 1.1) : 1 }, textPosition: 'none' },
+            hAxis: { textStyle: { fontSize: 8, color: themeColors.primary }, baselineColor: 'transparent', gridlines: { color: 'transparent' } },
+            annotations: { alwaysOutside: true, textStyle: { fontSize: 10, bold: true, color: themeColors.primary }, stem: { color: 'transparent', length: 0 } },
+            animation: { startup: true, duration: 600, easing: 'out' }
+          };
+          new google.visualization.ColumnChart(document.getElementById(chartDivId)).draw(chartData, options);
+        } 
+        else if (view === 'Monthly') {
+          const last30Days = rawData.slice(-31).slice(1);
+          finalData.push(['Date', 'Hours', { role: 'style' }]);
+          last30Days.forEach((row) => {
+            const dateStr = row[0];
+            let dailyTotal = 0;
+            for (let j = 1; j < row.length; j += 3) { if (typeof row[j] === 'number') dailyTotal += row[j]; }
+            const color = dailyTotal >= 6 ? themeColors.success : themeColors.danger;
+            finalData.push([dateStr, dailyTotal, `color: ${color}`]);
+            if (dailyTotal > globalMax) globalMax = dailyTotal;
+          });
+          const chartData = google.visualization.arrayToDataTable(finalData);
+          const options = {
+            legend: 'none', backgroundColor: 'transparent', chartArea: { width: '90%', height: '80%', top: 15, bottom: 30 },
+            pointSize: 5, lineWidth: 2, curveType: 'linear',
+            vAxis: { gridlines: { color: 'rgba(0,0,0,0.05)' }, minorGridlines: { color: 'transparent' }, baselineColor: 'transparent', viewWindow: { min: 0, max: globalMax > 0 ? (globalMax * 1.15) : 10 }, textStyle: { fontSize: 8, color: themeColors.text } },
+            hAxis: { textStyle: { fontSize: 8, color: themeColors.primary }, showTextEvery: Math.ceil(last30Days.length / 6), gridlines: { color: 'transparent' }, baselineColor: 'transparent' },
+            series: { 0: { color: themeColors.warning, lineWidth: 1.5 } },
+            animation: { startup: true, duration: 800, easing: 'out' }
+          };
+          new google.visualization.LineChart(document.getElementById(chartDivId)).draw(chartData, options);
+        }
+      };
+
+      if (cachedData) {
+        processChart(cachedData);
+      } else {
+        fetch(`${WEB_APP_URL}?view=${fetchView}`).then(res => res.json()).then(processChart).catch(err => {
+          console.error('Chart error:', err);
+          document.getElementById(chartDivId).innerHTML = 'Error loading chart';
+        });
+      }
+    }
+
+let calendarStats = {};
+
+async function loadCalendarData() {
+  try {
+    const allData = await fetch(`${WEB_APP_URL}?view=Daily`).then(res => res.json());
+    if (!allData || allData.length <= 1) return;
+
+    calendarStats = {};
+    for (let i = 1; i < allData.length; i++) {
+      const row = allData[i];
+      const dateStr = row[0];
+      let dailyTotal = 0;
+      for (let j = 1; j < row.length; j += 3) {
+        if (typeof row[j] === 'number') dailyTotal += row[j];
+      }
+      calendarStats[dateStr] = dailyTotal;
+    }
+
+    // Populate year dropdown
+    const years = new Set();
+    Object.keys(calendarStats).forEach(dateStr => {
+      const year = new Date(dateStr + ' 2026').getFullYear();
+      years.add(year);
+    });
+
+    const yearSelect = document.getElementById('yearSelect');
+    yearSelect.innerHTML = '';
+    Array.from(years).sort().reverse().forEach(year => {
+      const option = document.createElement('option');
+      option.value = year;
+      option.textContent = year;
+      yearSelect.appendChild(option);
+    });
+
+    // Set current month/year
+    const now = new Date();
+    document.getElementById('monthSelect').value = now.getMonth();
+    document.getElementById('yearSelect').value = now.getFullYear();
+
+    updateCalendar();
+  } catch (error) {
+    console.error('Calendar error:', error);
+  }
+}
+
+function updateCalendar() {
+  const month = parseInt(document.getElementById('monthSelect').value);
+  const year = parseInt(document.getElementById('yearSelect').value);
+
+  const container = document.getElementById('calendarContainer');
+  container.innerHTML = '';
+
+  // Add day headers
+  const dayNames = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+  dayNames.forEach(day => {
+    const header = document.createElement('div');
+    header.className = 'calendar-header';
+    header.innerText = day;
+    container.appendChild(header);
+  });
+
+  // Get first day of month and number of days
+  const firstDay = new Date(year, month, 1).getDay();
+  const daysInMonth = new Date(year, month + 1, 0).getDate();
+
+  // Add empty cells for days before month starts
+  for (let i = 0; i < firstDay; i++) {
+    const emptyCell = document.createElement('div');
+    emptyCell.className = 'calendar-day empty';
+    container.appendChild(emptyCell);
+  }
+
+  // Add day cells
+  let totalHours = 0, daysWithData = 0;
+  let longestStreak = 0, currentStreak = 0;
+
+  for (let day = 1; day <= daysInMonth; day++) {
+    const d = new Date(year, month, day);
+    const dateStr = d.toLocaleDateString('en-US', { month: 'short', day: '2-digit' });
+    const h = calendarStats[dateStr] || 0;
+
+    let lvl = h > 5 ? 4 : h > 3 ? 3 : h > 1 ? 2 : h > 0 ? 1 : 0;
+
+    const hours = Math.floor(h);
+    const minutes = Math.round((h % 1) * 60);
+    const timeStr = h > 0 ? `${hours}h<br>${minutes}m` : '';
+
+    const cell = document.createElement('div');
+    cell.className = `calendar-day lvl-${lvl}`;
+    cell.innerHTML = `<div class="calendar-day-number">${day}</div><div class="calendar-day-hours">${timeStr}</div>`;
+    cell.title = `${dateStr}: ${h > 0 ? hours + 'h ' + minutes + 'm' : '0h'}`;
+
+    if (h > 0) {
+      totalHours += h;
+      daysWithData++;
+      currentStreak++;
+      if (currentStreak > longestStreak) longestStreak = currentStreak;
+    } else {
+      currentStreak = 0;
+    }
+
+    container.appendChild(cell);
+  }
+
+  // Update stats
+  const avgDaily = daysWithData > 0 ? (totalHours / daysWithData).toFixed(1) : '0';
+  const statAvg = document.getElementById('statAvg');
+  const statStreak = document.getElementById('statStreak');
+  const statLongest = document.getElementById('statLongest');
+  if (statAvg) statAvg.innerText = avgDaily + 'h';
+  if (statStreak) statStreak.innerText = currentStreak + 'd';
+  if (statLongest) statLongest.innerText = longestStreak + 'd';
+}
+
+function loadHourlyDist() {
+      const themeColors = getThemeColors();
+      fetch(`${WEB_APP_URL}?action=getHourlyDistribution`).then(res => res.json()).then(data => {
+        if (data.length <= 1) return;
+        new google.visualization.AreaChart(document.getElementById('hourly_dist_chart')).draw(google.visualization.arrayToDataTable(data), {
+          curveType: 'function', legend: 'none', colors: [themeColors.warning], areaOpacity: 0.1, backgroundColor: 'transparent',
+          chartArea: { width: '90%', height: '80%' }, vAxis: { textPosition: 'none', gridlines: { color: 'transparent' } },
+          hAxis: { textStyle: { fontSize: 8, color: themeColors.warning }, showTextEvery: 6 }
+        });
+      });
+    }
+
+    function loadMountain() {
+      const themeColors = getThemeColors();
+      fetch(`${WEB_APP_URL}?action=getMountainData`).then(res => res.json()).then(data => {
+        if (data.length <= 1) return;
+        new google.visualization.AreaChart(document.getElementById('mountain_chart')).draw(google.visualization.arrayToDataTable(data), {
+          legend:'none', colors:[themeColors.primary], areaOpacity:0.05, chartArea:{width:'90%', height:'80%'},
+          vAxis:{textPosition:'none', gridlines:{color:'transparent'}}, hAxis:{textPosition:'none'}
+        });
+      });
+    }
+
+    function loadScatter() {
+      const themeColors = getThemeColors();
+      fetch(`${WEB_APP_URL}?action=getScatterData`).then(res => res.json()).then(data => {
+        if (data.length <= 1) return;
+        new google.visualization.ScatterChart(document.getElementById('scatter_chart')).draw(google.visualization.arrayToDataTable(data), {
+          legend:'none', colors:[themeColors.danger], chartArea:{width:'80%', height:'70%'},
+          hAxis:{title:'Planned', titleTextStyle:{fontSize:8}}, vAxis:{title:'Actual', titleTextStyle:{fontSize:8}}
+        });
+      });
+    }
+
+    function toggleButtons(group, isRunning) {
+      document.getElementById('start' + group).disabled = isRunning;
+    }
+
+    function fmt(s, hrs = false) {
+      if (s < 0) s = 0; 
+      let h = Math.floor(s / 3600), m = Math.floor((s % 3600) / 60), sc = s % 60;
+      let res = `${m.toString().padStart(2, '0')}:${sc.toString().padStart(2, '0')}`;
+      return hrs ? `${h.toString().padStart(2, '0')}:${res}` : res;
+    }
+
+    function setDefaultEndTime() {
+      const now = new Date();
+      const endTime = new Date(now.getTime() + 8 * 60 * 60 * 1000);
+      const hours = String(endTime.getHours()).padStart(2, '0');
+      const minutes = String(endTime.getMinutes()).padStart(2, '0');
+      document.getElementById('endTimeInput').value = `${hours}:${minutes}`;
+      generateSchedule();
+    }
+
+    function recommendSessions(hoursRemaining) {
+      let sessionCount, studyDuration, breakDuration;
+      if (hoursRemaining < 1) { sessionCount = 1; studyDuration = hoursRemaining; breakDuration = 0; } 
+      else if (hoursRemaining < 2) { sessionCount = 2; studyDuration = hoursRemaining / 2; breakDuration = 0.25; } 
+      else if (hoursRemaining < 4) { sessionCount = 3; studyDuration = hoursRemaining / 3; breakDuration = (hoursRemaining < 3) ? 0.25 : 0.33; } 
+      else if (hoursRemaining < 6) { sessionCount = 4; studyDuration = hoursRemaining / 4; breakDuration = 0.33; } 
+      else { sessionCount = 5; studyDuration = hoursRemaining / 5; breakDuration = 0.42; }
+      return { sessionCount, studyDuration, breakDuration };
+    }
+
+    function generateSchedule() {
+      const endTimeInput = document.getElementById('endTimeInput').value;
+      if (!endTimeInput) {
+        document.getElementById('scheduleContainer').innerHTML = '<div style="text-align: center; color: var(--text-tertiary); font-size: 12px; padding: 20px;">Set an end time to generate schedule</div>';
+        return;
+      }
+      fetch(`${WEB_APP_URL}?action=getGoalData`).then(res => res.json()).then(data => {
+        const dailyGoal = data.goal;
+        const currentStudied = data.current;
+        const hoursRemaining = Math.max(0, dailyGoal - currentStudied);
+        const now = new Date();
+        const [endHour, endMin] = endTimeInput.split(':').map(Number);
+        let endTime = new Date(now);
+        endTime.setHours(endHour, endMin, 0);
+        if (endTime < now) endTime.setDate(endTime.getDate() + 1);
+        const timeAvailableMs = endTime - now;
+        const timeAvailableHours = timeAvailableMs / (1000 * 60 * 60);
+        const recommendation = recommendSessions(hoursRemaining);
+        let { sessionCount, studyDuration } = recommendation;
+        let breakDuration = recommendation.breakDuration;
+        const totalTimeWithBreaks = (studyDuration * sessionCount) + (breakDuration * (sessionCount - 1));
+        const totalTimeWithoutBreaks = studyDuration * sessionCount;
+        let isFeasible = true, breaksRemoved = false, finalEndTime = new Date(endTime);
+        if (totalTimeWithBreaks > timeAvailableHours) {
+          if (totalTimeWithoutBreaks <= timeAvailableHours) { breakDuration = 0; breaksRemoved = true; } 
+          else {
+            const additionalTimeNeeded = totalTimeWithoutBreaks - timeAvailableHours;
+            finalEndTime = new Date(endTime.getTime() + (additionalTimeNeeded * 60 * 60 * 1000));
+            breakDuration = 0; breaksRemoved = true;
+          }
+        }
+        const schedule = [];
+        let currentTime = new Date(now);
+        for (let i = 0; i < sessionCount; i++) {
+          schedule.push({ type: 'study', start: new Date(currentTime), duration: studyDuration, label: `Study ${i + 1}` });
+          currentTime.setHours(currentTime.getHours() + Math.floor(studyDuration));
+          currentTime.setMinutes(currentTime.getMinutes() + Math.round((studyDuration % 1) * 60));
+          if (i < sessionCount - 1 && breakDuration > 0) {
+            schedule.push({ type: 'break', start: new Date(currentTime), duration: breakDuration, label: `Break` });
+            currentTime.setHours(currentTime.getHours() + Math.floor(breakDuration));
+            currentTime.setMinutes(currentTime.getMinutes() + Math.round((breakDuration % 1) * 60));
+          }
+        }
+        const scheduleEndsAt = new Date(currentTime);
+        const bufferMs = finalEndTime - scheduleEndsAt;
+        const bufferMinutes = Math.round(bufferMs / (1000 * 60));
+        const isTight = bufferMinutes < 30;
+        const endTimeExtended = finalEndTime > endTime;
+        renderSchedule(schedule, hoursRemaining, sessionCount, studyDuration, breakDuration, isFeasible, isTight, bufferMinutes, now, finalEndTime, breaksRemoved, endTimeExtended);
+      }).catch(err => {
+        document.getElementById('scheduleContainer').innerHTML = '<div style="text-align: center; color: var(--danger); font-size: 12px; padding: 20px;">Error loading goal data</div>';
+      });
+    }
+
+    function renderSchedule(schedule, hoursRemaining, sessionCount, studyDuration, breakDuration, isFeasible, isTight, bufferMinutes, startTime, endTime, breaksRemoved, endTimeExtended) {
+      let html = `<div class="schedule-info"><strong>${hoursRemaining.toFixed(1)}h</strong> remaining to meet your ${(parseFloat(document.getElementById('goalInput').value)).toFixed(1)}h goal<br><strong>Recommended:</strong> ${sessionCount} sessions</div>`;
+      if (breaksRemoved && !endTimeExtended) {
+        html += `<div style="background: var(--input-bg); border-left: 4px solid var(--warning); padding: 10px; border-radius: 6px; margin-bottom: 12px; font-size: 12px; color: var(--warning);"><strong>⚠️ Breaks removed</strong> to fit goal within end time</div>`;
+      }
+      if (endTimeExtended) {
+        html += `<div style="background: var(--input-bg); border-left: 4px solid var(--danger); padding: 10px; border-radius: 6px; margin-bottom: 12px; font-size: 12px; color: var(--danger);"><strong>❌ End time extended</strong> — goal requires more time even with 0 breaks</div>`;
+      }
+      let currentTime = new Date(startTime);
+      let sessionNum = 1, i = 0;
+      while (i < schedule.length) {
+        const item = schedule[i];
+        if (item.type === 'study') {
+          const studyHours = Math.floor(item.duration);
+          const studyMinutes = Math.round((item.duration % 1) * 60);
+          const studyDurationStr = studyHours > 0 ? `${studyHours}h ${studyMinutes}m` : `${studyMinutes}m`;
+          const startStr = `${currentTime.getHours().toString().padStart(2, '0')}:${currentTime.getMinutes().toString().padStart(2, '0')}`;
+          html += `<div class="schedule-row">`;
+          html += `<span style="font-weight: 600; color: var(--primary); min-width: 60px;">${startStr}</span>`;
+          html += `<span class="schedule-block schedule-study">Study ${sessionNum}</span>`;
+          html += `<span style="color: var(--text-secondary);">${studyDurationStr}</span>`;
+          if (i + 1 < schedule.length && schedule[i + 1].type === 'break') {
+            const breakItem = schedule[i + 1];
+            const breakHours = Math.floor(breakItem.duration);
+            const breakMinutes = Math.round((breakItem.duration % 1) * 60);
+            const breakDurationStr = breakHours > 0 ? `${breakHours}h ${breakMinutes}m` : `${breakMinutes}m`;
+            html += `<span style="color: var(--text-tertiary); margin: 0 4px;">→</span>`;
+            html += `<span class="schedule-block schedule-break">Break</span>`;
+            html += `<span style="color: var(--text-tertiary);">${breakDurationStr}</span>`;
+            const breakEndTime = new Date(currentTime);
+            breakEndTime.setHours(breakEndTime.getHours() + studyHours + breakHours);
+            breakEndTime.setMinutes(breakEndTime.getMinutes() + studyMinutes + breakMinutes);
+            currentTime = new Date(breakEndTime);
+            i += 2;
+          } else {
+            const studyEndTime = new Date(currentTime);
+            studyEndTime.setHours(studyEndTime.getHours() + studyHours);
+            studyEndTime.setMinutes(studyEndTime.getMinutes() + studyMinutes);
+            currentTime = new Date(studyEndTime);
+            i++;
+          }
+          html += `</div>`;
+          sessionNum++;
+        } else { i++; }
+      }
+      if (isFeasible) {
+        const badgeClass = isTight ? 'feasibility-warning' : 'feasibility-good';
+        const badgeText = isTight ? `⚠️ Tight schedule (${bufferMinutes}m buffer)` : `✅ Achievable (${bufferMinutes}m buffer)`;
+        html += `<div class="feasibility-badge ${badgeClass}">${badgeText}</div>`;
+      } else {
+        html += `<div class="feasibility-badge feasibility-bad">❌ Not achievable in time</div>`;
+      }
+      html += `<p style="font-size: 11px; color: var(--text-tertiary); margin-top: 12px; text-align: center;">💡 Based on ultradian rhythm & focus cycles</p>`;
+      document.getElementById('scheduleContainer').innerHTML = html;
+    }
+
+    function loadMasterChronometer() {
+      const temporalRing = document.getElementById('masterTemporalRing');
+      const goalRing = document.getElementById('masterGoalRing');
+      const themeColors = getThemeColors();
+      const colors = [themeColors.primary, themeColors.success, themeColors.danger, themeColors.warning, '#8B4513', themeColors.calEvent];
+      Promise.all([
+        fetch(`${WEB_APP_URL}?action=getWatchData`).then(res => res.json()),
+        fetch(`${WEB_APP_URL}?action=getGoalData`).then(res => res.json())
+      ]).then(([sessions, goalData]) => {
+        if (temporalRing) temporalRing.innerHTML = ''; 
+        if (goalRing) goalRing.innerHTML = '';
+        const dailyGoal = goalData.goal || 4;
+        let totalStudyH = 0, totalBreakM = 0, totalRestH = 0;
+        const getArc = (sVal, dVal, tVal, outR, innR) => {
+          const sA = (sVal / tVal) * 360 - 90, eA = ((sVal + dVal) / tVal) * 360 - 90;
+          const sR = (sA * Math.PI) / 180, eR = (eA * Math.PI) / 180;
+          const large = (dVal / tVal) > 0.5 ? 1 : 0;
+          return `M ${150+outR*Math.cos(sR)} ${150+outR*Math.sin(sR)} A ${outR} ${outR} 0 ${large} 1 ${150+outR*Math.cos(eR)} ${150+outR*Math.sin(eR)} L ${150+innR*Math.cos(eR)} ${150+innR*Math.sin(eR)} A ${innR} ${innR} 0 ${large} 0 ${150+innR*Math.cos(sR)} ${150+innR*Math.sin(sR)} Z`;
+        };
+        if (sessions && sessions.length > 0) {
+          sessions.sort((a, b) => a.start - b.start);
+          let cumulativeHrs = 0;
+          sessions.forEach((sess, idx) => {
+            totalStudyH += sess.hrs;
+            const sessionColor = colors[idx % colors.length];
+            const tPath = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+            tPath.setAttribute('d', getArc(sess.start, sess.hrs, 24, 140, 105.5));
+            tPath.setAttribute('fill', sessionColor);
+            tPath.setAttribute('stroke', 'white');
+            tPath.setAttribute('stroke-width', '0.5');
+            if (temporalRing) temporalRing.appendChild(tPath);
+            const gPath = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+            gPath.setAttribute('d', getArc(cumulativeHrs, sess.hrs, dailyGoal, 104.5, 70));
+            gPath.setAttribute('fill', sessionColor);
+            gPath.setAttribute('stroke', 'white');
+            gPath.setAttribute('stroke-width', '0.5');
+            if (goalRing) goalRing.appendChild(gPath);
+            cumulativeHrs += sess.hrs;
+            if (idx < sessions.length - 1) {
+              let gap = sessions[idx+1].start - (sess.start + sess.hrs);
+              if (gap > 0) { if (gap >= 6) totalRestH += gap; else totalBreakM += (gap * 60); }
+            }
+          });
+          let firstGap = sessions[0].start; 
+          let lastGap = 24 - (sessions[sessions.length-1].start + sessions[sessions.length-1].hrs);
+          [firstGap, lastGap].forEach(gap => {
+            if (gap > 0) { if (gap >= 6) totalRestH += gap; else totalBreakM += (gap * 60); }
+          });
+        }
+        const percent = Math.round((totalStudyH / dailyGoal) * 100);
+        const totalEl = document.getElementById('masterTotalHours');
+        if (totalEl) totalEl.textContent = formatHours(totalStudyH);
+        const percentEl = document.getElementById('masterGoalPercent');
+        if (percentEl) percentEl.textContent = percent + '%';
+        const breakEl = document.getElementById('masterBreak');
+        if (breakEl) breakEl.textContent = Math.round(totalBreakM) + 'm';
+        const restEl = document.getElementById('masterRest');
+        if (restEl) restEl.textContent = formatHours(totalRestH);
+      }).catch(e => console.error("Chronometer Update Error:", e));
+    }
+
+    function loadActualStudySessions() {
+      fetch(`${WEB_APP_URL}?action=getWatchData`).then(res => res.json()).then(sessions => {
+        const container = document.getElementById('actualContainer');
+        if (!sessions || sessions.length === 0) {
+          container.innerHTML = '<div style="text-align: center; color: var(--text-tertiary); font-size: 12px; padding: 20px;">No sessions logged today yet</div>';
+          document.getElementById('actualTotalHours').innerText = '0.0h';
+          document.getElementById('actualSessionCount').innerText = '0';
+          document.getElementById('actualBreakTime').innerText = '0m';
+          return;
+        }
+        sessions.sort((a, b) => a.start - b.start);
+        let totalHours = 0, totalBreakMinutes = 0;
+        let html = '<div style="font-size: 12px; line-height: 2;">';
+        sessions.forEach((sess, idx) => {
+          totalHours += sess.hrs;
+          const startHour = Math.floor(sess.start);
+          const startMin = Math.round((sess.start % 1) * 60);
+          const startTime = `${startHour.toString().padStart(2, '0')}:${startMin.toString().padStart(2, '0')}`;
+          const durationHours = Math.floor(sess.hrs);
+          const durationMin = Math.round((sess.hrs % 1) * 60);
+          const durationStr = durationHours > 0 ? `${durationHours}h ${durationMin}m` : `${durationMin}m`;
+          html += `<div style="display: flex; align-items: center; gap: 8px; padding: 8px; background: var(--input-bg); border-radius: 6px;">
+            <span style="font-weight: 600; color: var(--primary); min-width: 50px;">${startTime}</span>
+            <span style="background: var(--primary); color: white; padding: 4px 8px; border-radius: 4px; font-size: 10px; font-weight: 600;">Study</span>
+            <span style="color: var(--text-secondary); min-width: 70px;">${durationStr}</span>`;
+          if (idx < sessions.length - 1) {
+            const gap = sessions[idx + 1].start - (sess.start + sess.hrs);
+            if (gap > 0) {
+              const breakMin = Math.round(gap * 60);
+              totalBreakMinutes += breakMin;
+              html += `<span style="color: var(--text-tertiary); margin: 0 4px;">→</span>
+                <span style="background: var(--warning); color: white; padding: 4px 8px; border-radius: 4px; font-size: 10px; font-weight: 600;">Break</span>
+                <span style="color: var(--warning); font-weight: 600;">${breakMin}m</span>`;
+            }
+          }
+          html += `</div>`;
+        });
+        html += '</div>';
+        container.innerHTML = html;
+        document.getElementById('actualTotalHours').innerText = formatHours(totalHours);  
+        document.getElementById('actualSessionCount').innerText = sessions.length;
+        document.getElementById('actualBreakTime').innerText = Math.round(totalBreakMinutes) + 'm';
+      }).catch(err => {
+        document.getElementById('actualContainer').innerHTML = '<div style="text-align: center; color: var(--danger); font-size: 12px; padding: 20px;">Error loading sessions</div>';
+      });
+    }
+
+    function loadDailyProgressChart() {
+      const themeColors = getThemeColors();
+      Promise.all([
+        fetch(`${WEB_APP_URL}?action=getWatchData`).then(res => res.json()),
+        fetch(`${WEB_APP_URL}?view=Daily`).then(res => res.json())
+      ]).then(([todayWatch, allData]) => {
+        if (!allData || allData.length <= 1) return;
+        const today = new Date();
+        const todayKey = today.toLocaleDateString('en-US', { month: 'short', day: '2-digit' });
+        let todayByHour = {}, todayStartHour = 24;
+        if (todayWatch && todayWatch.length > 0) {
+          todayWatch.sort((a, b) => a.start - b.start);
+          let cumulativeHours = 0;
+          todayWatch.forEach(sess => {
+            const startHour = Math.floor(sess.start);
+            if (startHour < todayStartHour) todayStartHour = startHour;
+            cumulativeHours += sess.hrs;
+            const endHour = Math.ceil(sess.start + sess.hrs);
+            for (let h = startHour; h < endHour && h < 24; h++) {
+              if (!todayByHour[h] || todayByHour[h] < cumulativeHours) todayByHour[h] = cumulativeHours;
+            }
+          });
+        }
+        let pastByHour = {}, pastStartHour = 24;
+        const recentRows = allData.slice(-8).slice(0, -1);
+        if (recentRows.length > 0) {
+          let dailyCumulatives = [];
+          recentRows.forEach(row => {
+            let dayCumulative = {}, sessionsList = [];
+            for (let j = 1; j < row.length; j += 3) {
+              const hrs = row[j];
+              if (typeof hrs === 'number' && hrs > 0) sessionsList.push(hrs);
+            }
+            if (sessionsList.length > 0) {
+              let cumulativeHours = 0, currentHour = 9;
+              sessionsList.forEach(hrs => {
+                cumulativeHours += hrs;
+                const startHour = Math.floor(currentHour);
+                const endHour = Math.ceil(currentHour + hrs);
+                if (startHour < pastStartHour) pastStartHour = startHour;
+                for (let h = startHour; h < endHour && h < 24; h++) {
+                  if (!dayCumulative[h] || dayCumulative[h] < cumulativeHours) dayCumulative[h] = cumulativeHours;
+                }
+                currentHour = endHour;
+              });
+            }
+            dailyCumulatives.push(dayCumulative);
+          });
+          for (let h = pastStartHour; h < 24; h++) {
+            let sum = 0, count = 0;
+            dailyCumulatives.forEach(dayCum => {
+              if (dayCum[h] !== undefined) { sum += dayCum[h]; count++; }
+            });
+            if (count > 0) pastByHour[h] = sum / count;
+          }
+          let lastVal = 0;
+          for (let h = pastStartHour; h < 24; h++) {
+            if (pastByHour[h] !== undefined) {
+              if (pastByHour[h] < lastVal) pastByHour[h] = lastVal;
+              lastVal = pastByHour[h];
+            }
+          }
+        }
+        const startHour = Math.min(todayStartHour, pastStartHour);
+        const endHour = 24;
+        let chartData = [['Hour', 'Today', '7-Day Avg']];
+        let lastTodayVal = null, lastAvgVal = null;
+        for (let h = startHour; h < endHour; h++) {
+          const hourLabel = h.toString().padStart(2, '0') + ':00';
+          const todayVal = todayByHour[h] !== undefined ? todayByHour[h] : lastTodayVal;
+          const avgVal = pastByHour[h] ? parseFloat(pastByHour[h].toFixed(2)) : lastAvgVal;
+          if (todayVal !== null) lastTodayVal = todayVal;
+          if (avgVal !== null) lastAvgVal = avgVal;
+          chartData.push([hourLabel, todayVal, avgVal]);
+        }
+        const table = google.visualization.arrayToDataTable(chartData);
+        const options = {
+          legend: { position: 'bottom' }, pointSize: 4, lineWidth: 2, colors: [themeColors.primary, themeColors.warning],
+          backgroundColor: 'transparent', chartArea: { width: '85%', height: '70%' },
+          hAxis: { textStyle: { fontSize: 10, color: themeColors.warning } },
+          vAxis: { textStyle: { fontSize: 10, color: themeColors.warning } }
+        };
+        new google.visualization.LineChart(document.getElementById('dailyProgressChart')).draw(table, options);
+      });
+    }
+
+    function initCardControls() {
+      const hiddenCards = JSON.parse(localStorage.getItem('hiddenCards')) || [];
+      hiddenCards.forEach(id => { document.getElementById(id)?.classList.add('hidden'); });
+      document.querySelectorAll('.card').forEach((card, idx) => {
+        if (!card.id) card.id = 'card-' + idx;
+        const h3 = card.querySelector('h3');
+        if (h3) {
+          const header = document.createElement('div');
+          header.className = 'card-header';
+          const title = h3.cloneNode(true);
+          const hideBtn = document.createElement('button');
+          hideBtn.className = 'btn-hide';
+          hideBtn.innerHTML = '-';
+          hideBtn.onclick = (e) => { e.stopPropagation(); toggleCardVisibility(card.id); };
+          header.appendChild(title);
+          header.appendChild(hideBtn);
+          h3.replaceWith(header);
+        }
+        card.draggable = true;
+        card.addEventListener('dragstart', (e) => { e.dataTransfer.effectAllowed = 'move'; card.classList.add('dragging'); });
+        card.addEventListener('dragend', () => { card.classList.remove('dragging'); });
+      });
+      const container = document.querySelector('.dashboard-container');
+      container.addEventListener('dragover', (e) => { e.preventDefault(); e.dataTransfer.dropEffect = 'move'; });
+      container.addEventListener('drop', (e) => {
+        e.preventDefault();
+        const dragging = document.querySelector('.card.dragging');
+        const afterElement = getDragAfterElement(container, e.clientY);
+        if (afterElement == null) container.appendChild(dragging);
+        else container.insertBefore(dragging, afterElement);
+      });
+    }
+
+    function toggleCardVisibility(cardId) {
+      const card = document.getElementById(cardId);
+      card.classList.toggle('hidden');
+      let hiddenCards = JSON.parse(localStorage.getItem('hiddenCards')) || [];
+      if (card.classList.contains('hidden')) {
+        if (!hiddenCards.includes(cardId)) hiddenCards.push(cardId);
+      } else {
+        hiddenCards = hiddenCards.filter(id => id !== cardId);
+      }
+      localStorage.setItem('hiddenCards', JSON.stringify(hiddenCards));
+    }
+
+    function getDragAfterElement(container, y) {
+      const draggableElements = [...container.querySelectorAll('.card:not(.dragging)')];
+      return draggableElements.reduce((closest, child) => {
+        const box = child.getBoundingClientRect();
+        const offset = y - box.top - box.height / 2;
+        if (offset < 0 && offset > closest.offset) return { offset: offset, element: child };
+        else return closest;
+      }, { offset: Number.NEGATIVE_INFINITY }).element;
+    }
+
+    function loadWeeklySessionsChart() {
+      fetch(`${WEB_APP_URL}?action=getPlannerData`)
+        .then(res => res.json())
+        .then(data => {
+          if (!Array.isArray(data) || data.length === 0) {
+            document.getElementById('weeklySessionsChart').innerHTML = '<div style="text-align: center; padding: 40px; color: var(--text-tertiary);">No session data available</div>';
+            return;
+          }
+          const last7Days = data.slice(-7);
+          const themeColors = getThemeColors();
+          const dayColors = ['#4285f4', '#34a853', '#fbbc05', '#ea4335', '#9b59b6', '#16a085', '#e74c3c'];
+          const daySessionsData = last7Days.map((row, dayIdx) => {
+            const dateStr = row[0];
+            const dayName = new Date(dateStr + ' 2026').toLocaleDateString('en-US', { weekday: 'short' });
+            const sessions = [];
+            for (let j = 1; j < row.length; j += 3) {
+              const hours = row[j];
+              if (typeof hours === 'number' && hours > 0) sessions.push(parseFloat(hours.toFixed(2)));
+            }
+            return { dayName, dateStr, dayIdx, sessions };
+          });
+          const maxSessions = Math.max(...daySessionsData.map(d => d.sessions.length));
+          const chartData = [['Session']];
+          daySessionsData.forEach(day => { chartData[0].push(day.dayName); });
+          for (let sessionNum = 0; sessionNum < maxSessions; sessionNum++) {
+            const row = ['S' + (sessionNum + 1)];
+            daySessionsData.forEach(dayData => { row.push(dayData.sessions[sessionNum] !== undefined ? dayData.sessions[sessionNum] : null); });
+            chartData.push(row);
+          }
+          const dataTable = google.visualization.arrayToDataTable(chartData);
+          const options = {
+            title: '', legend: { position: 'bottom', textStyle: { fontSize: 11, color: themeColors.text } },
+            backgroundColor: 'transparent', chartArea: { width: '85%', height: '75%', top: 20, bottom: 50 },
+            pointSize: 5, lineWidth: 2.5, curveType: 'function', colors: dayColors,
+            vAxis: { title: 'Hours per Session', titleTextStyle: { fontSize: 11, italic: false, bold: true, color: themeColors.primary }, gridlines: { color: 'rgba(0,0,0,0.05)' }, minorGridlines: { color: 'transparent' }, textStyle: { fontSize: 10, color: themeColors.text }, baselineColor: 'transparent' },
+            hAxis: { title: 'Session Number', titleTextStyle: { fontSize: 11, italic: false, bold: true, color: themeColors.primary }, textStyle: { fontSize: 10, color: themeColors.primary }, gridlines: { color: 'transparent' }, baselineColor: 'transparent' },
+            animation: { startup: true, duration: 800, easing: 'out' }
+          };
+          const chart = new google.visualization.LineChart(document.getElementById('weeklySessionsChart'));
+          chart.draw(dataTable, options);
+        })
+        .catch(err => {
+          console.error('Weekly sessions chart error:', err);
+          document.getElementById('weeklySessionsChart').innerHTML = `<div style="text-align: center; padding: 40px; color: var(--danger); font-size: 12px;">Error loading chart: ${err.message}</div>`;
+        });
+    }
+
+// Real-time clock update
+function updateRealTimeClock() {
+  const now = new Date();
+  const hours = String(now.getHours()).padStart(2, '0');
+  const minutes = String(now.getMinutes()).padStart(2, '0');
+  const seconds = String(now.getSeconds()).padStart(2, '0');
+  const dateStr = now.toLocaleDateString('en-US', { month: 'short', day: '2-digit' });
+  
+  document.getElementById('realTimeWatch').innerText = `${hours}:${minutes}:${seconds}`;
+  document.getElementById('realTimeDate').innerText = dateStr;
+}
+
+setInterval(updateRealTimeClock, 1000);
+updateRealTimeClock();
+
+function loadActiveHoursChart() {
+  fetch(`${WEB_APP_URL}?action=getWatchData`).then(res => res.json()).then(sessions => {
+    if (!sessions || sessions.length === 0) {
+      const empty = '<div style="text-align: center; padding: 20px; color: var(--text-tertiary); font-size: 11px;">No data</div>';
+      document.getElementById('activeHoursChartAM').innerHTML = empty;
+      document.getElementById('activeHoursChartPM').innerHTML = empty;
+      return;
+    }
+
+    let minHour = 24, maxHour = 0;
+    sessions.forEach(sess => {
+      if (typeof sess.hrs !== 'number' || sess.hrs <= 0) return;
+      minHour = Math.min(minHour, Math.floor(sess.start));
+      maxHour = Math.max(maxHour, Math.ceil(sess.start + sess.hrs));
+    });
+    if (minHour === 24) return;
+
+    const hourlyStudy = {};
+    for (let h = minHour; h < maxHour; h++) hourlyStudy[h] = 0;
+
+    sessions.forEach(sess => {
+      if (typeof sess.hrs !== 'number' || sess.hrs <= 0) return;
+      for (let h = minHour; h < maxHour; h++) {
+        const overlap = Math.min(sess.start + sess.hrs, h + 1) - Math.max(sess.start, h);
+        if (overlap > 0) hourlyStudy[h] += overlap;
+      }
+    });
+
+    const themeColors = getThemeColors();
+    const mid = 12; // Split at noon
+
+    function drawChart(containerId, fromHour, toHour) {
+      const chartData = [['Hour', 'Hours', { role: 'style' }]];
+      const barCount = toHour - fromHour;
+      for (let h = fromHour; h < toHour; h++) {
+        const hrs = parseFloat((hourlyStudy[h] || 0).toFixed(1));
+        chartData.push([String(h).padStart(2, '0') + ':00', hrs, `color: ${hrs > 0 ? '#FC4C02' : 'rgba(0,0,0,0.1)'}`]);
+      }
+      const dataTable = google.visualization.arrayToDataTable(chartData);
+      new google.visualization.ColumnChart(document.getElementById(containerId)).draw(dataTable, {
+        legend: 'none',
+        backgroundColor: 'transparent',
+        chartArea: { left: 30, top: 5, right: 5, bottom: 22, width: '92%', height: '78%' },
+        bar: { groupWidth: barCount > 8 ? '55%' : '70%' },
+        vAxis: { textPosition: 'none', gridlines: { color: 'rgba(0,0,0,0.04)' }, baselineColor: 'transparent' },
+        hAxis: { textStyle: { fontSize: 8, color: themeColors.text }, slantedText: barCount > 6, slantedTextAngle: 30, showTextEvery: barCount > 10 ? 2 : 1, gridlines: { color: 'transparent' } },
+        animation: { startup: true, duration: 500, easing: 'out' }
+      });
+    }
+
+    drawChart('activeHoursChartAM', minHour, Math.min(maxHour, mid));
+    drawChart('activeHoursChartPM', Math.max(minHour, mid), maxHour);
+
+  }).catch(err => console.error('Active hours error:', err));
+}
+  </script>
+</body>
+</html>
