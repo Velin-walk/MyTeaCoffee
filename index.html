@@ -722,9 +722,10 @@ function formatHours(decimalHours) {
     async function load24HourWatchWithCache() {
       const cachedData = await getFromIndexedDB('watchData');
       if (cachedData) { updateWatchDisplay(cachedData); }
-      fetch(`${WEB_APP_URL}?action=getWatchData`).then(res => res.json()).then(newData => {
+      fetch(`${WEB_APP_URL}?action=getWatchData&_t=${Date.now()}`).then(res => res.json()).then(newData => {
         saveToIndexedDB('watchData', newData);
         updateWatchDisplay(newData);
+        loadMasterChronometer();
       }).catch(err => console.error("Watch error:", err));
     }
 
@@ -820,6 +821,7 @@ function formatHours(decimalHours) {
         body: JSON.stringify({ action: "setGoal", goal: newGoal })
       }).then(() => {
         load24HourWatchWithCache();
+        loadMasterChronometer();
         generateSchedule();
         alert('Goal updated to ' + newGoal + ' hours!');
       });
@@ -898,7 +900,9 @@ function formatHours(decimalHours) {
           loadChartDailyWithCache(); loadChartWeeklyWithCache(); loadChartMonthlyWithCache();
           loadPlannerWithCache(); loadCalendarData(); loadHourlyDist();
           load24HourWatchWithCache(); loadMountain(); loadScatter();
+          loadMasterChronometer();
           generateSchedule(); loadActualStudySessions(); loadDailyProgressChart();
+          loadActiveHoursChart();
         }, 1500);
       });
     }
@@ -1300,9 +1304,10 @@ function loadHourlyDist() {
       const goalRing = document.getElementById('masterGoalRing');
       const themeColors = getThemeColors();
       const colors = [themeColors.primary, themeColors.success, themeColors.danger, themeColors.warning, '#8B4513', themeColors.calEvent];
+      const timestamp = Date.now();
       Promise.all([
-        fetch(`${WEB_APP_URL}?action=getWatchData`).then(res => res.json()),
-        fetch(`${WEB_APP_URL}?action=getGoalData`).then(res => res.json())
+        fetch(`${WEB_APP_URL}?action=getWatchData&_t=${timestamp}`).then(res => res.json()),
+        fetch(`${WEB_APP_URL}?action=getGoalData&_t=${timestamp}`).then(res => res.json())
       ]).then(([sessions, goalData]) => {
         if (temporalRing) temporalRing.innerHTML = ''; 
         if (goalRing) goalRing.innerHTML = '';
