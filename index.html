@@ -1647,6 +1647,12 @@
         <div id="forestStageLabel" class="forest-stage-label">Ready to Plant</div>
         <div id="forestQuoteText" class="forest-quote-text">"A focused mind is the seed of true mastery."</div>
 
+        <!-- Timer Mode Toggle -->
+        <div class="timer-mode-switcher" style="display: flex; justify-content: center; gap: 8px; margin-bottom: 14px;">
+          <button id="btnForestModeFixed" class="duration-pill active" onclick="setForestTimerMode('fixed')">⏱️ Fixed Timer</button>
+          <button id="btnForestModeOpen" class="duration-pill" onclick="setForestTimerMode('open')">♾️ Open Timer</button>
+        </div>
+
         <!-- Duration Selectors -->
         <div class="duration-pills-row" id="forestDurationPills">
           <button class="duration-pill" onclick="selectForestDuration(15, this)">15 min</button>
@@ -1660,6 +1666,9 @@
         <div class="forest-controls-row">
           <button id="btnForestStart" class="btn-plant-start" onclick="toggleForestSession()">
             🌱 Plant & Focus
+          </button>
+          <button id="btnForestCompleteOpen" class="btn-plant-start" onclick="completeForestOpenSession()" style="display: none; background: #2e7d32;">
+            🌿 Finish & Plant
           </button>
           <button id="btnForestGiveUp" class="btn-plant-giveup" onclick="giveUpForestSession()" style="display: none;">
             ❌ Give Up
@@ -2068,6 +2077,7 @@ function formatHours(decimalHours) {
           load24HourWatchWithCache(); loadMountain(); loadScatter();
           loadMasterChronometer();
           generateSchedule(); loadActualStudySessions(); loadDailyProgressChart();
+          loadWeeklySessionsChart();
           loadActiveHoursChart();
         }, 1500);
       });
@@ -3016,6 +3026,8 @@ const NEPAL_PLANTS = [
 ];
 
 let selectedForestPlantId = parseInt(localStorage.getItem('selectedNepalPlantId')) || 4;
+let forestTimerMode = 'fixed'; // 'fixed' or 'open'
+let forestOpenElapsedSeconds = 0;
 let forestDurationMinutes = 25;
 let forestTimerInterval = null;
 let forestRemainingSeconds = 25 * 60;
@@ -3026,6 +3038,28 @@ let catalogActiveCategory = 'all';
 
 function getSelectedPlant() {
   return NEPAL_PLANTS.find(p => p.id === selectedForestPlantId) || NEPAL_PLANTS[3];
+}
+
+function setForestTimerMode(mode) {
+  if (isForestRunning) return;
+  forestTimerMode = mode;
+  document.getElementById('btnForestModeFixed')?.classList.toggle('active', mode === 'fixed');
+  document.getElementById('btnForestModeOpen')?.classList.toggle('active', mode === 'open');
+
+  const durationRow = document.getElementById('forestDurationPills');
+  if (durationRow) {
+    durationRow.style.display = mode === 'fixed' ? 'flex' : 'none';
+  }
+
+  const btnStart = document.getElementById('btnForestStart');
+  if (btnStart) {
+    btnStart.innerText = mode === 'fixed' ? '🌱 Plant & Focus' : '🌱 Start Focus';
+  }
+
+  if (mode === 'open') {
+    forestOpenElapsedSeconds = 0;
+  }
+  updateForestDisplay();
 }
 
 function switchMainTab(tab) {
@@ -3075,9 +3109,18 @@ function switchMainTab(tab) {
     document.documentElement.scrollTop = 0;
     document.body.scrollTop = 0;
 
-    // Trigger charts redraw/resizing
+    // Trigger charts redraw/resizing and fresh data load
     setTimeout(() => {
       window.dispatchEvent(new Event('resize'));
+      loadChartDailyWithCache();
+      loadChartWeeklyWithCache();
+      loadChartMonthlyWithCache();
+      load24HourWatchWithCache();
+      loadMasterChronometer();
+      loadActualStudySessions();
+      loadDailyProgressChart();
+      loadWeeklySessionsChart();
+      loadActiveHoursChart();
     }, 150);
   } else {
     // Show forest tab, hide charts dashboard
@@ -3165,7 +3208,97 @@ function selectForestDuration(mins, btn) {
   updateForestDisplay();
 }
 
+function isMugwortPlant(plant) {
+  if (!plant) return false;
+  return plant.id === 23 || 
+    (plant.english && plant.english.toLowerCase().includes('mugwort')) ||
+    (plant.nepali && plant.nepali.includes('तितेपाती'));
+}
+
+function getMugwortSvg(percent, isWithered) {
+  if (isWithered) {
+    return `
+      <svg width="120" height="120" viewBox="0 0 100 100" class="botanical-svg mugwort-svg">
+        <ellipse cx="50" cy="88" rx="34" ry="6" fill="#8d6e63" opacity="0.4"/>
+        <path d="M50 88 Q48 68 44 48 Q40 38 34 32" stroke="#6d4c41" stroke-width="2.5" stroke-linecap="round" fill="none"/>
+        <path d="M49 76 Q36 72 24 64" stroke="#795548" stroke-width="1.5" stroke-linecap="round" fill="none"/>
+        <path d="M48 74 Q60 70 66 62" stroke="#795548" stroke-width="1.5" stroke-linecap="round" fill="none"/>
+        <path d="M44 48 Q30 46 22 56 Q28 60 42 54 Z" fill="#8d6e63" opacity="0.85"/>
+        <path d="M45 44 Q56 42 62 50 Q56 56 43 50 Z" fill="#795548" opacity="0.85"/>
+        <path d="M40 38 Q32 32 26 40 Q32 44 38 42 Z" fill="#a1887f" opacity="0.85"/>
+        <path d="M34 32 Q26 26 24 34 Q30 36 34 33 Z" fill="#8d6e63" opacity="0.85"/>
+        <text x="50" y="24" font-size="20" text-anchor="middle">🥀</text>
+      </svg>
+    `;
+  }
+
+  if (percent < 25) {
+    return `
+      <svg width="120" height="120" viewBox="0 0 100 100" class="botanical-svg mugwort-svg">
+        <ellipse cx="50" cy="86" rx="32" ry="6" fill="#5d4037" opacity="0.45"/>
+        <path d="M50 86 Q50 72 50 62" stroke="#8b3a3a" stroke-width="2.4" stroke-linecap="round" fill="none"/>
+        <path d="M50 64 C42 62 36 56 34 50 C40 52 46 58 50 60 Z" fill="#2e7d32"/>
+        <path d="M50 64 C58 62 64 56 66 50 C60 52 54 58 50 60 Z" fill="#388e3c"/>
+        <path d="M50 62 C48 54 49 44 50 40 C51 44 52 54 50 62 Z" fill="#43a047"/>
+        <circle cx="50" cy="38" r="2" fill="#81c784"/>
+        <text x="50" y="30" font-size="20" text-anchor="middle">🌱</text>
+      </svg>
+    `;
+  } else if (percent < 60) {
+    return `
+      <svg width="120" height="120" viewBox="0 0 100 100" class="botanical-svg mugwort-svg">
+        <ellipse cx="50" cy="86" rx="34" ry="7" fill="#4e342e" opacity="0.4"/>
+        <path d="M50 86 L50 48" stroke="#7a2e2e" stroke-width="2.8" stroke-linecap="round"/>
+        <path d="M50 74 Q36 68 30 60 Q38 60 42 66 Q48 70 50 72 Z" fill="#2e7d32"/>
+        <path d="M50 74 Q64 68 70 60 Q62 60 58 66 Q52 70 50 72 Z" fill="#2e7d32"/>
+        <path d="M50 62 Q32 54 28 44 Q36 46 40 52 Q46 56 50 58 Z" fill="#388e3c"/>
+        <path d="M50 62 Q68 54 72 44 Q64 46 60 52 Q54 56 50 58 Z" fill="#388e3c"/>
+        <path d="M50 50 Q46 38 50 30 Q54 38 50 50 Z" fill="#4caf50"/>
+        <path d="M50 74 L50 32" stroke="#a5d6a7" stroke-width="0.8" opacity="0.7"/>
+        <text x="50" y="24" font-size="20" text-anchor="middle">🌿</text>
+      </svg>
+    `;
+  } else {
+    return `
+      <svg width="120" height="120" viewBox="0 0 100 100" class="botanical-svg mugwort-svg">
+        <ellipse cx="50" cy="88" rx="36" ry="7" fill="#4e342e" opacity="0.4"/>
+        <path d="M50 88 L50 40" stroke="#7a2e2e" stroke-width="3" stroke-linecap="round"/>
+        <path d="M49 80 Q34 76 22 54" stroke="#7a2e2e" stroke-width="1.8" stroke-linecap="round" fill="none"/>
+        <path d="M26 68 Q16 66 12 62 Q18 60 25 64 Z" fill="#2e7d32"/>
+        <path d="M24 60 Q14 54 10 46 Q18 48 23 54 Z" fill="#388e3c"/>
+        <path d="M23 54 Q18 46 16 38 Q22 42 23 48 Z" fill="#43a047"/>
+        <circle cx="21" cy="46" r="1.6" fill="#2e7d32"/>
+        <circle cx="20" cy="41" r="1.8" fill="#33691e"/>
+        <circle cx="19" cy="36" r="1.5" fill="#558b2f"/>
+        <circle cx="18" cy="32" r="1.3" fill="#689f38"/>
+        <path d="M51 80 Q66 76 78 54" stroke="#7a2e2e" stroke-width="1.8" stroke-linecap="round" fill="none"/>
+        <path d="M74 68 Q84 66 88 62 Q82 60 75 64 Z" fill="#2e7d32"/>
+        <path d="M76 60 Q86 54 90 46 Q82 48 77 54 Z" fill="#388e3c"/>
+        <path d="M77 54 Q82 46 84 38 Q78 42 77 48 Z" fill="#43a047"/>
+        <circle cx="79" cy="46" r="1.6" fill="#2e7d32"/>
+        <circle cx="80" cy="41" r="1.8" fill="#33691e"/>
+        <circle cx="81" cy="36" r="1.5" fill="#558b2f"/>
+        <circle cx="82" cy="32" r="1.3" fill="#689f38"/>
+        <path d="M50 74 Q42 74 38 78 Q42 84 48 78 Z" fill="#2e7d32"/>
+        <path d="M50 74 Q58 74 62 78 Q58 84 52 78 Z" fill="#2e7d32"/>
+        <path d="M50 68 C 45 66, 40 64, 34 68 C 38 64, 43 62, 45 58 C 37 54, 28 50, 24 40 C 31 43, 37 46, 41 42 C 33 36, 31 28, 32 18 C 37 24, 41 30, 44 26 C 40 18, 43 10, 50 6 C 57 10, 60 18, 56 26 C 59 30, 63 24, 68 18 C 69 28, 67 36, 59 42 C 63 46, 69 43, 76 40 C 72 50, 63 54, 55 58 C 57 62, 62 64, 66 68 C 60 64, 55 66, 50 68 Z" fill="#2e7d32" stroke="#1b5e20" stroke-width="0.8"/>
+        <path d="M50 64 C 46 56, 38 48, 32 42 C 38 44, 43 44, 46 38 C 42 32, 40 24, 42 18 C 45 23, 48 26, 50 14 C 52 26, 55 23, 58 18 C 60 24, 58 32, 54 38 C 57 44, 62 44, 68 42 C 62 48, 54 56, 50 64 Z" fill="#388e3c" opacity="0.9"/>
+        <path d="M50 68 L50 10" stroke="#7cb342" stroke-width="1.2" stroke-linecap="round"/>
+        <path d="M50 48 L32 38" stroke="#a5d6a7" stroke-width="0.8" stroke-linecap="round" opacity="0.8"/>
+        <path d="M50 48 L68 38" stroke="#a5d6a7" stroke-width="0.8" stroke-linecap="round" opacity="0.8"/>
+        <path d="M50 36 L38 24" stroke="#a5d6a7" stroke-width="0.7" stroke-linecap="round" opacity="0.8"/>
+        <path d="M50 36 L62 24" stroke="#a5d6a7" stroke-width="0.7" stroke-linecap="round" opacity="0.8"/>
+        <path d="M50 56 L30 52" stroke="#a5d6a7" stroke-width="0.7" stroke-linecap="round" opacity="0.7"/>
+        <path d="M50 56 L70 52" stroke="#a5d6a7" stroke-width="0.7" stroke-linecap="round" opacity="0.7"/>
+      </svg>
+    `;
+  }
+}
+
 function getPlantGrowthSvgMarkup(plant, progressPercent, isWithered) {
+  if (isMugwortPlant(plant)) {
+    return getMugwortSvg(progressPercent, isWithered);
+  }
   if (isWithered) {
     return `<svg width="120" height="120" viewBox="0 0 100 100">
       <ellipse cx="50" cy="85" rx="36" ry="7" fill="#8d6e63" opacity="0.4"/>
@@ -3216,17 +3349,68 @@ function getPlantGrowthSvgMarkup(plant, progressPercent, isWithered) {
 
 function updateForestDisplay(isWithered = false) {
   const plant = getSelectedPlant();
+  const timerEl = document.getElementById('forestTimerDisplay');
+  const ringEl = document.getElementById('growthRingProgress');
+  const svgContainer = document.getElementById('growthSvgStage');
+  const stageLabel = document.getElementById('forestStageLabel');
+
+  if (forestTimerMode === 'open') {
+    const hrs = Math.floor(forestOpenElapsedSeconds / 3600);
+    const mins = Math.floor((forestOpenElapsedSeconds % 3600) / 60);
+    const secs = forestOpenElapsedSeconds % 60;
+    const timeStr = hrs > 0
+      ? `${hrs.toString().padStart(2, '0')}:${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`
+      : `${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
+    if (timerEl) timerEl.innerText = timeStr;
+
+    const targetCap = 25 * 60;
+    const progressPercent = Math.min(100, (forestOpenElapsedSeconds / targetCap) * 100);
+
+    if (ringEl) {
+      const circumference = 660;
+      const offset = circumference - (circumference * progressPercent / 100);
+      ringEl.style.strokeDashoffset = offset;
+      ringEl.style.stroke = isWithered ? 'var(--danger)' : 'var(--success)';
+    }
+
+    if (svgContainer) {
+      svgContainer.innerHTML = getPlantGrowthSvgMarkup(plant, progressPercent, isWithered);
+    }
+
+    if (stageLabel) {
+      if (isWithered) {
+        stageLabel.innerText = '🥀 Session Discarded';
+        stageLabel.style.color = 'var(--danger)';
+      } else if (!isForestRunning) {
+        stageLabel.innerText = 'Ready to Focus (Open Timer)';
+        stageLabel.style.color = 'var(--success)';
+      } else if (forestOpenElapsedSeconds < 300) {
+        stageLabel.innerText = `🌱 Sprouting ${plant.nepali}...`;
+        stageLabel.style.color = 'var(--success)';
+      } else if (forestOpenElapsedSeconds < 900) {
+        stageLabel.innerText = `🌿 Growing ${plant.nepali}... (${Math.floor(forestOpenElapsedSeconds / 60)}m)`;
+        stageLabel.style.color = 'var(--success)';
+      } else if (forestOpenElapsedSeconds < 1500) {
+        stageLabel.innerText = `🪴 Budding ${plant.nepali}... (${Math.floor(forestOpenElapsedSeconds / 60)}m)`;
+        stageLabel.style.color = 'var(--success)';
+      } else {
+        stageLabel.innerText = `🌳 Thriving ${plant.nepali}! (${Math.floor(forestOpenElapsedSeconds / 60)}m)`;
+        stageLabel.style.color = 'var(--success)';
+      }
+    }
+    return;
+  }
+
+  // Fixed Countdown Mode
   const m = Math.floor(forestRemainingSeconds / 60);
   const s = forestRemainingSeconds % 60;
   const timeStr = `${m.toString().padStart(2, '0')}:${s.toString().padStart(2, '0')}`;
 
-  const timerEl = document.getElementById('forestTimerDisplay');
   if (timerEl) timerEl.innerText = timeStr;
 
   const elapsed = forestTotalSeconds - forestRemainingSeconds;
   const progressPercent = forestTotalSeconds > 0 ? (elapsed / forestTotalSeconds) * 100 : 0;
 
-  const ringEl = document.getElementById('growthRingProgress');
   if (ringEl) {
     const circumference = 660;
     const offset = circumference - (circumference * progressPercent / 100);
@@ -3234,12 +3418,10 @@ function updateForestDisplay(isWithered = false) {
     ringEl.style.stroke = isWithered ? 'var(--danger)' : 'var(--success)';
   }
 
-  const svgContainer = document.getElementById('growthSvgStage');
   if (svgContainer) {
     svgContainer.innerHTML = getPlantGrowthSvgMarkup(plant, progressPercent, isWithered);
   }
 
-  const stageLabel = document.getElementById('forestStageLabel');
   if (stageLabel) {
     if (isWithered) {
       stageLabel.innerText = '🥀 Withered (Session Abandoned)';
@@ -3266,31 +3448,123 @@ function updateForestDisplay(isWithered = false) {
 function toggleForestSession() {
   if (isForestRunning) return;
   isForestRunning = true;
-  forestRemainingSeconds = forestTotalSeconds;
 
   const btnStart = document.getElementById('btnForestStart');
+  const btnCompleteOpen = document.getElementById('btnForestCompleteOpen');
   const btnGiveUp = document.getElementById('btnForestGiveUp');
   const durationRow = document.getElementById('forestDurationPills');
+  const modeSwitcher = document.querySelector('.timer-mode-switcher');
 
   if (btnStart) btnStart.style.display = 'none';
-  if (btnGiveUp) btnGiveUp.style.display = 'inline-flex';
   if (durationRow) durationRow.style.opacity = '0.4';
+  if (modeSwitcher) modeSwitcher.style.opacity = '0.4';
 
-  updateForestDisplay();
-
-  forestTimerInterval = setInterval(() => {
-    if (forestRemainingSeconds > 0) {
-      forestRemainingSeconds--;
-      updateForestDisplay();
-    } else {
-      finishForestSession();
+  if (forestTimerMode === 'open') {
+    forestOpenElapsedSeconds = 0;
+    if (btnCompleteOpen) btnCompleteOpen.style.display = 'inline-flex';
+    if (btnGiveUp) {
+      btnGiveUp.style.display = 'inline-flex';
+      btnGiveUp.innerText = '❌ Discard';
     }
-  }, 1000);
+    updateForestDisplay();
+    forestTimerInterval = setInterval(() => {
+      forestOpenElapsedSeconds++;
+      updateForestDisplay();
+    }, 1000);
+  } else {
+    forestRemainingSeconds = forestTotalSeconds;
+    if (btnCompleteOpen) btnCompleteOpen.style.display = 'none';
+    if (btnGiveUp) {
+      btnGiveUp.style.display = 'inline-flex';
+      btnGiveUp.innerText = '❌ Give Up';
+    }
+    updateForestDisplay();
+    forestTimerInterval = setInterval(() => {
+      if (forestRemainingSeconds > 0) {
+        forestRemainingSeconds--;
+        updateForestDisplay();
+      } else {
+        finishForestSession();
+      }
+    }, 1000);
+  }
+}
+
+function completeForestOpenSession() {
+  if (!isForestRunning || forestTimerMode !== 'open') return;
+
+  clearInterval(forestTimerInterval);
+  forestTimerInterval = null;
+  isForestRunning = false;
+
+  const plant = getSelectedPlant();
+  const studiedMinutes = Math.max(1, Math.round(forestOpenElapsedSeconds / 60));
+  saveForestPlantToHistory(plant, studiedMinutes, true);
+
+  playForestChime();
+
+  const btnStart = document.getElementById('btnForestStart');
+  const btnCompleteOpen = document.getElementById('btnForestCompleteOpen');
+  const btnGiveUp = document.getElementById('btnForestGiveUp');
+  const durationRow = document.getElementById('forestDurationPills');
+  const modeSwitcher = document.querySelector('.timer-mode-switcher');
+
+  if (btnStart) {
+    btnStart.style.display = 'inline-flex';
+    btnStart.innerText = '🌱 Start Focus';
+  }
+  if (btnCompleteOpen) btnCompleteOpen.style.display = 'none';
+  if (btnGiveUp) btnGiveUp.style.display = 'none';
+  if (durationRow) durationRow.style.opacity = '1';
+  if (modeSwitcher) modeSwitcher.style.opacity = '1';
+
+  alert(`Congratulations! You studied for ${studiedMinutes} minutes and successfully planted "${plant.nepali}" in your forest! 🎉`);
+
+  const logDuration = `${Math.floor(studiedMinutes / 60).toString().padStart(2, '0')}:${(studiedMinutes % 60).toString().padStart(2, '0')}:00`;
+  logData("Forest", logDuration, plant.nepali);
+
+  forestOpenElapsedSeconds = 0;
+  updateForestDisplay(false);
+  renderMyForest();
 }
 
 function giveUpForestSession() {
   if (!isForestRunning) return;
   const plant = getSelectedPlant();
+
+  const btnStart = document.getElementById('btnForestStart');
+  const btnCompleteOpen = document.getElementById('btnForestCompleteOpen');
+  const btnGiveUp = document.getElementById('btnForestGiveUp');
+  const durationRow = document.getElementById('forestDurationPills');
+  const modeSwitcher = document.querySelector('.timer-mode-switcher');
+
+  if (forestTimerMode === 'open') {
+    const confirmDiscard = window.confirm(`Do you want to discard this open study session? Your "${plant.nepali}" will not be saved.`);
+    if (!confirmDiscard) return;
+
+    clearInterval(forestTimerInterval);
+    forestTimerInterval = null;
+    isForestRunning = false;
+
+    updateForestDisplay(true);
+
+    if (btnStart) {
+      btnStart.style.display = 'inline-flex';
+      btnStart.innerText = '🌱 Start Focus';
+    }
+    if (btnCompleteOpen) btnCompleteOpen.style.display = 'none';
+    if (btnGiveUp) btnGiveUp.style.display = 'none';
+    if (durationRow) durationRow.style.opacity = '1';
+    if (modeSwitcher) modeSwitcher.style.opacity = '1';
+
+    forestOpenElapsedSeconds = 0;
+    setTimeout(() => {
+      updateForestDisplay(false);
+    }, 1500);
+    return;
+  }
+
+  // Fixed Countdown Mode Give Up
   const confirmGiveUp = window.confirm(`Do you want to abandon your session? Your "${plant.nepali}" will wither!`);
   if (!confirmGiveUp) return;
 
@@ -3298,21 +3572,26 @@ function giveUpForestSession() {
   forestTimerInterval = null;
   isForestRunning = false;
 
-  const studiedMinutes = Math.max(1, Math.round((forestTotalSeconds - forestRemainingSeconds) / 60));
+  const actualStudiedMinutes = Math.round((forestTotalSeconds - forestRemainingSeconds) / 60);
+  const studiedMinutes = Math.max(1, actualStudiedMinutes);
   saveForestPlantToHistory(plant, studiedMinutes, false);
 
-  updateForestDisplay(true);
+  // Send actual focused study time to original source so all charts are populated and saved
+  if (actualStudiedMinutes >= 1) {
+    const logDuration = `${Math.floor(actualStudiedMinutes / 60).toString().padStart(2, '0')}:${(actualStudiedMinutes % 60).toString().padStart(2, '0')}:00`;
+    logData("Forest", logDuration, plant.nepali);
+  }
 
-  const btnStart = document.getElementById('btnForestStart');
-  const btnGiveUp = document.getElementById('btnForestGiveUp');
-  const durationRow = document.getElementById('forestDurationPills');
+  updateForestDisplay(true);
 
   if (btnStart) {
     btnStart.style.display = 'inline-flex';
     btnStart.innerText = '🌱 Try Again';
   }
+  if (btnCompleteOpen) btnCompleteOpen.style.display = 'none';
   if (btnGiveUp) btnGiveUp.style.display = 'none';
   if (durationRow) durationRow.style.opacity = '1';
+  if (modeSwitcher) modeSwitcher.style.opacity = '1';
 
   renderMyForest();
 }
@@ -3331,15 +3610,19 @@ function finishForestSession() {
   updateForestDisplay(false);
 
   const btnStart = document.getElementById('btnForestStart');
+  const btnCompleteOpen = document.getElementById('btnForestCompleteOpen');
   const btnGiveUp = document.getElementById('btnForestGiveUp');
   const durationRow = document.getElementById('forestDurationPills');
+  const modeSwitcher = document.querySelector('.timer-mode-switcher');
 
   if (btnStart) {
     btnStart.style.display = 'inline-flex';
     btnStart.innerText = '🌱 Plant Another';
   }
+  if (btnCompleteOpen) btnCompleteOpen.style.display = 'none';
   if (btnGiveUp) btnGiveUp.style.display = 'none';
   if (durationRow) durationRow.style.opacity = '1';
+  if (modeSwitcher) modeSwitcher.style.opacity = '1';
 
   alert(`Congratulations! Your "${plant.nepali}" was successfully planted in your forest! 🎉`);
 
@@ -3374,7 +3657,23 @@ function renderActivePlantProfile() {
   const scientific = document.getElementById('activePlantScientific');
   const category = document.getElementById('activePlantCategory');
 
-  if (emblem) emblem.innerText = plant.icon;
+  if (emblem) {
+    if (isMugwortPlant(plant)) {
+      emblem.innerHTML = `
+        <svg width="68" height="68" viewBox="0 0 100 100" style="filter: drop-shadow(0 2px 4px rgba(46,125,50,0.25));">
+          <path d="M50 86 L50 40" stroke="#7a2e2e" stroke-width="3" stroke-linecap="round"/>
+          <path d="M49 80 Q34 76 22 54" stroke="#7a2e2e" stroke-width="1.8" stroke-linecap="round" fill="none"/>
+          <path d="M51 80 Q66 76 78 54" stroke="#7a2e2e" stroke-width="1.8" stroke-linecap="round" fill="none"/>
+          <circle cx="20" cy="41" r="1.8" fill="#33691e"/>
+          <circle cx="80" cy="41" r="1.8" fill="#33691e"/>
+          <path d="M50 68 C 45 66, 40 64, 34 68 C 38 64, 43 62, 45 58 C 37 54, 28 50, 24 40 C 31 43, 37 46, 41 42 C 33 36, 31 28, 32 18 C 37 24, 41 30, 44 26 C 40 18, 43 10, 50 6 C 57 10, 60 18, 56 26 C 59 30, 63 24, 68 18 C 69 28, 67 36, 59 42 C 63 46, 69 43, 76 40 C 72 50, 63 54, 55 58 C 57 62, 62 64, 66 68 C 60 64, 55 66, 50 68 Z" fill="#2e7d32" stroke="#1b5e20" stroke-width="0.8"/>
+          <path d="M50 68 L50 10" stroke="#7cb342" stroke-width="1.2" stroke-linecap="round"/>
+        </svg>
+      `;
+    } else {
+      emblem.innerText = plant.icon;
+    }
+  }
   if (nepali) nepali.innerText = plant.nepali;
   if (english) english.innerText = plant.english;
   if (scientific) scientific.innerText = plant.scientific;
@@ -3433,9 +3732,20 @@ function renderMyForest() {
     const timeDate = new Date(item.timestamp);
     const timeFormatted = timeDate.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
     const isWithered = !item.isHealthy;
+    const iconContent = isWithered ? '🥀' : (isMugwortPlant(item) ? `
+      <svg width="22" height="22" viewBox="0 0 100 100" style="display:inline-block;vertical-align:middle;">
+        <path d="M50 86 L50 40" stroke="#7a2e2e" stroke-width="4" stroke-linecap="round"/>
+        <path d="M49 80 Q34 76 22 54" stroke="#7a2e2e" stroke-width="2.5" fill="none"/>
+        <path d="M51 80 Q66 76 78 54" stroke="#7a2e2e" stroke-width="2.5" fill="none"/>
+        <circle cx="20" cy="41" r="2.5" fill="#33691e"/>
+        <circle cx="80" cy="41" r="2.5" fill="#33691e"/>
+        <path d="M50 68 C 45 66, 40 64, 34 68 C 38 64, 43 62, 45 58 C 37 54, 28 50, 24 40 C 31 43, 37 46, 41 42 C 33 36, 31 28, 32 18 C 37 24, 41 30, 44 26 C 40 18, 43 10, 50 6 C 57 10, 60 18, 56 26 C 59 30, 63 24, 68 18 C 69 28, 67 36, 59 42 C 63 46, 69 43, 76 40 C 72 50, 63 54, 55 58 C 57 62, 62 64, 66 68 C 60 64, 55 66, 50 68 Z" fill="#2e7d32" stroke="#1b5e20" stroke-width="1.2"/>
+        <path d="M50 68 L50 10" stroke="#7cb342" stroke-width="1.8"/>
+      </svg>
+    ` : (item.icon || '🌲'));
     return `
       <div class="forest-plot-item ${isWithered ? 'withered' : ''}" title="${item.nepali} (${item.english}) - ${item.minutes}m - ${isWithered ? 'Withered' : 'Healthy'}">
-        <div class="plot-item-icon">${isWithered ? '🥀' : (item.icon || '🌲')}</div>
+        <div class="plot-item-icon">${iconContent}</div>
         <div class="plot-item-nepali">${item.nepali}</div>
         <div class="plot-item-time">${item.minutes}m • ${timeFormatted}</div>
       </div>
