@@ -6,7 +6,7 @@
   <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
   <meta http-equiv="Pragma" content="no-cache">
   <meta http-equiv="Expires" content="0">
-  <title>Nepal Forest Study | 50 Native Plants & Pomodoro Focus</title>
+  <title>Nepal Forest Study | 10 Native Plants & Botanical Focus</title>
   <meta name="description" content="Focus on your study sessions and cultivate Nepal's 50 native plants - Nepal Forest Focus Pomodoro App.">
   <link rel="icon" type="image/png" sizes="192x192" href="/icon-192.png">
   <link rel="apple-touch-icon" href="/apple-touch-icon.png">
@@ -25,6 +25,19 @@
       }, 2500);
     };
   </script>
+
+  <!-- 10 Native Botanical Plants of Nepal Modules & SVG Engine -->
+  <script src="/plants/rhododendron.js"></script>
+  <script src="/plants/peepal.js"></script>
+  <script src="/plants/banyan.js"></script>
+  <script src="/plants/sal.js"></script>
+  <script src="/plants/pine.js"></script>
+  <script src="/plants/mugwort.js"></script>
+  <script src="/plants/bamboo.js"></script>
+  <script src="/plants/nettle.js"></script>
+  <script src="/plants/lotus.js"></script>
+  <script src="/plants/marigold.js"></script>
+  <script src="/plants/registry.js"></script>
   <style>
     :root {
       --primary: #2e7d32;
@@ -835,7 +848,7 @@
       <div class="brand-logo">🌲</div>
       <div class="brand-titles">
         <h1>Nepal Forest Study</h1>
-        <span>50 Native Plants & Pomodoro Focus</span>
+        <span>10 Native Plants & Pomodoro Focus</span>
       </div>
     </div>
 
@@ -872,13 +885,13 @@
       <div class="hero-text">
         <h2>
           <span>🌲</span> Calm Focus & Forest Cultivation
-          <span class="hero-badge">50 Native Plants</span>
+          <span class="hero-badge">10 Native Plants</span>
         </h2>
         <p>Set a timer, stay focused on your studies, and cultivate Nepal's native botanical forest.</p>
       </div>
       <div class="hero-actions">
         <button class="btn-action btn-primary" onclick="openPlantsModal()">
-          🌿 Select Plant (50 Native Species)
+          🌿 Select Plant (10 Native Species)
         </button>
       </div>
     </section>
@@ -991,20 +1004,19 @@
     <div class="catalog-modal-box" onclick="event.stopPropagation()">
       <div class="modal-head">
         <h3>
-          <span>🇳🇵</span> 50 Native Plants of Nepal
+          <span>🇳🇵</span> 10 Native Plants of Nepal
         </h3>
         <button class="btn-close-modal" onclick="closePlantsModal()">&times;</button>
       </div>
 
       <div class="modal-filters">
-        <input type="text" id="catalogSearchInput" class="search-box-input" placeholder="🔍 Search plants (e.g. साल, लालीगुराँस, Rhododendron, Pine, तुलसी)..." oninput="filterPlantsCatalog()">
+        <input type="text" id="catalogSearchInput" class="search-box-input" placeholder="🔍 Search plants (e.g. साल, लालीगुराँस, Rhododendron, Pine, पीपल, कमल)..." oninput="filterPlantsCatalog()">
         <div style="display: flex; gap: 6px; flex-wrap: wrap;">
-          <button class="duration-pill active" onclick="setCategoryFilter('all', this)">All (50)</button>
-          <button class="duration-pill" onclick="setCategoryFilter('Tree', this)">Trees</button>
-          <button class="duration-pill" onclick="setCategoryFilter('Flower', this)">Flowers</button>
-          <button class="duration-pill" onclick="setCategoryFilter('Herb', this)">Herbs</button>
-          <button class="duration-pill" onclick="setCategoryFilter('Crop', this)">Crops</button>
-          <button class="duration-pill" onclick="setCategoryFilter('Grass', this)">Grasses</button>
+          <button class="duration-pill active" onclick="setCategoryFilter('all', this)">All (10)</button>
+          <button class="duration-pill" onclick="setCategoryFilter('Tree', this)">Trees (5)</button>
+          <button class="duration-pill" onclick="setCategoryFilter('Flower', this)">Flowers (3)</button>
+          <button class="duration-pill" onclick="setCategoryFilter('Herb', this)">Herbs (2)</button>
+          <button class="duration-pill" onclick="setCategoryFilter('Grass', this)">Bamboo (1)</button>
         </div>
       </div>
 
@@ -1013,59 +1025,9 @@
   </div>
 
   <script>
-    // ================= 50 PLANTS OF NEPAL DATA =================
-    const NEPAL_PLANTS = [
-      { id: 1, english: "Sal tree", nepali: "साल", scientific: "Shorea robusta", category: "Tree", icon: "🌳", desc: "Venerable hardwood tree indigenous to Nepal's Terai plains, prized for its strength and sacred significance." },
-      { id: 2, english: "Chir pine", nepali: "रानी सल्ला", scientific: "Pinus roxburghii", category: "Tree", icon: "🌲", desc: "Aromatic Himalayan pine thriving on mid-elevation slopes across Nepal." },
-      { id: 3, english: "Himalayan blue pine", nepali: "गोब्रे सल्ला", scientific: "Pinus wallichiana", category: "Tree", icon: "🌲", desc: "Graceful high-altitude pine with soft, drooping blue-green needle clusters." },
-      { id: 4, english: "Rhododendron", nepali: "लालीगुराँस", scientific: "Rhododendron arboreum", category: "Flower", icon: "🌺", desc: "National flower of Nepal, transforming temperate hills into brilliant scarlet blossoms every spring." },
-      { id: 5, english: "Chilaune tree", nepali: "चिलाउने", scientific: "Schima wallichii", category: "Tree", icon: "🌳", desc: "Distinctive evergreen hardwood native to Nepal's mid-hills, known for its protective bark." },
-      { id: 6, english: "Utis / Alder", nepali: "उत्तिस", scientific: "Alnus nepalensis", category: "Tree", icon: "🌳", desc: "Fast-growing pioneer tree vital for preventing landslides and enriching soil across mountain slopes." },
-      { id: 7, english: "Koiralo tree", nepali: "कोइरालो", scientific: "Bauhinia variegata", category: "Flower", icon: "🌸", desc: "Orchid tree with fragrant pink and white blossoms traditionally gathered for delicacies." },
-      { id: 8, english: "Simal / Silk cotton tree", nepali: "सिमल", scientific: "Bombax ceiba", category: "Tree", icon: "🌺", desc: "Towering canopy tree bearing bright crimson cup flowers and fluffy natural silk fibres." },
-      { id: 9, english: "Peepal tree", nepali: "पीपल", scientific: "Ficus religiosa", category: "Tree", icon: "🌳", desc: "Sacred fig planted at mountain rest-stops (chautari), releasing oxygen day and night." },
-      { id: 10, english: "Banyan tree", nepali: "बर", scientific: "Ficus benghalensis", category: "Tree", icon: "🌳", desc: "Colossal tree with hanging aerial roots, offering cool sanctuary across traditional trails." },
-      { id: 11, english: "Neem tree", nepali: "नीम", scientific: "Azadirachta indica", category: "Herb", icon: "🌿", desc: "Revered medicinal tree known as nature's pharmacy for its purifying and antimicrobial properties." },
-      { id: 12, english: "Khair tree", nepali: "खयर", scientific: "Senegalia catechu", category: "Tree", icon: "🌳", desc: "Hardy deciduous tree of riverine forests, historically valued for herbal extracts and durable wood." },
-      { id: 13, english: "Sissoo tree", nepali: "सिसौ", scientific: "Dalbergia sissoo", category: "Tree", icon: "🌳", desc: "Premier Himalayan rosewood prized throughout southern Nepal for fine craftsmanship." },
-      { id: 14, english: "Lapsi tree", nepali: "लप्सी", scientific: "Choerospondias axillaris", category: "Tree", icon: "🌳", desc: "Endemic Nepali fruit tree famous for its tangy, vitamin-rich fruit used in classic candies." },
-      { id: 15, english: "Amala / Gooseberry", nepali: "अमला", scientific: "Phyllanthus emblica", category: "Herb", icon: "🍈", desc: "Superfruit packed with vitamin C, honored in Ayurvedic tradition as the vital cornerstone of Triphala." },
-      { id: 16, english: "Bel tree", nepali: "बेल", scientific: "Aegle marmelos", category: "Tree", icon: "🍈", desc: "Sacred fruit tree central to cultural ceremonies and respected for soothing digestive health." },
-      { id: 17, english: "Champa tree", nepali: "चम्पा", scientific: "Magnolia champaca", category: "Flower", icon: "🌼", desc: "Sacred temple tree bearing golden-yellow flowers renowned for their heavenly fragrance." },
-      { id: 18, english: "Wild Himalayan pear", nepali: "मेहल", scientific: "Pyrus pashia", category: "Tree", icon: "🍐", desc: "Rugged wild fruit tree flowering with pure white blossoms across high ridges." },
-      { id: 19, english: "Himalayan walnut", nepali: "ओखर", scientific: "Juglans regia", category: "Tree", icon: "🌰", desc: "Mountain walnut tree producing nutrient-dense nuts cherished during festive celebrations." },
-      { id: 20, english: "Bamboo", nepali: "बाँस", scientific: "Bambusa spp.", category: "Grass", icon: "🎋", desc: "Versatile giant grass cultivated for eco-friendly building, fencing, and edible young shoots." },
-      { id: 21, english: "Himalayan raspberry", nepali: "ऐसेलु", scientific: "Rubus ellipticus", category: "Herb", icon: "🫐", desc: "Golden wild raspberry bush dotting hillside walking paths with sweet summer fruit." },
-      { id: 22, english: "Stinging nettle", nepali: "सिस्नु", scientific: "Urtica dioica", category: "Herb", icon: "🌿", desc: "Nutrient-packed mountain herb simmered into restorative broths and woven into natural fibre." },
-      { id: 23, english: "Mugwort", nepali: "तितेपाती", scientific: "Artemisia spp.", category: "Herb", icon: "🌿", desc: "Aromatic mountain herb used traditionally for pest protection and holistic healing." },
-      { id: 24, english: "Fern", nepali: "उन्यू", scientific: "Various fern species", category: "Herb", icon: "🪴", desc: "Verdant forest ferns whose tender curly fiddleheads (niuro) form a celebrated mountain delicacy." },
-      { id: 25, english: "Dandelion", nepali: "गन्धे / गोबे", scientific: "Taraxacum spp.", category: "Flower", icon: "🌼", desc: "Sunny mountain meadow wildflower whose roots and leaves offer herbal wellness." },
-      { id: 26, english: "Wild sorrel", nepali: "हलहले", scientific: "Rumex nepalensis", category: "Herb", icon: "🌱", desc: "Hardy perennial dock growing wild along alpine trails, known for its herbal cooling properties." },
-      { id: 27, english: "White goosefoot", nepali: "बेथे", scientific: "Chenopodium album", category: "Crop", icon: "🥬", desc: "Nutritious leafy green cultivated in traditional Nepali organic gardens." },
-      { id: 28, english: "Thistle", nepali: "काँडे झार", scientific: "Various thistle species", category: "Grass", icon: "🌾", desc: "Resilient spiny alpine flora surviving the harsh winds of high Himalayan passes." },
-      { id: 29, english: "Bindweed", nepali: "लहरे झार", scientific: "Convolvulus spp.", category: "Flower", icon: "🌿", desc: "Graceful creeping vine with trumpet flowers stabilizing mountain hillside terraces." },
-      { id: 30, english: "Bermuda grass", nepali: "दुबो", scientific: "Cynodon dactylon", category: "Grass", icon: "🌱", desc: "Evergreen sacred grass indispensable in Nepali blessings, signifying longevity and renewal." },
-      { id: 31, english: "Cogon grass", nepali: "सिरु", scientific: "Imperata cylindrica", category: "Grass", icon: "🌾", desc: "Silvery feathered perennial grass used for rural thatch roofing and soil stabilization." },
-      { id: 32, english: "Bamboo grass", nepali: "खर", scientific: "Various grass species", category: "Grass", icon: "🌾", desc: "Traditional hillside grass harvested after monsoon for weather-resistant village roofs." },
-      { id: 33, english: "Marigold", nepali: "सयपत्री", scientific: "Tagetes erecta", category: "Flower", icon: "🏵️", desc: "Hundred-petaled golden blossom synonymous with Tihar festival garlands and devotion." },
-      { id: 34, english: "Globe amaranth", nepali: "मखमली", scientific: "Gomphrena globosa", category: "Flower", icon: "🌸", desc: "Everlasting violet flower woven into garlands representing eternal bonds." },
-      { id: 35, english: "Rose", nepali: "गुलाब", scientific: "Rosa spp.", category: "Flower", icon: "🌹", desc: "Classic fragrant garden flower adorning Nepali courtyards and terraces." },
-      { id: 36, english: "Hibiscus", nepali: "जवा फूल", scientific: "Hibiscus rosa-sinensis", category: "Flower", icon: "🌺", desc: "Vibrant tropical bloom dedicated in morning prayers and cherished for herbal hair care." },
-      { id: 37, english: "Sunflower", nepali: "सूर्यमुखी", scientific: "Helianthus annuus", category: "Flower", icon: "🌻", desc: "Radiant blossom tracking the Himalayan sun, providing wholesome seeds and golden oil." },
-      { id: 38, english: "Bougainvillea", nepali: "बोगनबेली", scientific: "Bougainvillea spp.", category: "Flower", icon: "🌸", desc: "Hardy flowering climber creating cascades of vivid magenta over rooftops." },
-      { id: 39, english: "Morning glory", nepali: "मिर्मिरे फूल", scientific: "Ipomoea spp.", category: "Flower", icon: "🪻", desc: "Dawn blossom welcoming the morning light across valley fences and gardens." },
-      { id: 40, english: "Orchid", nepali: "सुनाखरी", scientific: "Orchidaceae", category: "Flower", icon: "🌸", desc: "Exquisite epiphytic orchid clinging to old trees in mist-shrouded mountain cloud forests." },
-      { id: 41, english: "Rice", nepali: "धान", scientific: "Oryza sativa", category: "Crop", icon: "🌾", desc: "Nepal's premier agricultural crop, flourishing on emerald stepped terraces during the monsoon." },
-      { id: 42, english: "Maize", nepali: "मकै", scientific: "Zea mays", category: "Crop", icon: "🌽" },
-      { id: 43, english: "Wheat", nepali: "गहुँ", scientific: "Triticum aestivum", category: "Crop", icon: "🌾" },
-      { id: 44, english: "Mustard", nepali: "तोरी", scientific: "Brassica juncea", category: "Crop", icon: "🌼" },
-      { id: 45, english: "Potato", nepali: "आलु", scientific: "Solanum tuberosum", category: "Crop", icon: "🥔" },
-      { id: 46, english: "Tomato", nepali: "गोलभेँडा", scientific: "Solanum lycopersicum", category: "Crop", icon: "🍅" },
-      { id: 47, english: "Chilli", nepali: "खुर्सानी", scientific: "Capsicum spp.", category: "Crop", icon: "🌶️" },
-      { id: 48, english: "Ginger", nepali: "अदुवा", scientific: "Zingiber officinale", category: "Herb", icon: "🫚" },
-      { id: 49, english: "Turmeric", nepali: "बेसार", scientific: "Curcuma longa", category: "Herb", icon: "🫚" },
-      { id: 50, english: "Holy basil", nepali: "तुलसी", scientific: "Ocimum tenuiflorum", category: "Herb", icon: "🌿" }
-    ];
+    // ================= 10 AUTHENTIC BOTANICAL PLANTS OF NEPAL =================
+    // Loaded modularly from /plants/registry.js
+    const NEPAL_PLANTS = window.NEPAL_PLANTS || [];
 
     // ================= ORIGINAL SOURCE API & LOGGING =================
     const WEB_APP_URL = "https://script.google.com/macros/s/AKfycbwXOTn__dyqNI-8JvsTPEGtC4OPJYuC9-_jqIlq-lutQZDeQzlmM-46XwWAmWYQu8mT/exec";
@@ -1087,13 +1049,32 @@
     let timerDurationMins = 25;
     let timerTotalSecs = 25 * 60;
     let timerRemainingSecs = 25 * 60;
+    let sessionStartTime = null;
+    let sessionTargetEndTime = null;
     let isSessionActive = false;
     let sessionTimerInterval = null;
     let activeForestFilter = 'today';
     let currentCatalogCategory = 'all';
 
+    function syncForestTimer() {
+      if (!isSessionActive) return;
+      const now = Date.now();
+      if (timerMode === 'open') {
+        openElapsedSecs = Math.max(0, Math.floor((now - sessionStartTime) / 1000));
+        renderTimerDisplay();
+      } else {
+        const remaining = Math.max(0, Math.round((sessionTargetEndTime - now) / 1000));
+        timerRemainingSecs = remaining;
+        renderTimerDisplay();
+        if (remaining <= 0) {
+          completeForestSession();
+        }
+      }
+    }
+
     function getCurrentPlant() {
-      return NEPAL_PLANTS.find(p => p.id === selectedPlantId) || NEPAL_PLANTS[3];
+      const plants = window.NEPAL_PLANTS || NEPAL_PLANTS || [];
+      return plants.find(p => p.id === selectedPlantId) || plants[0] || { id: 4, english: 'Rhododendron', nepali: 'लालीगुराँस', scientific: 'Rhododendron arboreum', category: 'Flower', icon: '🌺', desc: 'National flower of Nepal' };
     }
 
     // ================= TIMER MODE TOGGLE =================
@@ -1169,204 +1150,8 @@
       renderTimerDisplay();
     }
 
-    // ================= MUGWORT (ARTEMISIA VULGARIS) BOTANICAL SVG =================
-    function isMugwortPlant(plant) {
-      if (!plant) return false;
-      return plant.id === 23 || 
-        (plant.english && plant.english.toLowerCase().includes('mugwort')) ||
-        (plant.nepali && plant.nepali.includes('तितेपाती'));
-    }
-
-    function getMugwortSvg(percent, isWithered) {
-      if (isWithered) {
-        return `
-          <svg width="120" height="120" viewBox="0 0 100 100" class="botanical-svg mugwort-svg">
-            <ellipse cx="50" cy="88" rx="34" ry="6" fill="#8d6e63" opacity="0.4"/>
-            <!-- Wilted Central Reddish-Brown Stem -->
-            <path d="M50 88 Q48 68 44 48 Q40 38 34 32" stroke="#6d4c41" stroke-width="2.5" stroke-linecap="round" fill="none"/>
-            <!-- Wilted Side Shoots -->
-            <path d="M49 76 Q36 72 24 64" stroke="#795548" stroke-width="1.5" stroke-linecap="round" fill="none"/>
-            <path d="M48 74 Q60 70 66 62" stroke="#795548" stroke-width="1.5" stroke-linecap="round" fill="none"/>
-            <!-- Drooping Withered Pinnatifid Foliage -->
-            <path d="M44 48 Q30 46 22 56 Q28 60 42 54 Z" fill="#8d6e63" opacity="0.85"/>
-            <path d="M45 44 Q56 42 62 50 Q56 56 43 50 Z" fill="#795548" opacity="0.85"/>
-            <path d="M40 38 Q32 32 26 40 Q32 44 38 42 Z" fill="#a1887f" opacity="0.85"/>
-            <path d="M34 32 Q26 26 24 34 Q30 36 34 33 Z" fill="#8d6e63" opacity="0.85"/>
-            <text x="50" y="24" font-size="20" text-anchor="middle">🥀</text>
-          </svg>
-        `;
-      }
-
-      if (percent < 25) {
-        // Sprout stage: young mugwort seedling with reddish stem and early serrated leaves
-        return `
-          <svg width="120" height="120" viewBox="0 0 100 100" class="botanical-svg mugwort-svg">
-            <ellipse cx="50" cy="86" rx="32" ry="6" fill="#5d4037" opacity="0.45"/>
-            <!-- Reddish seedling stem -->
-            <path d="M50 86 Q50 72 50 62" stroke="#8b3a3a" stroke-width="2.4" stroke-linecap="round" fill="none"/>
-            <!-- Young serrated mugwort leaflets -->
-            <path d="M50 64 C42 62 36 56 34 50 C40 52 46 58 50 60 Z" fill="#2e7d32"/>
-            <path d="M50 64 C58 62 64 56 66 50 C60 52 54 58 50 60 Z" fill="#388e3c"/>
-            <path d="M50 62 C48 54 49 44 50 40 C51 44 52 54 50 62 Z" fill="#43a047"/>
-            <circle cx="50" cy="38" r="2" fill="#81c784"/>
-            <text x="50" y="30" font-size="20" text-anchor="middle">🌱</text>
-          </svg>
-        `;
-      } else if (percent < 60) {
-        // Growing stage: Developing central lobed foliage
-        return `
-          <svg width="120" height="120" viewBox="0 0 100 100" class="botanical-svg mugwort-svg">
-            <ellipse cx="50" cy="86" rx="34" ry="7" fill="#4e342e" opacity="0.4"/>
-            <!-- Central reddish stem -->
-            <path d="M50 86 L50 48" stroke="#7a2e2e" stroke-width="2.8" stroke-linecap="round"/>
-            <!-- Growing lobed leaves -->
-            <path d="M50 74 Q36 68 30 60 Q38 60 42 66 Q48 70 50 72 Z" fill="#2e7d32"/>
-            <path d="M50 74 Q64 68 70 60 Q62 60 58 66 Q52 70 50 72 Z" fill="#2e7d32"/>
-            <path d="M50 62 Q32 54 28 44 Q36 46 40 52 Q46 56 50 58 Z" fill="#388e3c"/>
-            <path d="M50 62 Q68 54 72 44 Q64 46 60 52 Q54 56 50 58 Z" fill="#388e3c"/>
-            <!-- Top emerging spear leaf -->
-            <path d="M50 50 Q46 38 50 30 Q54 38 50 50 Z" fill="#4caf50"/>
-            <path d="M50 74 L50 32" stroke="#a5d6a7" stroke-width="0.8" opacity="0.7"/>
-            <text x="50" y="24" font-size="20" text-anchor="middle">🌿</text>
-          </svg>
-        `;
-      } else {
-        // Mature Mugwort (Artemisia vulgaris) based on reference image
-        return `
-          <svg width="120" height="120" viewBox="0 0 100 100" class="botanical-svg mugwort-svg">
-            <ellipse cx="50" cy="88" rx="36" ry="7" fill="#4e342e" opacity="0.4"/>
-            
-            <!-- Reddish-brown central stem based on reference photo -->
-            <path d="M50 88 L50 40" stroke="#7a2e2e" stroke-width="3" stroke-linecap="round"/>
-            
-            <!-- Left Side Sprig (slender side shoot from reference) -->
-            <path d="M49 80 Q34 76 22 54" stroke="#7a2e2e" stroke-width="1.8" stroke-linecap="round" fill="none"/>
-            <path d="M26 68 Q16 66 12 62 Q18 60 25 64 Z" fill="#2e7d32"/>
-            <path d="M24 60 Q14 54 10 46 Q18 48 23 54 Z" fill="#388e3c"/>
-            <path d="M23 54 Q18 46 16 38 Q22 42 23 48 Z" fill="#43a047"/>
-            <!-- Left flower bud spike tips -->
-            <circle cx="21" cy="46" r="1.6" fill="#2e7d32"/>
-            <circle cx="20" cy="41" r="1.8" fill="#33691e"/>
-            <circle cx="19" cy="36" r="1.5" fill="#558b2f"/>
-            <circle cx="18" cy="32" r="1.3" fill="#689f38"/>
-
-            <!-- Right Side Sprig (slender side shoot from reference) -->
-            <path d="M51 80 Q66 76 78 54" stroke="#7a2e2e" stroke-width="1.8" stroke-linecap="round" fill="none"/>
-            <path d="M74 68 Q84 66 88 62 Q82 60 75 64 Z" fill="#2e7d32"/>
-            <path d="M76 60 Q86 54 90 46 Q82 48 77 54 Z" fill="#388e3c"/>
-            <path d="M77 54 Q82 46 84 38 Q78 42 77 48 Z" fill="#43a047"/>
-            <!-- Right flower bud spike tips -->
-            <circle cx="79" cy="46" r="1.6" fill="#2e7d32"/>
-            <circle cx="80" cy="41" r="1.8" fill="#33691e"/>
-            <circle cx="81" cy="36" r="1.5" fill="#558b2f"/>
-            <circle cx="82" cy="32" r="1.3" fill="#689f38"/>
-
-            <!-- Central Mugwort Foliage (deeply pinnatifid/lobed leaf from reference) -->
-            <!-- Lower leaflets -->
-            <path d="M50 74 Q42 74 38 78 Q42 84 48 78 Z" fill="#2e7d32"/>
-            <path d="M50 74 Q58 74 62 78 Q58 84 52 78 Z" fill="#2e7d32"/>
-
-            <!-- Main Middle & Upper Deeply-Lobed Mugwort Leaf -->
-            <path d="M50 68 
-                     C 45 66, 40 64, 34 68 
-                     C 38 64, 43 62, 45 58 
-                     C 37 54, 28 50, 24 40 
-                     C 31 43, 37 46, 41 42 
-                     C 33 36, 31 28, 32 18 
-                     C 37 24, 41 30, 44 26 
-                     C 40 18, 43 10, 50 6 
-                     C 57 10, 60 18, 56 26 
-                     C 59 30, 63 24, 68 18 
-                     C 69 28, 67 36, 59 42 
-                     C 63 46, 69 43, 76 40 
-                     C 72 50, 63 54, 55 58 
-                     C 57 62, 62 64, 66 68 
-                     C 60 64, 55 66, 50 68 Z" 
-                  fill="#2e7d32" stroke="#1b5e20" stroke-width="0.8"/>
-
-            <!-- Inner leaf lobe shading & silvery-green accents -->
-            <path d="M50 64 
-                     C 46 56, 38 48, 32 42 
-                     C 38 44, 43 44, 46 38 
-                     C 42 32, 40 24, 42 18 
-                     C 45 23, 48 26, 50 14 
-                     C 52 26, 55 23, 58 18 
-                     C 60 24, 58 32, 54 38 
-                     C 57 44, 62 44, 68 42 
-                     C 62 48, 54 56, 50 64 Z" 
-                  fill="#388e3c" opacity="0.9"/>
-
-            <!-- Leaf Midrib and Pinnate Veins -->
-            <path d="M50 68 L50 10" stroke="#7cb342" stroke-width="1.2" stroke-linecap="round"/>
-            <path d="M50 48 L32 38" stroke="#a5d6a7" stroke-width="0.8" stroke-linecap="round" opacity="0.8"/>
-            <path d="M50 48 L68 38" stroke="#a5d6a7" stroke-width="0.8" stroke-linecap="round" opacity="0.8"/>
-            <path d="M50 36 L38 24" stroke="#a5d6a7" stroke-width="0.7" stroke-linecap="round" opacity="0.8"/>
-            <path d="M50 36 L62 24" stroke="#a5d6a7" stroke-width="0.7" stroke-linecap="round" opacity="0.8"/>
-            <path d="M50 56 L30 52" stroke="#a5d6a7" stroke-width="0.7" stroke-linecap="round" opacity="0.7"/>
-            <path d="M50 56 L70 52" stroke="#a5d6a7" stroke-width="0.7" stroke-linecap="round" opacity="0.7"/>
-          </svg>
-        `;
-      }
-    }
-
-    // ================= GROWTH GRAPHICS =================
-    function getPlantGrowthSvg(plant, percent, isWithered) {
-      if (isMugwortPlant(plant)) {
-        return getMugwortSvg(percent, isWithered);
-      }
-      if (isWithered) {
-        return `
-          <svg width="120" height="120" viewBox="0 0 100 100">
-            <ellipse cx="50" cy="85" rx="36" ry="7" fill="#8d6e63" opacity="0.4"/>
-            <path d="M50 85 Q48 60 46 45 Q42 35 32 30 M46 45 Q55 35 62 34 M49 60 Q62 55 68 56" stroke="#8d6e63" stroke-width="4" stroke-linecap="round" fill="none"/>
-            <circle cx="30" cy="30" r="3" fill="#a1887f"/>
-            <circle cx="64" cy="34" r="3" fill="#a1887f"/>
-            <text x="50" y="24" font-size="24" text-anchor="middle">🥀</text>
-          </svg>
-        `;
-      }
-      if (percent < 25) {
-        return `
-          <svg width="120" height="120" viewBox="0 0 100 100">
-            <ellipse cx="50" cy="82" rx="38" ry="8" fill="#5d4037" opacity="0.5"/>
-            <circle cx="50" cy="80" r="9" fill="#8d6e63"/>
-            <path d="M50 74 Q50 64 54 58" stroke="#4caf50" stroke-width="3" stroke-linecap="round" fill="none"/>
-            <ellipse cx="56" cy="56" rx="4" ry="2" fill="#81c784" transform="rotate(-25 56 56)"/>
-            <text x="50" y="32" font-size="28" text-anchor="middle">🌱</text>
-          </svg>
-        `;
-      } else if (percent < 60) {
-        return `
-          <svg width="120" height="120" viewBox="0 0 100 100">
-            <ellipse cx="50" cy="84" rx="40" ry="9" fill="#5d4037" opacity="0.5"/>
-            <path d="M50 84 Q49 55 50 42" stroke="#388e3c" stroke-width="4" stroke-linecap="round" fill="none"/>
-            <path d="M50 58 Q38 48 35 52 Q40 60 49 58 Z" fill="#66bb6a"/>
-            <path d="M50 48 Q62 40 65 44 Q60 52 51 50 Z" fill="#4caf50"/>
-            <text x="50" y="28" font-size="30" text-anchor="middle">🌿</text>
-          </svg>
-        `;
-      } else if (percent < 95) {
-        return `
-          <svg width="120" height="120" viewBox="0 0 100 100">
-            <ellipse cx="50" cy="85" rx="40" ry="9" fill="#5d4037" opacity="0.4"/>
-            <path d="M50 85 Q49 60 50 35" stroke="#6d4c41" stroke-width="5" stroke-linecap="round" fill="none"/>
-            <circle cx="50" cy="24" r="14" fill="#43a047" opacity="0.85"/>
-            <text x="50" y="30" font-size="24" text-anchor="middle">${plant.icon || '🌲'}</text>
-          </svg>
-        `;
-      } else {
-        return `
-          <svg width="120" height="120" viewBox="0 0 100 100">
-            <ellipse cx="50" cy="86" rx="42" ry="10" fill="#4e342e" opacity="0.4"/>
-            <path d="M50 86 Q48 65 50 42" stroke="#5d4037" stroke-width="7" stroke-linecap="round" fill="none"/>
-            <circle cx="50" cy="38" r="28" fill="var(--success)" opacity="0.9"/>
-            <circle cx="36" cy="34" r="18" fill="#66bb6a" opacity="0.85"/>
-            <circle cx="64" cy="34" r="18" fill="#388e3c" opacity="0.85"/>
-            <text x="50" y="44" font-size="34" text-anchor="middle">${plant.icon || '🌳'}</text>
-          </svg>
-        `;
-      }
-    }
+    // ================= 10 AUTHENTIC BOTANICAL SVG ENGINE =================
+    // Botanical illustration engine & helpers loaded modularly from /plants/registry.js
 
     // ================= RENDER TIMER =================
     function renderTimerDisplay(isWithered = false) {
@@ -1471,6 +1256,7 @@
     function startOrResumeSession() {
       if (isSessionActive) return;
       isSessionActive = true;
+      sessionStartTime = Date.now();
 
       const btnStart = document.getElementById('btnStartForestSession');
       const btnCompleteOpen = document.getElementById('btnCompleteOpenSession');
@@ -1490,26 +1276,18 @@
           btnGiveUp.innerText = '❌ Discard';
         }
         renderTimerDisplay();
-        sessionTimerInterval = setInterval(() => {
-          openElapsedSecs++;
-          renderTimerDisplay();
-        }, 1000);
+        sessionTimerInterval = setInterval(syncForestTimer, 1000);
       } else {
+        timerTotalSecs = timerDurationMins * 60;
         timerRemainingSecs = timerTotalSecs;
+        sessionTargetEndTime = sessionStartTime + (timerTotalSecs * 1000);
         if (btnCompleteOpen) btnCompleteOpen.style.display = 'none';
         if (btnGiveUp) {
           btnGiveUp.style.display = 'inline-flex';
           btnGiveUp.innerText = '❌ Give Up';
         }
         renderTimerDisplay();
-        sessionTimerInterval = setInterval(() => {
-          if (timerRemainingSecs > 0) {
-            timerRemainingSecs--;
-            renderTimerDisplay();
-          } else {
-            completeForestSession();
-          }
-        }, 1000);
+        sessionTimerInterval = setInterval(syncForestTimer, 1000);
       }
     }
 
@@ -1519,6 +1297,8 @@
       clearInterval(sessionTimerInterval);
       sessionTimerInterval = null;
       isSessionActive = false;
+      sessionStartTime = null;
+      sessionTargetEndTime = null;
 
       const plant = getCurrentPlant();
       const studiedMinutes = Math.max(1, Math.round(openElapsedSecs / 60));
@@ -1568,6 +1348,8 @@
         clearInterval(sessionTimerInterval);
         sessionTimerInterval = null;
         isSessionActive = false;
+        sessionStartTime = null;
+        sessionTargetEndTime = null;
 
         renderTimerDisplay(true);
 
@@ -1594,6 +1376,8 @@
       clearInterval(sessionTimerInterval);
       sessionTimerInterval = null;
       isSessionActive = false;
+      sessionStartTime = null;
+      sessionTargetEndTime = null;
 
       const actualStudiedMinutes = Math.round((timerTotalSecs - timerRemainingSecs) / 60);
       const studiedMinutes = Math.max(1, actualStudiedMinutes);
@@ -1623,6 +1407,8 @@
       clearInterval(sessionTimerInterval);
       sessionTimerInterval = null;
       isSessionActive = false;
+      sessionStartTime = null;
+      sessionTargetEndTime = null;
 
       const plant = getCurrentPlant();
       const studiedMinutes = Math.round(timerTotalSecs / 60);
@@ -1716,21 +1502,7 @@
       const plant = getCurrentPlant();
       const avatarEl = document.getElementById('activePlantAvatar');
       if (avatarEl) {
-        if (isMugwortPlant(plant)) {
-          avatarEl.innerHTML = `
-            <svg width="68" height="68" viewBox="0 0 100 100" style="filter: drop-shadow(0 2px 4px rgba(46,125,50,0.25));">
-              <path d="M50 86 L50 40" stroke="#7a2e2e" stroke-width="3" stroke-linecap="round"/>
-              <path d="M49 80 Q34 76 22 54" stroke="#7a2e2e" stroke-width="1.8" stroke-linecap="round" fill="none"/>
-              <path d="M51 80 Q66 76 78 54" stroke="#7a2e2e" stroke-width="1.8" stroke-linecap="round" fill="none"/>
-              <circle cx="20" cy="41" r="1.8" fill="#33691e"/>
-              <circle cx="80" cy="41" r="1.8" fill="#33691e"/>
-              <path d="M50 68 C 45 66, 40 64, 34 68 C 38 64, 43 62, 45 58 C 37 54, 28 50, 24 40 C 31 43, 37 46, 41 42 C 33 36, 31 28, 32 18 C 37 24, 41 30, 44 26 C 40 18, 43 10, 50 6 C 57 10, 60 18, 56 26 C 59 30, 63 24, 68 18 C 69 28, 67 36, 59 42 C 63 46, 69 43, 76 40 C 72 50, 63 54, 55 58 C 57 62, 62 64, 66 68 C 60 64, 55 66, 50 68 Z" fill="#2e7d32" stroke="#1b5e20" stroke-width="0.8"/>
-              <path d="M50 68 L50 10" stroke="#7cb342" stroke-width="1.2" stroke-linecap="round"/>
-            </svg>
-          `;
-        } else {
-          avatarEl.innerText = plant.icon;
-        }
+        avatarEl.innerHTML = getBotanicalAvatarSvg(plant);
       }
       document.getElementById('activePlantNepali').innerText = plant.nepali;
       document.getElementById('activePlantEnglish').innerText = plant.english;
@@ -1797,17 +1569,7 @@
         const timeDate = new Date(item.timestamp);
         const formatted = timeDate.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
         const isWith = !item.isHealthy;
-        const iconContent = isWith ? '🥀' : (isMugwortPlant(item) ? `
-          <svg width="22" height="22" viewBox="0 0 100 100" style="display:inline-block;vertical-align:middle;">
-            <path d="M50 86 L50 40" stroke="#7a2e2e" stroke-width="4" stroke-linecap="round"/>
-            <path d="M49 80 Q34 76 22 54" stroke="#7a2e2e" stroke-width="2.5" fill="none"/>
-            <path d="M51 80 Q66 76 78 54" stroke="#7a2e2e" stroke-width="2.5" fill="none"/>
-            <circle cx="20" cy="41" r="2.5" fill="#33691e"/>
-            <circle cx="80" cy="41" r="2.5" fill="#33691e"/>
-            <path d="M50 68 C 45 66, 40 64, 34 68 C 38 64, 43 62, 45 58 C 37 54, 28 50, 24 40 C 31 43, 37 46, 41 42 C 33 36, 31 28, 32 18 C 37 24, 41 30, 44 26 C 40 18, 43 10, 50 6 C 57 10, 60 18, 56 26 C 59 30, 63 24, 68 18 C 69 28, 67 36, 59 42 C 63 46, 69 43, 76 40 C 72 50, 63 54, 55 58 C 57 62, 62 64, 66 68 C 60 64, 55 66, 50 68 Z" fill="#2e7d32" stroke="#1b5e20" stroke-width="1.2"/>
-            <path d="M50 68 L50 10" stroke="#7cb342" stroke-width="1.8"/>
-          </svg>
-        ` : (item.icon || '🌲'));
+        const iconContent = getBotanicalPlotIconSvg(item, isWith);
         return `
           <div class="forest-plot-item ${isWith ? 'withered' : ''}" title="${item.nepali} (${item.english}) - ${item.minutes}m">
             <div class="plot-item-icon">${iconContent}</div>
@@ -1865,9 +1627,12 @@
       if (!container) return;
 
       const query = (document.getElementById('catalogSearchInput')?.value || '').toLowerCase().trim();
+      const plants = window.NEPAL_PLANTS || NEPAL_PLANTS || [];
 
-      const list = NEPAL_PLANTS.filter(plant => {
-        const matchesCategory = currentCatalogCategory === 'all' || plant.category.toLowerCase() === currentCatalogCategory.toLowerCase();
+      const list = plants.filter(plant => {
+        const matchesCategory = currentCatalogCategory === 'all' || 
+          plant.category.toLowerCase() === currentCatalogCategory.toLowerCase() ||
+          (currentCatalogCategory === 'Tree' && plant.id === 4);
         const matchesQuery = !query ||
           plant.nepali.toLowerCase().includes(query) ||
           plant.english.toLowerCase().includes(query) ||
@@ -1879,10 +1644,10 @@
         const isSel = plant.id === selectedPlantId;
         return `
           <div class="catalog-card-item ${isSel ? 'selected' : ''}" onclick="pickPlant(${plant.id})">
-            <div class="catalog-icon">${plant.icon}</div>
+            <div class="catalog-icon">${getBotanicalIconSvg(plant)}</div>
             <div class="catalog-meta">
               <div class="catalog-meta-top">
-                <span class="catalog-nepali">${plant.id}. ${plant.nepali}</span>
+                <span class="catalog-nepali">${plant.nepali}</span>
                 <span class="catalog-badge">${plant.category}</span>
               </div>
               <div class="catalog-english">${plant.english}</div>
@@ -1920,6 +1685,23 @@
     window.addEventListener('load', () => {
       renderActivePlant();
       renderForestPlots();
+    });
+
+    // Synchronize timer immediately when returning from other apps or tabs
+    document.addEventListener('visibilitychange', () => {
+      if (isSessionActive && !document.hidden) {
+        syncForestTimer();
+      }
+    });
+    window.addEventListener('focus', () => {
+      if (isSessionActive) {
+        syncForestTimer();
+      }
+    });
+    window.addEventListener('pageshow', () => {
+      if (isSessionActive) {
+        syncForestTimer();
+      }
     });
   </script>
 </body>
