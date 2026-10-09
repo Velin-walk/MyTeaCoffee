@@ -3,6 +3,9 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+  <meta http-equiv="Pragma" content="no-cache">
+  <meta http-equiv="Expires" content="0">
   <title>Study Flow</title>
   <meta name="description" content="A comprehensive study and productivity tracking PWA with chronometer, analytics, and session planning.">
   <meta property="og:title" content="Study Flow">
@@ -148,6 +151,35 @@
       filter: brightness(1.1);
     }
     .pwa-install-btn:active {
+      transform: translateY(0);
+    }
+    .forest-app-btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      background: #16a34a;
+      color: #ffffff !important;
+      border: none;
+      border-radius: 8px;
+      padding: 7px 14px;
+      font-size: 12px;
+      font-weight: 700;
+      cursor: pointer;
+      box-shadow: 0 2px 6px rgba(22, 163, 74, 0.25);
+      transition: transform 0.15s ease, filter 0.2s ease, box-shadow 0.2s ease;
+      user-select: none;
+      text-decoration: none;
+      white-space: nowrap;
+      flex-shrink: 0;
+    }
+    .forest-app-btn:hover {
+      transform: translateY(-1px);
+      box-shadow: 0 4px 10px rgba(22, 163, 74, 0.35);
+      filter: brightness(1.1);
+      background: #15803d;
+      color: #ffffff !important;
+    }
+    .forest-app-btn:active {
       transform: translateY(0);
     }
     .pwa-modal-backdrop {
@@ -1322,9 +1354,13 @@
       <option value="theme-cyberpunk">Cyberpunk</option>
       <option value="theme-ocean">Ocean</option>
     </select>
-    <a id="topForestToggleBtn" class="top-nav-btn" href="/forest.html" target="_self" title="नेपाली वन अध्ययन छुट्टै एप (Nepal Forest Study App)">
-      🌲 <span>नेपाली वन</span>
-    </a>
+    <button id="topForestToggleBtn" class="forest-app-btn" onclick="openForestApp()" title="Nepal Forest Study App">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" style="display:inline-block; vertical-align:middle;">
+        <path d="M12 2L6 10h3l-4 7h14l-4-7h3L12 2z"></path>
+        <path d="M12 17v5"></path>
+      </svg>
+      <span>Nepal Forest</span>
+    </button>
   </div>
 
   <div class="dashboard-container">
@@ -1526,12 +1562,12 @@
   <div class="bottom-tab-switcher-card" id="mainTabBar">
     <div class="tab-switcher-header">
       <div class="tab-switcher-title-group">
-        <span class="tab-switcher-badge">📑 ट्याब स्विच गर्नुहोस् • VIEW SWITCHER</span>
-        <h3 class="tab-switcher-title">अध्ययन दृश्य छनौट गर्नुहोस् (Choose Active View)</h3>
-        <p class="tab-switcher-desc">अध्ययन चार्टहरू वा नेपाली वन अध्ययन बीच तुरुन्त स्विच गर्नुहोस्।</p>
+        <span class="tab-switcher-badge">📑 VIEW SWITCHER</span>
+        <h3 class="tab-switcher-title">Choose Active View</h3>
+        <p class="tab-switcher-desc">Instantly switch between Study Charts and Nepal Forest Study.</p>
       </div>
-      <button class="fullscreen-shortcut-btn" onclick="toggleForestFullscreen()" title="नेपाली वनलाई पूर्ण स्क्रिनमा खोल्नुहोस्">
-        ⛶ पूर्ण स्क्रिन फोकस (Full Screen Mode)
+      <button class="fullscreen-shortcut-btn" onclick="toggleForestFullscreen()" title="Open Nepal Forest in Fullscreen">
+        ⛶ Fullscreen Mode
       </button>
     </div>
 
@@ -1540,12 +1576,12 @@
         <div class="tab-btn-icon-box">📊</div>
         <div class="tab-btn-content">
           <div class="tab-btn-label-row">
-            <span class="tab-btn-nepali">अध्ययन चार्टहरू र तथ्याङ्क</span>
-            <span class="tab-btn-badge active-badge" id="tabBadgeCharts">सक्रिय दृश्य</span>
+            <span class="tab-btn-nepali">Study Charts & Analytics</span>
+            <span class="tab-btn-badge active-badge" id="tabBadgeCharts">Active View</span>
           </div>
           <div class="tab-btn-english">Study Charts, Master Chronometer & Analytics</div>
           <div class="tab-btn-features">
-            <span>⏱️ क्रोनोमिटर</span> • <span>📅 टाइमलाइन</span> • <span>📈 दैनिक प्रगति</span> • <span>🏔️ विश्लेषण</span>
+            <span>⏱️ Chronometer</span> • <span>📅 Timeline</span> • <span>📈 Daily Progress</span> • <span>🏔️ Analytics</span>
           </div>
         </div>
       </button>
@@ -1554,12 +1590,12 @@
         <div class="tab-btn-icon-box forest-icon-box">🌲</div>
         <div class="tab-btn-content">
           <div class="tab-btn-label-row">
-            <span class="tab-btn-nepali">नेपाली वन अध्ययन</span>
-            <span class="tab-btn-badge forest-badge" id="tabBadgeForest">५० रैथाने वनस्पति</span>
+            <span class="tab-btn-nepali">Nepal Forest Study</span>
+            <span class="tab-btn-badge forest-badge" id="tabBadgeForest">50 Native Plants</span>
           </div>
-          <div class="tab-btn-english">Nepal Forest Study Focus (Forest App Concept)</div>
+          <div class="tab-btn-english">Nepal Forest Study Focus (Botanical Pomodoro)</div>
           <div class="tab-btn-features">
-            <span>🌱 पोमोडोरो टाइमर</span> • <span>🌺 लालीगुराँस / साल</span> • <span>🌳 मेरो वन</span> • <span>⛶ पूर्ण स्क्रिन</span>
+            <span>🌱 Pomodoro Timer</span> • <span>🌺 50 Native Plants</span> • <span>🌳 My Forest</span> • <span>⛶ Fullscreen</span>
           </div>
         </div>
       </button>
@@ -1570,15 +1606,15 @@
   <section id="nepalForestTab" class="nepal-forest-tab">
     <div class="forest-header-card">
       <div class="forest-header-info">
-        <h2>🌲 नेपाली वन अध्ययन <span style="font-size: 13px; font-weight: 700; color: var(--success); background: rgba(52, 168, 83, 0.12); padding: 4px 10px; border-radius: 20px;">Nepal Forest Focus</span></h2>
-        <p>शान्त चित्तले अध्ययन गर्नुहोस् र नेपालका ५० रैथाने बोटबिरुवाहरू हुर्काउनुहोस्।</p>
+        <h2>🌲 Nepal Forest Study <span style="font-size: 13px; font-weight: 700; color: var(--success); background: rgba(52, 168, 83, 0.12); padding: 4px 10px; border-radius: 20px;">Nepal Forest Focus</span></h2>
+        <p>Focus on your studies with calm dedication and cultivate Nepal's 50 native plants.</p>
       </div>
       <div class="forest-header-actions">
         <button class="forest-action-btn" onclick="openPlantsCatalogModal()">
-          🌿 ५० वनस्पति सूची (50 Plants)
+          🌿 50 Plants Catalog
         </button>
         <button id="btnForestFullscreen" class="forest-action-btn btn-primary" onclick="toggleForestFullscreen()">
-          ⛶ पूर्ण स्क्रिन (Full Screen Focus)
+          ⛶ Fullscreen Focus
         </button>
       </div>
     </div>
@@ -1591,9 +1627,9 @@
         <h3 class="plant-nepali-title" id="activePlantNepali">लालीगुराँस</h3>
         <div class="plant-english-sub" id="activePlantEnglish">Rhododendron</div>
         <div class="plant-scientific-name" id="activePlantScientific">Rhododendron arboreum</div>
-        <div class="plant-category-badge" id="activePlantCategory">राष्ट्रिय फूल / रूख</div>
+        <div class="plant-category-badge" id="activePlantCategory">National Flower / Tree</div>
         <button class="forest-action-btn" onclick="openPlantsCatalogModal()" style="width: 100%; justify-content: center; margin-top: auto;">
-          🔄 वनस्पति परिवर्तन (Change Plant)
+          🔄 Change Plant
         </button>
       </div>
 
@@ -1608,25 +1644,25 @@
         </div>
 
         <div id="forestTimerDisplay" class="forest-timer-digits">25:00</div>
-        <div id="forestStageLabel" class="forest-stage-label">तयार (Ready to Plant)</div>
-        <div id="forestQuoteText" class="forest-quote-text">"एकाग्र मन नै सफलताको बीउ हो।"</div>
+        <div id="forestStageLabel" class="forest-stage-label">Ready to Plant</div>
+        <div id="forestQuoteText" class="forest-quote-text">"A focused mind is the seed of true mastery."</div>
 
         <!-- Duration Selectors -->
         <div class="duration-pills-row" id="forestDurationPills">
-          <button class="duration-pill" onclick="selectForestDuration(15, this)">१५ मिनेट</button>
-          <button class="duration-pill active" onclick="selectForestDuration(25, this)">२५ मिनेट (पोमोडोरो)</button>
-          <button class="duration-pill" onclick="selectForestDuration(45, this)">४५ मिनेट</button>
-          <button class="duration-pill" onclick="selectForestDuration(60, this)">६० मिनेट</button>
-          <button class="duration-pill" onclick="selectForestDuration(90, this)">९० मिनेट</button>
-          <button class="duration-pill" onclick="selectForestDuration(120, this)">१२० मिनेट</button>
+          <button class="duration-pill" onclick="selectForestDuration(15, this)">15 min</button>
+          <button class="duration-pill active" onclick="selectForestDuration(25, this)">25 min (Pomodoro)</button>
+          <button class="duration-pill" onclick="selectForestDuration(45, this)">45 min</button>
+          <button class="duration-pill" onclick="selectForestDuration(60, this)">60 min</button>
+          <button class="duration-pill" onclick="selectForestDuration(90, this)">90 min</button>
+          <button class="duration-pill" onclick="selectForestDuration(120, this)">120 min</button>
         </div>
 
         <div class="forest-controls-row">
           <button id="btnForestStart" class="btn-plant-start" onclick="toggleForestSession()">
-            🌱 रोप्न सुरु गर्नुहोस् (Plant & Focus)
+            🌱 Plant & Focus
           </button>
           <button id="btnForestGiveUp" class="btn-plant-giveup" onclick="giveUpForestSession()" style="display: none;">
-            ❌ रोक्नुहोस् (Give Up)
+            ❌ Give Up
           </button>
         </div>
       </div>
@@ -1637,30 +1673,30 @@
       <div class="forest-stats-banner">
         <div class="forest-stat-box">
           <div id="statForestTotalTrees" class="forest-stat-val">0</div>
-          <div class="forest-stat-lbl">🌳 कुल बिरुवा (Trees Planted)</div>
+          <div class="forest-stat-lbl">🌳 Total Planted</div>
         </div>
         <div class="forest-stat-box">
           <div id="statForestTotalTime" class="forest-stat-val">0m</div>
-          <div class="forest-stat-lbl">⏱️ कुल ध्यान समय (Focus Time)</div>
+          <div class="forest-stat-lbl">⏱️ Total Focus Time</div>
         </div>
         <div class="forest-stat-box">
           <div id="statForestHealthy" class="forest-stat-val" style="color: var(--success);">0</div>
-          <div class="forest-stat-lbl">🌿 जीवित बिरुवा (Thriving)</div>
+          <div class="forest-stat-lbl">🌿 Thriving Plants</div>
         </div>
         <div class="forest-stat-box">
           <div id="statForestWithered" class="forest-stat-val" style="color: var(--danger);">0</div>
-          <div class="forest-stat-lbl">🥀 सुकेका बिरुवा (Withered)</div>
+          <div class="forest-stat-lbl">🥀 Withered Plants</div>
         </div>
       </div>
 
       <div class="forest-filter-bar">
         <div style="font-weight: 800; font-size: 16px; color: var(--text);">
-          🌿 मेरो नेपाली वन (My Nepal Forest)
+          🌿 My Planted Forest
         </div>
         <div style="display: flex; gap: 6px;">
-          <button class="duration-pill active" id="filterTodayBtn" onclick="filterForestGrid('today')">आज (Today)</button>
-          <button class="duration-pill" id="filterWeekBtn" onclick="filterForestGrid('week')">यो हप्ता (Week)</button>
-          <button class="duration-pill" id="filterAllBtn" onclick="filterForestGrid('all')">सबै (All)</button>
+          <button class="duration-pill active" id="filterTodayBtn" onclick="filterForestGrid('today')">Today</button>
+          <button class="duration-pill" id="filterWeekBtn" onclick="filterForestGrid('week')">This Week</button>
+          <button class="duration-pill" id="filterAllBtn" onclick="filterForestGrid('all')">All Time</button>
         </div>
       </div>
 
@@ -1675,22 +1711,22 @@
       <div class="catalog-modal-header">
         <div>
           <h3 style="margin: 0 0 4px; font-size: 18px; font-weight: 800; display:flex; align-items:center; gap:8px;">
-            🇳🇵 नेपालका ५० वनस्पतिहरू <span style="font-size:12px; font-weight:600; color:var(--text-secondary);">(50 Plants of Nepal)</span>
+            🇳🇵 50 Native Plants of Nepal
           </h3>
-          <p style="margin: 0; font-size: 12px; color: var(--text-secondary);">तपाईंले हुर्काउन चाहनुभएको वनस्पति रोज्नुहोस्।</p>
+          <p style="margin: 0; font-size: 12px; color: var(--text-secondary);">Select a plant to cultivate during your study session.</p>
         </div>
         <button onclick="closePlantsModal()" style="background: none; border: none; font-size: 24px; cursor: pointer; color: var(--text-secondary);">&times;</button>
       </div>
 
       <div class="catalog-search-bar">
-        <input type="text" id="plantSearchInput" class="catalog-search-input" placeholder="🔍 वनस्पतिको नाम खोज्नुहोस् (उदा: साल, गुराँस, Basil, Pinus)..." oninput="renderPlantsCatalog()">
+        <input type="text" id="plantSearchInput" class="catalog-search-input" placeholder="🔍 Search plants (e.g. साल, लालीगुराँस, Rhododendron, Pine, तुलसी)..." oninput="renderPlantsCatalog()">
         <div style="display: flex; gap: 6px; flex-wrap: wrap;">
-          <button class="duration-pill active" onclick="filterCatalogCategory('all', this)">सबै (५०)</button>
-          <button class="duration-pill" onclick="filterCatalogCategory('रूख', this)">रूख (Trees)</button>
-          <button class="duration-pill" onclick="filterCatalogCategory('फूल', this)">फूल (Flowers)</button>
-          <button class="duration-pill" onclick="filterCatalogCategory('जडीबुटी', this)">जडीबुटी (Herbs)</button>
-          <button class="duration-pill" onclick="filterCatalogCategory('बाली', this)">बाली (Crops)</button>
-          <button class="duration-pill" onclick="filterCatalogCategory('घाँस', this)">घाँस (Grasses)</button>
+          <button class="duration-pill active" onclick="filterCatalogCategory('all', this)">All (50)</button>
+          <button class="duration-pill" onclick="filterCatalogCategory('Tree', this)">Trees</button>
+          <button class="duration-pill" onclick="filterCatalogCategory('Flower', this)">Flowers</button>
+          <button class="duration-pill" onclick="filterCatalogCategory('Herb', this)">Herbs</button>
+          <button class="duration-pill" onclick="filterCatalogCategory('Crop', this)">Crops</button>
+          <button class="duration-pill" onclick="filterCatalogCategory('Grass', this)">Grasses</button>
         </div>
       </div>
 
@@ -2906,11 +2942,19 @@ function closePWAModal(e) {
   if (modal) modal.style.display = 'none';
 }
 
+// Strictly no caching anytime: unregister any service worker and clear browser cache storage
 if ('serviceWorker' in navigator) {
-  window.addEventListener('load', () => {
-    navigator.serviceWorker.register('/sw.js')
-      .then(reg => console.log('PWA Service Worker registered:', reg.scope))
-      .catch(err => console.log('Service Worker registration failed:', err));
+  navigator.serviceWorker.getRegistrations().then(registrations => {
+    for (const registration of registrations) {
+      registration.unregister();
+    }
+  });
+}
+if ('caches' in window) {
+  caches.keys().then(names => {
+    for (const name of names) {
+      caches.delete(name);
+    }
   });
 }
 
@@ -2919,56 +2963,56 @@ updateInstallButtonVisibility();
 
 // ============= NEPAL FOREST STUDY APPLICATION =============
 const NEPAL_PLANTS = [
-  { id: 1, english: "Sal tree", nepali: "साल", scientific: "Shorea robusta", category: "रूख", icon: "🌳" },
-  { id: 2, english: "Chir pine", nepali: "रानी सल्ला", scientific: "Pinus roxburghii", category: "रूख", icon: "🌲" },
-  { id: 3, english: "Himalayan blue pine", nepali: "गोब्रे सल्ला", scientific: "Pinus wallichiana", category: "रूख", icon: "🌲" },
-  { id: 4, english: "Rhododendron", nepali: "लालीगुराँस", scientific: "Rhododendron arboreum", category: "फूल", icon: "🌺" },
-  { id: 5, english: "Chilaune tree", nepali: "चिलाउने", scientific: "Schima wallichii", category: "रूख", icon: "🌳" },
-  { id: 6, english: "Utis / Alder", nepali: "उत्तिस", scientific: "Alnus nepalensis", category: "रूख", icon: "🌳" },
-  { id: 7, english: "Koiralo tree", nepali: "कोइरालो", scientific: "Bauhinia variegata", category: "फूल", icon: "🌸" },
-  { id: 8, english: "Simal / Silk cotton tree", nepali: "सिमल", scientific: "Bombax ceiba", category: "रूख", icon: "🌺" },
-  { id: 9, english: "Peepal tree", nepali: "पीपल", scientific: "Ficus religiosa", category: "रूख", icon: "🌳" },
-  { id: 10, english: "Banyan tree", nepali: "बर", scientific: "Ficus benghalensis", category: "रूख", icon: "🌳" },
-  { id: 11, english: "Neem tree", nepali: "नीम", scientific: "Azadirachta indica", category: "जडीबुटी", icon: "🌿" },
-  { id: 12, english: "Khair tree", nepali: "खयर", scientific: "Senegalia catechu", category: "रूख", icon: "🌳" },
-  { id: 13, english: "Sissoo tree", nepali: "सिसौ", scientific: "Dalbergia sissoo", category: "रूख", icon: "🌳" },
-  { id: 14, english: "Lapsi tree", nepali: "लप्सी", scientific: "Choerospondias axillaris", category: "रूख", icon: "🌳" },
-  { id: 15, english: "Amala / Indian gooseberry", nepali: "अमला", scientific: "Phyllanthus emblica", category: "जडीबुटी", icon: "🍈" },
-  { id: 16, english: "Bel tree", nepali: "बेल", scientific: "Aegle marmelos", category: "रूख", icon: "🍈" },
-  { id: 17, english: "Champa tree", nepali: "चम्पा", scientific: "Magnolia champaca", category: "फूल", icon: "🌼" },
-  { id: 18, english: "Wild Himalayan pear", nepali: "मेहल", scientific: "Pyrus pashia", category: "रूख", icon: "🍐" },
-  { id: 19, english: "Himalayan walnut", nepali: "ओखर", scientific: "Juglans regia", category: "रूख", icon: "🌰" },
-  { id: 20, english: "Bamboo", nepali: "बाँस", scientific: "Bambusa spp.", category: "घाँस", icon: "🎋" },
-  { id: 21, english: "Himalayan raspberry", nepali: "ऐसेलु", scientific: "Rubus ellipticus", category: "जडीबुटी", icon: "🫐" },
-  { id: 22, english: "Stinging nettle", nepali: "सिस्नु", scientific: "Urtica dioica and related species", category: "जडीबुटी", icon: "🌿" },
-  { id: 23, english: "Mugwort / wormwood", nepali: "तितेपाती", scientific: "Artemisia spp.", category: "जडीबुटी", icon: "🌿" },
-  { id: 24, english: "Fern", nepali: "उन्यू", scientific: "Various fern species", category: "जडीबुटी", icon: "🪴" },
-  { id: 25, english: "Dandelion", nepali: "गन्धे / गोबे", scientific: "Taraxacum spp.", category: "फूल", icon: "🌼" },
-  { id: 26, english: "Wild sorrel", nepali: "हलहले", scientific: "Rumex nepalensis", category: "जडीबुटी", icon: "🌱" },
-  { id: 27, english: "White goosefoot", nepali: "बेथे", scientific: "Chenopodium album", category: "बाली", icon: "🥬" },
-  { id: 28, english: "Thistle", nepali: "काँडे झार", scientific: "Various thistle species", category: "घाँस", icon: "🌾" },
-  { id: 29, english: "Bindweed", nepali: "लहरे झार", scientific: "Convolvulus spp.", category: "फूल", icon: "🌿" },
-  { id: 30, english: "Bermuda grass", nepali: "दुबो", scientific: "Cynodon dactylon", category: "घाँस", icon: "🌱" },
-  { id: 31, english: "Cogon grass", nepali: "सिरु", scientific: "Imperata cylindrica", category: "घाँस", icon: "🌾" },
-  { id: 32, english: "Bamboo grass / hill grasses", nepali: "खर", scientific: "Various grass species", category: "घाँस", icon: "🌾" },
-  { id: 33, english: "Marigold", nepali: "सयपत्री", scientific: "Tagetes erecta", category: "फूल", icon: "🏵️" },
-  { id: 34, english: "Globe amaranth", nepali: "मखमली", scientific: "Gomphrena globosa", category: "फूल", icon: "🌸" },
-  { id: 35, english: "Rose", nepali: "गुलाब", scientific: "Rosa spp.", category: "फूल", icon: "🌹" },
-  { id: 36, english: "Hibiscus", nepali: "जवा फूल", scientific: "Hibiscus rosa-sinensis", category: "फूल", icon: "🌺" },
-  { id: 37, english: "Sunflower", nepali: "सूर्यमुखी", scientific: "Helianthus annuus", category: "फूल", icon: "🌻" },
-  { id: 38, english: "Bougainvillea", nepali: "बोगनबेली", scientific: "Bougainvillea spp.", category: "फूल", icon: "🌸" },
-  { id: 39, english: "Morning glory", nepali: "मिर्मिरे फूल", scientific: "Ipomoea spp.", category: "फूल", icon: "🪻" },
-  { id: 40, english: "Orchid", nepali: "सुनाखरी", scientific: "Orchidaceae", category: "फूल", icon: "🌸" },
-  { id: 41, english: "Rice", nepali: "धान", scientific: "Oryza sativa", category: "बाली", icon: "🌾" },
-  { id: 42, english: "Maize", nepali: "मकै", scientific: "Zea mays", category: "बाली", icon: "🌽" },
-  { id: 43, english: "Wheat", nepali: "गहुँ", scientific: "Triticum aestivum", category: "बाली", icon: "🌾" },
-  { id: 44, english: "Mustard", nepali: "तोरी", scientific: "Brassica juncea and related species", category: "बाली", icon: "🌼" },
-  { id: 45, english: "Potato", nepali: "आलु", scientific: "Solanum tuberosum", category: "बाली", icon: "🥔" },
-  { id: 46, english: "Tomato", nepali: "गोलभेँडा", scientific: "Solanum lycopersicum", category: "बाली", icon: "🍅" },
-  { id: 47, english: "Chilli", nepali: "खुर्सानी", scientific: "Capsicum spp.", category: "बाली", icon: "🌶️" },
-  { id: 48, english: "Ginger", nepali: "अदुवा", scientific: "Zingiber officinale", category: "जडीबुटी", icon: "🫚" },
-  { id: 49, english: "Turmeric", nepali: "बेसार", scientific: "Curcuma longa", category: "जडीबुटी", icon: "🫚" },
-  { id: 50, english: "Holy basil", nepali: "तुलसी", scientific: "Ocimum tenuiflorum", category: "जडीबुटी", icon: "🌿" }
+  { id: 1, english: "Sal tree", nepali: "साल", scientific: "Shorea robusta", category: "Tree", icon: "🌳" },
+  { id: 2, english: "Chir pine", nepali: "रानी सल्ला", scientific: "Pinus roxburghii", category: "Tree", icon: "🌲" },
+  { id: 3, english: "Himalayan blue pine", nepali: "गोब्रे सल्ला", scientific: "Pinus wallichiana", category: "Tree", icon: "🌲" },
+  { id: 4, english: "Rhododendron", nepali: "लालीगुराँस", scientific: "Rhododendron arboreum", category: "Flower", icon: "🌺" },
+  { id: 5, english: "Chilaune tree", nepali: "चिलाउने", scientific: "Schima wallichii", category: "Tree", icon: "🌳" },
+  { id: 6, english: "Utis / Alder", nepali: "उत्तिस", scientific: "Alnus nepalensis", category: "Tree", icon: "🌳" },
+  { id: 7, english: "Koiralo tree", nepali: "कोइरालो", scientific: "Bauhinia variegata", category: "Flower", icon: "🌸" },
+  { id: 8, english: "Simal / Silk cotton tree", nepali: "सिमल", scientific: "Bombax ceiba", category: "Tree", icon: "🌺" },
+  { id: 9, english: "Peepal tree", nepali: "पीपल", scientific: "Ficus religiosa", category: "Tree", icon: "🌳" },
+  { id: 10, english: "Banyan tree", nepali: "बर", scientific: "Ficus benghalensis", category: "Tree", icon: "🌳" },
+  { id: 11, english: "Neem tree", nepali: "नीम", scientific: "Azadirachta indica", category: "Herb", icon: "🌿" },
+  { id: 12, english: "Khair tree", nepali: "खयर", scientific: "Senegalia catechu", category: "Tree", icon: "🌳" },
+  { id: 13, english: "Sissoo tree", nepali: "सिसौ", scientific: "Dalbergia sissoo", category: "Tree", icon: "🌳" },
+  { id: 14, english: "Lapsi tree", nepali: "लप्सी", scientific: "Choerospondias axillaris", category: "Tree", icon: "🌳" },
+  { id: 15, english: "Amala / Indian gooseberry", nepali: "अमला", scientific: "Phyllanthus emblica", category: "Herb", icon: "🍈" },
+  { id: 16, english: "Bel tree", nepali: "बेल", scientific: "Aegle marmelos", category: "Tree", icon: "🍈" },
+  { id: 17, english: "Champa tree", nepali: "चम्पा", scientific: "Magnolia champaca", category: "Flower", icon: "🌼" },
+  { id: 18, english: "Wild Himalayan pear", nepali: "मेहल", scientific: "Pyrus pashia", category: "Tree", icon: "🍐" },
+  { id: 19, english: "Himalayan walnut", nepali: "ओखर", scientific: "Juglans regia", category: "Tree", icon: "🌰" },
+  { id: 20, english: "Bamboo", nepali: "बाँस", scientific: "Bambusa spp.", category: "Grass", icon: "🎋" },
+  { id: 21, english: "Himalayan raspberry", nepali: "ऐसेलु", scientific: "Rubus ellipticus", category: "Herb", icon: "🫐" },
+  { id: 22, english: "Stinging nettle", nepali: "सिस्नु", scientific: "Urtica dioica and related species", category: "Herb", icon: "🌿" },
+  { id: 23, english: "Mugwort / wormwood", nepali: "तितेपाती", scientific: "Artemisia spp.", category: "Herb", icon: "🌿" },
+  { id: 24, english: "Fern", nepali: "उन्यू", scientific: "Various fern species", category: "Herb", icon: "🪴" },
+  { id: 25, english: "Dandelion", nepali: "गन्धे / गोबे", scientific: "Taraxacum spp.", category: "Flower", icon: "🌼" },
+  { id: 26, english: "Wild sorrel", nepali: "हलहले", scientific: "Rumex nepalensis", category: "Herb", icon: "🌱" },
+  { id: 27, english: "White goosefoot", nepali: "बेथे", scientific: "Chenopodium album", category: "Crop", icon: "🥬" },
+  { id: 28, english: "Thistle", nepali: "काँडे झार", scientific: "Various thistle species", category: "Grass", icon: "🌾" },
+  { id: 29, english: "Bindweed", nepali: "लहरे झार", scientific: "Convolvulus spp.", category: "Flower", icon: "🌿" },
+  { id: 30, english: "Bermuda grass", nepali: "दुबो", scientific: "Cynodon dactylon", category: "Grass", icon: "🌱" },
+  { id: 31, english: "Cogon grass", nepali: "सिरु", scientific: "Imperata cylindrica", category: "Grass", icon: "🌾" },
+  { id: 32, english: "Bamboo grass / hill grasses", nepali: "खर", scientific: "Various grass species", category: "Grass", icon: "🌾" },
+  { id: 33, english: "Marigold", nepali: "सयपत्री", scientific: "Tagetes erecta", category: "Flower", icon: "🏵️" },
+  { id: 34, english: "Globe amaranth", nepali: "मखमली", scientific: "Gomphrena globosa", category: "Flower", icon: "🌸" },
+  { id: 35, english: "Rose", nepali: "गुलाब", scientific: "Rosa spp.", category: "Flower", icon: "🌹" },
+  { id: 36, english: "Hibiscus", nepali: "जवा फूल", scientific: "Hibiscus rosa-sinensis", category: "Flower", icon: "🌺" },
+  { id: 37, english: "Sunflower", nepali: "सूर्यमुखी", scientific: "Helianthus annuus", category: "Flower", icon: "🌻" },
+  { id: 38, english: "Bougainvillea", nepali: "बोगनबेली", scientific: "Bougainvillea spp.", category: "Flower", icon: "🌸" },
+  { id: 39, english: "Morning glory", nepali: "मिर्मिरे फूल", scientific: "Ipomoea spp.", category: "Flower", icon: "🪻" },
+  { id: 40, english: "Orchid", nepali: "सुनाखरी", scientific: "Orchidaceae", category: "Flower", icon: "🌸" },
+  { id: 41, english: "Rice", nepali: "धान", scientific: "Oryza sativa", category: "Crop", icon: "🌾" },
+  { id: 42, english: "Maize", nepali: "मकै", scientific: "Zea mays", category: "Crop", icon: "🌽" },
+  { id: 43, english: "Wheat", nepali: "गहुँ", scientific: "Triticum aestivum", category: "Crop", icon: "🌾" },
+  { id: 44, english: "Mustard", nepali: "तोरी", scientific: "Brassica juncea and related species", category: "Crop", icon: "🌼" },
+  { id: 45, english: "Potato", nepali: "आलु", scientific: "Solanum tuberosum", category: "Crop", icon: "🥔" },
+  { id: 46, english: "Tomato", nepali: "गोलभेँडा", scientific: "Solanum lycopersicum", category: "Crop", icon: "🍅" },
+  { id: 47, english: "Chilli", nepali: "खुर्सानी", scientific: "Capsicum spp.", category: "Crop", icon: "🌶️" },
+  { id: 48, english: "Ginger", nepali: "अदुवा", scientific: "Zingiber officinale", category: "Herb", icon: "🫚" },
+  { id: 49, english: "Turmeric", nepali: "बेसार", scientific: "Curcuma longa", category: "Herb", icon: "🫚" },
+  { id: 50, english: "Holy basil", nepali: "तुलसी", scientific: "Ocimum tenuiflorum", category: "Herb", icon: "🌿" }
 ];
 
 let selectedForestPlantId = parseInt(localStorage.getItem('selectedNepalPlantId')) || 4;
@@ -3009,11 +3053,11 @@ function switchMainTab(tab) {
     if (btnForest) btnForest.classList.remove('active');
     if (badgeCharts) {
       badgeCharts.className = 'tab-btn-badge active-badge';
-      badgeCharts.textContent = 'सक्रिय दृश्य';
+      badgeCharts.textContent = 'Active View';
     }
     if (badgeForest) {
       badgeForest.className = 'tab-btn-badge';
-      badgeForest.textContent = '५० रैथाने वनस्पति';
+      badgeForest.textContent = '50 Native Plants';
     }
 
     // Bottom navigation bar active state
@@ -3023,8 +3067,8 @@ function switchMainTab(tab) {
     // Top toggle button label & state
     if (topForestBtn) {
       topForestBtn.classList.remove('active');
-      topForestBtn.innerHTML = '🌲 <span>नेपाली वन</span>';
-      topForestBtn.title = 'नेपाली वन अध्ययन (Nepal Forest Study)';
+      topForestBtn.innerHTML = '🌲 <span>Nepal Forest</span>';
+      topForestBtn.title = 'Nepal Forest Study';
     }
 
     window.scrollTo(0, 0);
@@ -3045,11 +3089,11 @@ function switchMainTab(tab) {
     if (btnCharts) btnCharts.classList.remove('active');
     if (badgeForest) {
       badgeForest.className = 'tab-btn-badge forest-badge';
-      badgeForest.textContent = 'सक्रिय दृश्य (Active)';
+      badgeForest.textContent = 'Active View';
     }
     if (badgeCharts) {
       badgeCharts.className = 'tab-btn-badge';
-      badgeCharts.textContent = 'अध्ययन चार्टहरू';
+      badgeCharts.textContent = 'Study Charts';
     }
 
     // Bottom navigation bar active state
@@ -3059,8 +3103,8 @@ function switchMainTab(tab) {
     // Top toggle button label & active style
     if (topForestBtn) {
       topForestBtn.classList.add('active');
-      topForestBtn.innerHTML = '📊 <span>अध्ययन चार्टहरू</span>';
-      topForestBtn.title = 'अध्ययन चार्टहरू (Study Charts)';
+      topForestBtn.innerHTML = '📊 <span>Study Charts</span>';
+      topForestBtn.title = 'Study Charts & Analytics';
     }
 
     window.scrollTo(0, 0);
@@ -3070,6 +3114,10 @@ function switchMainTab(tab) {
     renderActivePlantProfile();
     renderMyForest();
   }
+}
+
+function openForestApp() {
+  window.location.href = '/forest.html';
 }
 
 function toggleTopForestTab() {
@@ -3089,10 +3137,10 @@ function toggleForestFullscreen() {
   const isNowFullscreen = forestTab.classList.toggle('fullscreen-mode');
   
   if (btn) {
-    btn.innerHTML = isNowFullscreen ? '✕ स्क्रिनबाट निस्कनुहोस् (Exit Fullscreen)' : '⛶ पूर्ण स्क्रिन (Full Screen Focus)';
+    btn.innerHTML = isNowFullscreen ? '✕ Exit Fullscreen' : '⛶ Fullscreen Focus';
   }
   if (navBtnLabel) {
-    navBtnLabel.textContent = isNowFullscreen ? 'निस्कनुहोस्' : 'पूर्ण स्क्रिन';
+    navBtnLabel.textContent = isNowFullscreen ? 'Exit Fullscreen' : 'Fullscreen';
   }
 
   if (isNowFullscreen) {
@@ -3194,22 +3242,22 @@ function updateForestDisplay(isWithered = false) {
   const stageLabel = document.getElementById('forestStageLabel');
   if (stageLabel) {
     if (isWithered) {
-      stageLabel.innerText = '🥀 ओइलायो / सुक्यो (Withered)';
+      stageLabel.innerText = '🥀 Withered (Session Abandoned)';
       stageLabel.style.color = 'var(--danger)';
     } else if (!isForestRunning) {
-      stageLabel.innerText = progressPercent >= 100 ? `🎉 ${plant.nepali} सफलतापुर्वक रोपियो!` : 'तयार (Ready to Plant)';
+      stageLabel.innerText = progressPercent >= 100 ? `🎉 ${plant.nepali} successfully planted!` : 'Ready to Plant';
       stageLabel.style.color = 'var(--success)';
     } else if (progressPercent < 25) {
-      stageLabel.innerText = `🌱 ${plant.nepali}को बीउ उमार्दै (Sprouting)`;
+      stageLabel.innerText = `🌱 Sprouting ${plant.nepali}...`;
       stageLabel.style.color = 'var(--success)';
     } else if (progressPercent < 60) {
-      stageLabel.innerText = `🌿 ${plant.nepali}को अंकुर बढ्दै (Growing)`;
+      stageLabel.innerText = `🌿 Growing ${plant.nepali}...`;
       stageLabel.style.color = 'var(--success)';
     } else if (progressPercent < 95) {
-      stageLabel.innerText = `🪴 ${plant.nepali}को बिरुवा फैलिँदै (Budding)`;
+      stageLabel.innerText = `🪴 Budding ${plant.nepali}...`;
       stageLabel.style.color = 'var(--success)';
     } else {
-      stageLabel.innerText = `🌳 परिपक्व ${plant.nepali} बन्दै (Maturing)`;
+      stageLabel.innerText = `🌳 Maturing ${plant.nepali}...`;
       stageLabel.style.color = 'var(--success)';
     }
   }
@@ -3243,7 +3291,7 @@ function toggleForestSession() {
 function giveUpForestSession() {
   if (!isForestRunning) return;
   const plant = getSelectedPlant();
-  const confirmGiveUp = window.confirm(`के तपाईं अध्ययन रोक्न चाहनुहुन्छ? यसो गर्दा तपाईंको "${plant.nepali}" ओइलाउनेछ!`);
+  const confirmGiveUp = window.confirm(`Do you want to abandon your session? Your "${plant.nepali}" will wither!`);
   if (!confirmGiveUp) return;
 
   clearInterval(forestTimerInterval);
@@ -3261,7 +3309,7 @@ function giveUpForestSession() {
 
   if (btnStart) {
     btnStart.style.display = 'inline-flex';
-    btnStart.innerText = '🌱 फेरि रोप्न सुरु गर्नुहोस् (Try Again)';
+    btnStart.innerText = '🌱 Try Again';
   }
   if (btnGiveUp) btnGiveUp.style.display = 'none';
   if (durationRow) durationRow.style.opacity = '1';
@@ -3288,12 +3336,12 @@ function finishForestSession() {
 
   if (btnStart) {
     btnStart.style.display = 'inline-flex';
-    btnStart.innerText = '🌱 नयाँ बिरुवा रोप्नुहोस् (Plant Another)';
+    btnStart.innerText = '🌱 Plant Another';
   }
   if (btnGiveUp) btnGiveUp.style.display = 'none';
   if (durationRow) durationRow.style.opacity = '1';
 
-  alert(`बधाई छ! तपाईंको "${plant.nepali}" सफलतापूर्वक तपाईंको वनमा रोपियो! 🎉`);
+  alert(`Congratulations! Your "${plant.nepali}" was successfully planted in your forest! 🎉`);
 
   // Also log into study analytics chronometer
   const logDuration = `${Math.floor(studiedMinutes / 60).toString().padStart(2, '0')}:${(studiedMinutes % 60).toString().padStart(2, '0')}:00`;
@@ -3374,8 +3422,8 @@ function renderMyForest() {
     canvas.innerHTML = `
       <div style="grid-column: 1 / -1; text-align: center; padding: 40px 16px; color: var(--text-tertiary);">
         <div style="font-size: 38px; margin-bottom: 8px;">🌱</div>
-        <div style="font-weight: 700; font-size: 14px; color: var(--text);">अहिलेसम्म कुनै बिरुवा रोपिएको छैन</div>
-        <div style="font-size: 12px; margin-top: 4px;">अध्ययन सुरु गरेर नेपालका सुन्दर वनस्पतिहरू रोप्नुहोस्!</div>
+        <div style="font-weight: 700; font-size: 14px; color: var(--text);">No plants cultivated yet</div>
+        <div style="font-size: 12px; margin-top: 4px;">Start a focus session to grow Nepal's native plants in your forest!</div>
       </div>
     `;
     return;
@@ -3386,7 +3434,7 @@ function renderMyForest() {
     const timeFormatted = timeDate.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
     const isWithered = !item.isHealthy;
     return `
-      <div class="forest-plot-item ${isWithered ? 'withered' : ''}" title="${item.nepali} (${item.english}) - ${item.minutes}m - ${isWithered ? 'सुकेको' : 'जीवित'}">
+      <div class="forest-plot-item ${isWithered ? 'withered' : ''}" title="${item.nepali} (${item.english}) - ${item.minutes}m - ${isWithered ? 'Withered' : 'Healthy'}">
         <div class="plot-item-icon">${isWithered ? '🥀' : (item.icon || '🌲')}</div>
         <div class="plot-item-nepali">${item.nepali}</div>
         <div class="plot-item-time">${item.minutes}m • ${timeFormatted}</div>
@@ -3433,7 +3481,7 @@ function renderPlantsCatalog() {
   const search = (document.getElementById('plantSearchInput')?.value || '').toLowerCase().trim();
 
   const filtered = NEPAL_PLANTS.filter(plant => {
-    const matchesCat = catalogActiveCategory === 'all' || plant.category.includes(catalogActiveCategory);
+    const matchesCat = catalogActiveCategory === 'all' || plant.category.toLowerCase() === catalogActiveCategory.toLowerCase();
     const matchesSearch = !search ||
       plant.nepali.toLowerCase().includes(search) ||
       plant.english.toLowerCase().includes(search) ||
@@ -3461,7 +3509,7 @@ function renderPlantsCatalog() {
 
 function selectNepalPlant(id) {
   if (isForestRunning) {
-    alert("अध्ययन सत्र चलिरहेको छ! सत्र समाप्त भएपछि नयाँ बिरुवा रोज्न सक्नुहुन्छ।");
+    alert("A focus session is currently active! You can choose a new plant once the session is complete.");
     return;
   }
   selectedForestPlantId = id;
@@ -3523,28 +3571,28 @@ window.addEventListener('load', () => {
   </script>
 
   <!-- ================= SEPARATE PERSISTENT BOTTOM NAVIGATION BAR ================= -->
-  <nav class="app-bottom-nav" id="appBottomNav" aria-label="मुख्य नेभिगेसन (Bottom Navigation)">
+  <nav class="app-bottom-nav" id="appBottomNav" aria-label="Bottom Navigation">
     <div class="bottom-nav-inner">
-      <button id="navItemCharts" class="nav-tab-btn active" onclick="switchMainTab('charts')" title="अध्ययन चार्टहरू तथा विश्‍लेषण (Study Charts)">
+      <button id="navItemCharts" class="nav-tab-btn active" onclick="switchMainTab('charts')" title="Study Charts & Analytics">
         <span class="nav-tab-icon">📊</span>
         <div class="nav-tab-text-group">
-          <span class="nav-tab-title">अध्ययन चार्टहरू</span>
+          <span class="nav-tab-title">Study Charts</span>
           <span class="nav-tab-sub">Charts & Chronometer</span>
         </div>
       </button>
 
-      <button id="navItemForest" class="nav-tab-btn" onclick="switchMainTab('forest')" title="नेपाली वन अध्ययन (Nepal Forest Study)">
+      <button id="navItemForest" class="nav-tab-btn" onclick="switchMainTab('forest')" title="Nepal Forest Study">
         <span class="nav-tab-icon">🌲</span>
         <div class="nav-tab-text-group">
-          <span class="nav-tab-title">नेपाली वन अध्ययन</span>
-          <span class="nav-tab-sub">५० वनस्पति पोमोडोरो</span>
+          <span class="nav-tab-title">Nepal Forest</span>
+          <span class="nav-tab-sub">50 Native Plants</span>
         </div>
       </button>
 
-      <button id="navItemFullscreen" class="nav-tab-btn nav-action-btn" onclick="toggleForestFullscreen()" title="पूर्ण स्क्रिन फोकस मोड (Full Screen Focus)">
+      <button id="navItemFullscreen" class="nav-tab-btn nav-action-btn" onclick="toggleForestFullscreen()" title="Fullscreen Focus Mode">
         <span class="nav-tab-icon">⛶</span>
         <div class="nav-tab-text-group">
-          <span class="nav-tab-title" id="navFullscreenLabel">पूर्ण स्क्रिन</span>
+          <span class="nav-tab-title" id="navFullscreenLabel">Fullscreen</span>
           <span class="nav-tab-sub">Full Screen</span>
         </div>
       </button>
