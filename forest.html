@@ -1,0 +1,1537 @@
+<!DOCTYPE html>
+<html lang="ne">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>नेपाली वन अध्ययन | Nepal Forest Focus & Study App</title>
+  <meta name="description" content="नेपालका ५० रैथाने बोटबिरुवाहरूसँग एकाग्र भई अध्ययन गर्नुहोस् - Nepal Forest Focus Pomodoro App.">
+  <link rel="icon" type="image/png" sizes="192x192" href="/icon-192.png">
+  <link rel="apple-touch-icon" href="/apple-touch-icon.png">
+  <meta name="theme-color" content="#2D5016">
+  <style>
+    :root {
+      --primary: #2e7d32;
+      --primary-hover: #1b5e20;
+      --success: #34A853;
+      --danger: #EA4335;
+      --warning: #FBBC04;
+      --bg: #F4F7F6;
+      --text: #202124;
+      --card-bg: #FFFFFF;
+      --card-shadow: 0 4px 16px rgba(0, 0, 0, 0.08);
+      --border-color: #E0E0E0;
+      --input-border: #D0D0D0;
+      --input-bg: #F9FAF9;
+      --button-bg: #E8F5E9;
+      --button-text: #2e7d32;
+      --text-secondary: #5F6368;
+      --text-tertiary: #80868B;
+    }
+
+    body.theme-paper {
+      --primary: #8B7355; --success: #6B5344; --danger: #A0522D; --warning: #CD853F;
+      --bg: #F5E6D3; --text: #3E2723; --card-bg: #FFF8DC; --card-shadow: 0 4px 8px rgba(0,0,0,0.1);
+      --border-color: rgba(139, 115, 85, 0.2); --input-border: #D2B48C; --input-bg: #FFFAF0;
+      --button-bg: #F0E68C; --button-text: #654321; --text-secondary: #5D4037; --text-tertiary: #8B7355;
+    }
+    body.theme-blackboard {
+      --primary: #FFD700; --success: #90EE90; --danger: #FF6B6B; --warning: #FFB6C1;
+      --bg: #1A1A1A; --text: #FFFFFF; --card-bg: #2D2D2D; --card-shadow: 0 4px 12px rgba(0,0,0,0.4);
+      --border-color: rgba(255, 215, 0, 0.2); --input-border: #FFD700; --input-bg: #3D3D3D;
+      --button-bg: #404040; --button-text: #FFD700; --text-secondary: #BFBFBF; --text-tertiary: #909090;
+    }
+    body.theme-sketch {
+      --primary: #4A4A4A; --success: #5A5A5A; --danger: #3A3A3A; --warning: #6A6A6A;
+      --bg: #ECECEC; --text: #1A1A1A; --card-bg: #F5F5F5; --card-shadow: 0 3px 8px rgba(0, 0, 0, 0.15);
+      --border-color: rgba(74, 74, 74, 0.15); --input-border: #BFBFBF; --input-bg: #FAFAFA;
+      --button-bg: #E0E0E0; --button-text: #4A4A4A; --text-secondary: #5A5A5A; --text-tertiary: #8A8A8A;
+    }
+    body.theme-galaxy {
+      --primary: #00D4FF; --success: #00FF88; --danger: #FF006E; --warning: #FFB703;
+      --bg: #0a0e27; --text: #E0E7FF; --card-bg: #16213E; --card-shadow: 0 8px 16px rgba(0, 212, 255, 0.15);
+      --border-color: rgba(0, 212, 255, 0.2); --input-border: #00D4FF; --input-bg: #1a2847;
+      --button-bg: #1F2937; --button-text: #00D4FF; --text-secondary: #9CA3AF; --text-tertiary: #6B7280;
+    }
+    body.theme-forest {
+      --primary: #4CAF50; --success: #81C784; --danger: #E57373; --warning: #FFB74D;
+      --bg: #132A13; --text: #ECF39E; --card-bg: #1D3A1D; --card-shadow: 0 8px 20px rgba(0,0,0,0.4);
+      --border-color: rgba(129, 199, 132, 0.25); --input-border: #81C784; --input-bg: #163216;
+      --button-bg: #2D5016; --button-text: #ECF39E; --text-secondary: #A3B18A; --text-tertiary: #7F8E6A;
+    }
+    body.theme-cyberpunk {
+      --primary: #FF006E; --success: #00F5FF; --danger: #FF006E; --warning: #FFBE0B;
+      --bg: #0D0221; --text: #FFFFFF; --card-bg: #1A0033; --card-shadow: 0 0 20px rgba(255, 0, 110, 0.3);
+      --border-color: rgba(255, 0, 110, 0.5); --input-border: #FF006E; --input-bg: #240046;
+      --button-bg: #3A0061; --button-text: #00F5FF; --text-secondary: #B5179E; --text-tertiary: #7209B7;
+    }
+    body.theme-ocean {
+      --primary: #0077BE; --success: #00D9FF; --danger: #FF6B6B; --warning: #FFA502;
+      --bg: #0A1929; --text: #E3F2FD; --card-bg: #132F4C; --card-shadow: 0 6px 16px rgba(0, 119, 190, 0.2);
+      --border-color: rgba(0, 217, 255, 0.15); --input-border: #0077BE; --input-bg: #0D2440;
+      --button-bg: #1565A0; --button-text: #00D9FF; --text-secondary: #90CAF9; --text-tertiary: #64B5F6;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      transition: background 0.3s ease, color 0.3s ease;
+      overflow-x: hidden;
+    }
+
+    /* Top Navigation Bar */
+    header.top-header {
+      position: sticky;
+      top: 0;
+      z-index: 100;
+      background: var(--card-bg);
+      border-bottom: 1px solid var(--border-color);
+      box-shadow: 0 2px 10px rgba(0,0,0,0.06);
+      backdrop-filter: blur(10px);
+      padding: 12px 20px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 12px;
+      flex-wrap: wrap;
+    }
+
+    .brand-section {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .brand-logo {
+      font-size: 28px;
+      line-height: 1;
+      filter: drop-shadow(0 2px 4px rgba(46, 125, 50, 0.2));
+    }
+
+    .brand-titles h1 {
+      font-size: 18px;
+      font-weight: 800;
+      color: var(--text);
+      line-height: 1.2;
+    }
+
+    .brand-titles span {
+      font-size: 11px;
+      font-weight: 600;
+      color: var(--text-secondary);
+      letter-spacing: 0.5px;
+    }
+
+    .header-controls {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      flex-wrap: wrap;
+    }
+
+    .header-btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 8px 14px;
+      border-radius: 10px;
+      border: 1px solid var(--border-color);
+      background: var(--input-bg);
+      color: var(--text);
+      font-size: 13px;
+      font-weight: 700;
+      cursor: pointer;
+      text-decoration: none;
+      transition: all 0.2s ease;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+    }
+
+    .header-btn:hover {
+      border-color: var(--primary);
+      transform: translateY(-1px);
+    }
+
+    .header-btn.btn-chart-link {
+      background: var(--button-bg);
+      color: var(--primary);
+      border-color: var(--primary);
+    }
+
+    .theme-select-box {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      font-size: 12px;
+      font-weight: 600;
+      color: var(--text-secondary);
+    }
+
+    .theme-select-box select {
+      padding: 7px 12px;
+      border: 1.5px solid var(--border-color);
+      border-radius: 8px;
+      background: var(--card-bg);
+      color: var(--text);
+      font-weight: 700;
+      font-size: 12px;
+      cursor: pointer;
+      outline: none;
+    }
+
+    /* Main Container */
+    main.forest-main-container {
+      max-width: 1200px;
+      width: 100%;
+      margin: 0 auto;
+      padding: 24px 16px 80px;
+      flex: 1;
+    }
+
+    /* Hero Banner */
+    .forest-hero-card {
+      background: var(--card-bg);
+      border: 1px solid var(--border-color);
+      border-radius: 20px;
+      padding: 24px 28px;
+      box-shadow: var(--card-shadow);
+      margin-bottom: 24px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 16px;
+    }
+
+    .hero-text h2 {
+      font-size: 24px;
+      font-weight: 800;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      margin-bottom: 6px;
+    }
+
+    .hero-text p {
+      font-size: 14px;
+      color: var(--text-secondary);
+    }
+
+    .hero-badge {
+      display: inline-block;
+      font-size: 12px;
+      font-weight: 700;
+      padding: 3px 10px;
+      border-radius: 20px;
+      background: rgba(46, 125, 50, 0.15);
+      color: var(--primary);
+    }
+
+    .hero-actions {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      flex-wrap: wrap;
+    }
+
+    .btn-action {
+      padding: 10px 18px;
+      border-radius: 12px;
+      font-size: 13px;
+      font-weight: 700;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      border: 1px solid var(--border-color);
+      background: var(--card-bg);
+      color: var(--text);
+      transition: all 0.2s;
+    }
+
+    .btn-action:hover {
+      border-color: var(--primary);
+      transform: translateY(-2px);
+    }
+
+    .btn-action.btn-primary {
+      background: var(--primary);
+      color: white;
+      border-color: var(--primary);
+      box-shadow: 0 4px 12px rgba(46, 125, 50, 0.25);
+    }
+
+    /* Two-column layout */
+    .forest-workspace-grid {
+      display: grid;
+      grid-template-columns: 340px 1fr;
+      gap: 24px;
+      margin-bottom: 24px;
+    }
+
+    @media (max-width: 900px) {
+      .forest-workspace-grid {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    /* Plant Card */
+    .plant-info-card {
+      background: var(--card-bg);
+      border: 1px solid var(--border-color);
+      border-radius: 20px;
+      padding: 24px;
+      box-shadow: var(--card-shadow);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      text-align: center;
+      position: relative;
+    }
+
+    .plant-avatar {
+      width: 100px;
+      height: 100px;
+      border-radius: 50%;
+      background: radial-gradient(circle, rgba(76, 175, 80, 0.2) 0%, rgba(76, 175, 80, 0.05) 70%);
+      border: 2px solid var(--border-color);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 50px;
+      margin-bottom: 16px;
+      box-shadow: 0 6px 16px rgba(0,0,0,0.06);
+    }
+
+    .plant-nepali-name {
+      font-size: 26px;
+      font-weight: 800;
+      color: var(--text);
+      margin-bottom: 4px;
+    }
+
+    .plant-english-name {
+      font-size: 15px;
+      font-weight: 600;
+      color: var(--text-secondary);
+      margin-bottom: 2px;
+    }
+
+    .plant-scientific {
+      font-size: 12px;
+      font-style: italic;
+      color: var(--text-tertiary);
+      margin-bottom: 14px;
+    }
+
+    .plant-category-pill {
+      display: inline-block;
+      padding: 4px 14px;
+      border-radius: 20px;
+      font-size: 12px;
+      font-weight: 700;
+      background: rgba(46, 125, 50, 0.12);
+      color: var(--primary);
+      margin-bottom: 20px;
+    }
+
+    .plant-description {
+      font-size: 13px;
+      color: var(--text-secondary);
+      line-height: 1.5;
+      margin-bottom: 20px;
+      text-align: left;
+      background: var(--input-bg);
+      padding: 12px 14px;
+      border-radius: 12px;
+      width: 100%;
+    }
+
+    /* Focus Timer Card */
+    .timer-focus-card {
+      background: var(--card-bg);
+      border: 1px solid var(--border-color);
+      border-radius: 20px;
+      padding: 32px 24px;
+      box-shadow: var(--card-shadow);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      text-align: center;
+      position: relative;
+    }
+
+    .growth-ring-container {
+      position: relative;
+      width: 260px;
+      height: 260px;
+      margin-bottom: 20px;
+    }
+
+    .growth-ring-svg {
+      width: 100%;
+      height: 100%;
+      transform: rotate(-90deg);
+    }
+
+    .growth-ring-bg {
+      fill: none;
+      stroke: var(--input-bg);
+      stroke-width: 10;
+    }
+
+    .growth-ring-progress {
+      fill: none;
+      stroke: var(--primary);
+      stroke-width: 10;
+      stroke-linecap: round;
+      stroke-dasharray: 660;
+      stroke-dashoffset: 660;
+      transition: stroke-dashoffset 0.5s ease, stroke 0.3s;
+    }
+
+    .growth-svg-center {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      width: 160px;
+      height: 160px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      pointer-events: none;
+    }
+
+    .timer-digits {
+      font-size: 56px;
+      font-weight: 900;
+      font-family: 'Courier New', Courier, monospace;
+      letter-spacing: 2px;
+      color: var(--text);
+      line-height: 1;
+      margin-bottom: 8px;
+    }
+
+    .stage-status-label {
+      font-size: 15px;
+      font-weight: 800;
+      color: var(--primary);
+      margin-bottom: 6px;
+    }
+
+    .quote-text {
+      font-size: 13px;
+      font-style: italic;
+      color: var(--text-secondary);
+      margin-bottom: 24px;
+      max-width: 440px;
+    }
+
+    .duration-pills-wrap {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 8px;
+      margin-bottom: 28px;
+    }
+
+    .duration-pill {
+      padding: 8px 16px;
+      border-radius: 20px;
+      border: 1.5px solid var(--border-color);
+      background: var(--input-bg);
+      color: var(--text);
+      font-size: 13px;
+      font-weight: 700;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+
+    .duration-pill:hover {
+      border-color: var(--primary);
+      transform: translateY(-1px);
+    }
+
+    .duration-pill.active {
+      background: var(--primary);
+      color: white;
+      border-color: var(--primary);
+      box-shadow: 0 4px 10px rgba(46, 125, 50, 0.3);
+    }
+
+    .timer-action-buttons {
+      display: flex;
+      gap: 14px;
+      align-items: center;
+      justify-content: center;
+      width: 100%;
+      max-width: 420px;
+    }
+
+    .btn-timer-start {
+      flex: 1;
+      padding: 16px 24px;
+      border-radius: 16px;
+      border: none;
+      background: var(--primary);
+      color: white;
+      font-size: 16px;
+      font-weight: 800;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 10px;
+      box-shadow: 0 6px 16px rgba(46, 125, 50, 0.35);
+      transition: all 0.2s;
+    }
+
+    .btn-timer-start:hover {
+      filter: brightness(1.1);
+      transform: translateY(-2px);
+    }
+
+    .btn-timer-giveup {
+      padding: 16px 24px;
+      border-radius: 16px;
+      border: none;
+      background: var(--danger);
+      color: white;
+      font-size: 15px;
+      font-weight: 800;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      transition: all 0.2s;
+    }
+
+    .btn-timer-giveup:hover {
+      filter: brightness(1.1);
+    }
+
+    /* Forest History & Stats */
+    .my-forest-card {
+      background: var(--card-bg);
+      border: 1px solid var(--border-color);
+      border-radius: 20px;
+      padding: 26px;
+      box-shadow: var(--card-shadow);
+      margin-bottom: 30px;
+    }
+
+    .forest-stats-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(170px, 1fr));
+      gap: 14px;
+      margin-bottom: 24px;
+    }
+
+    .stat-box {
+      background: var(--input-bg);
+      border: 1px solid var(--border-color);
+      border-radius: 14px;
+      padding: 16px;
+      text-align: center;
+    }
+
+    .stat-number {
+      font-size: 28px;
+      font-weight: 900;
+      color: var(--primary);
+      margin-bottom: 4px;
+    }
+
+    .stat-label {
+      font-size: 11px;
+      font-weight: 700;
+      color: var(--text-secondary);
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+
+    .forest-toolbar {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 12px;
+      padding-bottom: 16px;
+      border-bottom: 1px solid var(--border-color);
+      margin-bottom: 20px;
+    }
+
+    .forest-grid-plots {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(105px, 1fr));
+      gap: 14px;
+      min-height: 180px;
+      background: radial-gradient(circle, rgba(76, 175, 80, 0.05) 10%, transparent 70%);
+      padding: 20px;
+      border-radius: 16px;
+      border: 1px dashed var(--border-color);
+    }
+
+    .forest-plot-item {
+      background: var(--card-bg);
+      border: 1px solid var(--border-color);
+      border-radius: 14px;
+      padding: 14px 8px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      text-align: center;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+
+    .forest-plot-item:hover {
+      transform: translateY(-4px);
+      box-shadow: 0 6px 14px rgba(0,0,0,0.08);
+      border-color: var(--primary);
+    }
+
+    .forest-plot-item.withered {
+      opacity: 0.7;
+      border-color: var(--danger);
+      background: rgba(234, 67, 53, 0.04);
+    }
+
+    .plot-item-icon {
+      font-size: 32px;
+      margin-bottom: 6px;
+    }
+
+    .plot-item-nepali {
+      font-size: 12px;
+      font-weight: 800;
+      color: var(--text);
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      max-width: 100%;
+    }
+
+    .plot-item-time {
+      font-size: 10px;
+      font-weight: 600;
+      color: var(--text-secondary);
+      margin-top: 2px;
+    }
+
+    /* Modal */
+    .catalog-modal-backdrop {
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background: rgba(0,0,0,0.65);
+      z-index: 99999;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 16px;
+      backdrop-filter: blur(6px);
+    }
+
+    .catalog-modal-box {
+      background: var(--card-bg);
+      border: 1px solid var(--border-color);
+      border-radius: 20px;
+      max-width: 850px;
+      width: 100%;
+      max-height: 85vh;
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+      box-shadow: 0 16px 40px rgba(0,0,0,0.3);
+    }
+
+    .modal-head {
+      padding: 20px 24px;
+      border-bottom: 1px solid var(--border-color);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .modal-head h3 {
+      font-size: 18px;
+      font-weight: 800;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .btn-close-modal {
+      background: none;
+      border: none;
+      font-size: 26px;
+      cursor: pointer;
+      color: var(--text-secondary);
+      line-height: 1;
+    }
+
+    .modal-filters {
+      padding: 16px 24px;
+      border-bottom: 1px solid var(--border-color);
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+
+    .search-box-input {
+      width: 100%;
+      padding: 12px 16px;
+      border-radius: 12px;
+      border: 1.5px solid var(--border-color);
+      background: var(--input-bg);
+      color: var(--text);
+      font-size: 14px;
+      outline: none;
+    }
+
+    .search-box-input:focus {
+      border-color: var(--primary);
+    }
+
+    .modal-plants-grid {
+      padding: 20px 24px;
+      overflow-y: auto;
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(230px, 1fr));
+      gap: 12px;
+      flex: 1;
+    }
+
+    .catalog-card-item {
+      background: var(--input-bg);
+      border: 1.5px solid var(--border-color);
+      border-radius: 14px;
+      padding: 12px;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+
+    .catalog-card-item:hover {
+      border-color: var(--primary);
+      transform: translateY(-2px);
+      box-shadow: 0 4px 10px rgba(0,0,0,0.06);
+    }
+
+    .catalog-card-item.selected {
+      border-color: var(--primary);
+      background: rgba(46, 125, 50, 0.1);
+      box-shadow: 0 0 0 2px var(--primary);
+    }
+
+    .catalog-icon {
+      font-size: 32px;
+      width: 48px;
+      height: 48px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: var(--card-bg);
+      border-radius: 12px;
+      border: 1px solid var(--border-color);
+      flex-shrink: 0;
+    }
+
+    .catalog-meta {
+      flex: 1;
+      min-width: 0;
+    }
+
+    .catalog-meta-top {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .catalog-nepali {
+      font-size: 14px;
+      font-weight: 800;
+      color: var(--text);
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .catalog-badge {
+      font-size: 10px;
+      font-weight: 700;
+      color: var(--primary);
+      background: rgba(46, 125, 50, 0.12);
+      padding: 2px 6px;
+      border-radius: 10px;
+    }
+
+    .catalog-english {
+      font-size: 12px;
+      color: var(--text-secondary);
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .catalog-scientific {
+      font-size: 10px;
+      font-style: italic;
+      color: var(--text-tertiary);
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    /* Fullscreen Mode */
+    body.is-fullscreen header.top-header {
+      display: none;
+    }
+
+    body.is-fullscreen main.forest-main-container {
+      padding-top: 10px;
+      max-width: 100%;
+    }
+  </style>
+</head>
+<body class="theme-forest">
+
+  <!-- Header -->
+  <header class="top-header">
+    <div class="brand-section">
+      <div class="brand-logo">🌲</div>
+      <div class="brand-titles">
+        <h1>नेपाली वन अध्ययन (Nepal Forest Study)</h1>
+        <span>५० रैथाने वनस्पति र पोमोडोरो एकाग्रता</span>
+      </div>
+    </div>
+
+    <div class="header-controls">
+      <a href="/" class="header-btn btn-chart-link" title="मुख्य अध्ययन चार्टहरू तथा विश्‍लेषण खोल्नुहोस्">
+        📊 <span>अध्ययन ड्यासबोर्ड (Study Flow)</span>
+      </a>
+
+      <button class="header-btn" onclick="toggleFullscreen()" id="btnFullscreenHeader" title="पूर्ण स्क्रिन फोकस मोड">
+        ⛶ <span>पूर्ण स्क्रिन</span>
+      </button>
+
+      <div class="theme-select-box">
+        <span>🎨</span>
+        <select id="forestThemeSelect" onchange="changeForestTheme(this.value)">
+          <option value="theme-forest" selected>Forest (हरियो वन)</option>
+          <option value="default">Light (दिन)</option>
+          <option value="theme-paper">Old Paper (कागज)</option>
+          <option value="theme-blackboard">Blackboard (पाटी)</option>
+          <option value="theme-sketch">Pencil Sketch (चित्र)</option>
+          <option value="theme-galaxy">Galaxy (आकाशगंगा)</option>
+          <option value="theme-cyberpunk">Cyberpunk</option>
+          <option value="theme-ocean">Ocean (समुन्द्र)</option>
+        </select>
+      </div>
+    </div>
+  </header>
+
+  <!-- Main Workspace -->
+  <main class="forest-main-container">
+
+    <!-- Hero Card -->
+    <section class="forest-hero-card">
+      <div class="hero-text">
+        <h2>
+          <span>🌲</span> शान्त एकाग्रता र वन विस्तार
+          <span class="hero-badge">५० रैथाने बोटबिरुवा</span>
+        </h2>
+        <p>समय तोक्नुहोस्, ध्यान केन्द्रित गर्नुहोस्, र अध्ययन गर्दागर्दै नेपालको हरियाली वन हुर्काउनुहोस्।</p>
+      </div>
+      <div class="hero-actions">
+        <button class="btn-action btn-primary" onclick="openPlantsModal()">
+          🌿 ५० वनस्पति सूची (Select Plant)
+        </button>
+      </div>
+    </section>
+
+    <!-- Workspace Grid -->
+    <div class="forest-workspace-grid">
+      
+      <!-- Left: Active Plant Profile -->
+      <section class="plant-info-card">
+        <div class="plant-avatar" id="activePlantAvatar">🌺</div>
+        <h2 class="plant-nepali-name" id="activePlantNepali">लालीगुराँस</h2>
+        <div class="plant-english-name" id="activePlantEnglish">Rhododendron</div>
+        <div class="plant-scientific" id="activePlantScientific">Rhododendron arboreum</div>
+        <span class="plant-category-pill" id="activePlantCategory">राष्ट्रिय फूल / रूख</span>
+        <div class="plant-description" id="activePlantDescription">
+          नेपालको राष्ट्रिय फूल, मध्यपहाडी तथा हिमाली भेगमा ढकमक्क फुल्ने रातो गुराँस।
+        </div>
+        <button class="btn-action" onclick="openPlantsModal()" style="width: 100%; justify-content: center; margin-top: auto;">
+          🔄 वनस्पति परिवर्तन गर्नुहोस् (Change Plant)
+        </button>
+      </section>
+
+      <!-- Right: Focus Timer & Botanical Growth -->
+      <section class="timer-focus-card">
+        
+        <div class="growth-ring-container">
+          <svg class="growth-ring-svg" viewBox="0 0 250 250">
+            <circle class="growth-ring-bg" cx="125" cy="125" r="105"></circle>
+            <circle id="forestGrowthRing" class="growth-ring-progress" cx="125" cy="125" r="105"></circle>
+          </svg>
+          <div id="forestGrowthStageGraphic" class="growth-svg-center"></div>
+        </div>
+
+        <div id="forestTimerDigits" class="timer-digits">25:00</div>
+        <div id="forestStatusLabel" class="stage-status-label">तयार (Ready to Plant)</div>
+        <div id="forestQuote" class="quote-text">"शान्त चित्त र निरन्तर अभ्यास नै ज्ञानको जग हो।"</div>
+
+        <!-- Duration Selectors -->
+        <div class="duration-pills-wrap" id="forestDurationRow">
+          <button class="duration-pill" onclick="setTimerDuration(15, this)">१५ मिनेट</button>
+          <button class="duration-pill active" onclick="setTimerDuration(25, this)">२५ मिनेट (पोमोडोरो)</button>
+          <button class="duration-pill" onclick="setTimerDuration(45, this)">४५ मिनेट</button>
+          <button class="duration-pill" onclick="setTimerDuration(60, this)">६० मिनेट</button>
+          <button class="duration-pill" onclick="setTimerDuration(90, this)">९० मिनेट</button>
+          <button class="duration-pill" onclick="setTimerDuration(120, this)">१२० मिनेट</button>
+        </div>
+
+        <!-- Action Buttons -->
+        <div class="timer-action-buttons">
+          <button id="btnStartForestSession" class="btn-timer-start" onclick="startOrResumeSession()">
+            🌱 रोप्न सुरु गर्नुहोस् (Plant & Focus)
+          </button>
+          <button id="btnGiveUpForestSession" class="btn-timer-giveup" onclick="giveUpSession()" style="display: none;">
+            ❌ रोक्नुहोस् (Give Up)
+          </button>
+        </div>
+
+      </section>
+
+    </div>
+
+    <!-- Bottom Section: My Forest & History -->
+    <section class="my-forest-card">
+      <div class="forest-stats-grid">
+        <div class="stat-box">
+          <div id="statTotalPlanted" class="stat-number">0</div>
+          <div class="stat-label">🌳 कुल रोपिएका बिरुवा</div>
+        </div>
+        <div class="stat-box">
+          <div id="statTotalFocusTime" class="stat-number">0m</div>
+          <div class="stat-label">⏱️ कुल ध्यान समय</div>
+        </div>
+        <div class="stat-box">
+          <div id="statThrivingCount" class="stat-number" style="color: var(--primary);">0</div>
+          <div class="stat-label">🌿 जीवित वनस्पति</div>
+        </div>
+        <div class="stat-box">
+          <div id="statWitheredCount" class="stat-number" style="color: var(--danger);">0</div>
+          <div class="stat-label">🥀 सुकेका बिरुवा</div>
+        </div>
+      </div>
+
+      <div class="forest-toolbar">
+        <div style="font-size: 16px; font-weight: 800; color: var(--text);">
+          🌿 मेरो वनको इतिहास (My Planted Forest)
+        </div>
+        <div style="display: flex; gap: 8px;">
+          <button class="duration-pill active" id="btnFilterToday" onclick="filterForest('today')">आज (Today)</button>
+          <button class="duration-pill" id="btnFilterWeek" onclick="filterForest('week')">यो हप्ता (Week)</button>
+          <button class="duration-pill" id="btnFilterAll" onclick="filterForest('all')">सबै (All Time)</button>
+        </div>
+      </div>
+
+      <div id="forestPlotsContainer" class="forest-grid-plots"></div>
+    </section>
+
+  </main>
+
+  <!-- 50 Plants Modal -->
+  <div id="catalogModal" class="catalog-modal-backdrop" style="display: none;" onclick="closeModalOnBackdrop(event)">
+    <div class="catalog-modal-box" onclick="event.stopPropagation()">
+      <div class="modal-head">
+        <h3>
+          <span>🇳🇵</span> नेपालका ५० रैथाने वनस्पतिहरू (50 Native Plants)
+        </h3>
+        <button class="btn-close-modal" onclick="closePlantsModal()">&times;</button>
+      </div>
+
+      <div class="modal-filters">
+        <input type="text" id="catalogSearchInput" class="search-box-input" placeholder="🔍 वनस्पति खोज्नुहोस् (उदा: साल, गुराँस, Rhododendron, Pine, तुलसी)..." oninput="filterPlantsCatalog()">
+        <div style="display: flex; gap: 6px; flex-wrap: wrap;">
+          <button class="duration-pill active" onclick="setCategoryFilter('all', this)">सबै (५०)</button>
+          <button class="duration-pill" onclick="setCategoryFilter('रूख', this)">रूख (Trees)</button>
+          <button class="duration-pill" onclick="setCategoryFilter('फूल', this)">फूल (Flowers)</button>
+          <button class="duration-pill" onclick="setCategoryFilter('जडीबुटी', this)">जडीबुटी (Herbs)</button>
+          <button class="duration-pill" onclick="setCategoryFilter('बाली', this)">बाली (Crops)</button>
+          <button class="duration-pill" onclick="setCategoryFilter('घाँस', this)">घाँस (Grasses)</button>
+        </div>
+      </div>
+
+      <div id="catalogPlantsList" class="modal-plants-grid"></div>
+    </div>
+  </div>
+
+  <script>
+    // ================= 50 PLANTS OF NEPAL DATA =================
+    const NEPAL_PLANTS = [
+      { id: 1, english: "Sal tree", nepali: "साल", scientific: "Shorea robusta", category: "रूख", icon: "🌳", desc: "तराई तथा भावर क्षेत्रको बहुमूल्य र बलियो काठ दिने विशाल रूख।" },
+      { id: 2, english: "Chir pine", nepali: "रानी सल्ला", scientific: "Pinus roxburghii", category: "रूख", icon: "🌲", desc: "मध्यपहाडी भिरालो जमिनमा पाइने खोटो दिने सुगन्धित सल्ला।" },
+      { id: 3, english: "Himalayan blue pine", nepali: "गोब्रे सल्ला", scientific: "Pinus wallichiana", category: "रूख", icon: "🌲", desc: "हिमाली उच्च क्षेत्रको सुन्दर, लामो सियो जस्तो पात भएको सल्ला।" },
+      { id: 4, english: "Rhododendron", nepali: "लालीगुराँस", scientific: "Rhododendron arboreum", category: "फूल", icon: "🌺", desc: "नेपालको राष्ट्रिय फूल, वसन्त ऋतुमा पहाड राताम्मे बनाउने सौन्दर्य।" },
+      { id: 5, english: "Chilaune tree", nepali: "चिलाउने", scientific: "Schima wallichii", category: "रूख", icon: "🌳", desc: "मध्यपहाडको प्रमुख रैथाने रूख जसको बोक्राले चिलाउने गर्दछ।" },
+      { id: 6, english: "Utis / Alder", nepali: "उत्तिस", scientific: "Alnus nepalensis", category: "रूख", icon: "🌳", desc: "छिटो हुर्कने र माटोको उर्वराशक्ति बढाउने पहाडी रूख।" },
+      { id: 7, english: "Koiralo tree", nepali: "कोइरालो", scientific: "Bauhinia variegata", category: "फूल", icon: "🌸", desc: "अचार र तरकारी खान मिल्ने सुन्दर सेतो-बैजनी फूल फुल्ने रूख।" },
+      { id: 8, english: "Simal / Silk cotton tree", nepali: "सिमल", scientific: "Bombax ceiba", category: "रूख", icon: "🌺", desc: "वसन्तमा ठूला राता फूल फुल्ने र कपास जस्तो भुवा दिने अग्लो रूख।" },
+      { id: 9, english: "Peepal tree", nepali: "पीपल", scientific: "Ficus religiosa", category: "रूख", icon: "🌳", desc: "चौतारीमा रोपिने पवित्र, दिनरात अक्सिजन दिने विशाल छायाँदार रूख।" },
+      { id: 10, english: "Banyan tree", nepali: "बर", scientific: "Ficus benghalensis", category: "रूख", icon: "🌳", desc: "जरा हालेर फैलिने दीर्घजीवी चौतारीको शीतल छहारी दिने रूख।" },
+      { id: 11, english: "Neem tree", nepali: "नीम", scientific: "Azadirachta indica", category: "जडीबुटी", icon: "🌿", desc: "प्राकृतिक एन्टिब्याक्टेरियल र औषधीय गुणले भरिपूर्ण अमूल्य रूख।" },
+      { id: 12, english: "Khair tree", nepali: "खयर", scientific: "Senegalia catechu", category: "रूख", icon: "🌳", desc: "कत्था बनाउन प्रयोग गरिने तराईको काँडेदार बहुउपयोगी रूख।" },
+      { id: 13, english: "Sissoo tree", nepali: "सिसौ", scientific: "Dalbergia sissoo", category: "रूख", icon: "🌳", desc: "उच्च गुणस्तरको फर्निचर बनाउन प्रयोग हुने तराईको काठ।" },
+      { id: 14, english: "Lapsi tree", nepali: "लप्सी", scientific: "Choerospondias axillaris", category: "रूख", icon: "🌳", desc: "नेपालको मौलिक स्वादिष्ट अमिलो फल र क्यान्डी बनाउने रूख।" },
+      { id: 15, english: "Amala / Gooseberry", nepali: "अमला", scientific: "Phyllanthus emblica", category: "जडीबुटी", icon: "🍈", desc: "भिटामिन सीले भरिपूर्ण त्रिफलाको प्रमुख घटक फल।" },
+      { id: 16, english: "Bel tree", nepali: "बेल", scientific: "Aegle marmelos", category: "रूख", icon: "🍈", desc: "भगवान शिवलाई चढाइने पवित्र, पेटको स्वास्थ्यका लागि उत्तम फल।" },
+      { id: 17, english: "Champa tree", nepali: "चम्पा", scientific: "Magnolia champaca", category: "फूल", icon: "🌼", desc: "मनमोहक सुगन्धित पहेँलो फूल फुल्ने मन्दिर क्षेत्रको रूख।" },
+      { id: 18, english: "Wild Himalayan pear", nepali: "मेहल", scientific: "Pyrus pashia", category: "रूख", icon: "🍐" },
+      { id: 19, english: "Himalayan walnut", nepali: "ओखर", scientific: "Juglans regia", category: "रूख", icon: "🌰" },
+      { id: 20, english: "Bamboo", nepali: "बाँस", scientific: "Bambusa spp.", category: "घाँस", icon: "🎋" },
+      { id: 21, english: "Himalayan raspberry", nepali: "ऐसेलु", scientific: "Rubus ellipticus", category: "जडीबुटी", icon: "🫐" },
+      { id: 22, english: "Stinging nettle", nepali: "सिस्नु", scientific: "Urtica dioica", category: "जडीबुटी", icon: "🌿" },
+      { id: 23, english: "Mugwort", nepali: "तितेपाती", scientific: "Artemisia spp.", category: "जडीबुटी", icon: "🌿" },
+      { id: 24, english: "Fern", nepali: "उन्यू", scientific: "Various fern species", category: "जडीबुटी", icon: "🪴" },
+      { id: 25, english: "Dandelion", nepali: "गन्धे / गोबे", scientific: "Taraxacum spp.", category: "फूल", icon: "🌼" },
+      { id: 26, english: "Wild sorrel", nepali: "हलहले", scientific: "Rumex nepalensis", category: "जडीबुटी", icon: "🌱" },
+      { id: 27, english: "White goosefoot", nepali: "बेथे", scientific: "Chenopodium album", category: "बाली", icon: "🥬" },
+      { id: 28, english: "Thistle", nepali: "काँडे झार", scientific: "Various thistle species", category: "घाँस", icon: "🌾" },
+      { id: 29, english: "Bindweed", nepali: "लहरे झार", scientific: "Convolvulus spp.", category: "फूल", icon: "🌿" },
+      { id: 30, english: "Bermuda grass", nepali: "दुबो", scientific: "Cynodon dactylon", category: "घाँस", icon: "🌱" },
+      { id: 31, english: "Cogon grass", nepali: "सिरु", scientific: "Imperata cylindrica", category: "घाँस", icon: "🌾" },
+      { id: 32, english: "Bamboo grass", nepali: "खर", scientific: "Various grass species", category: "घाँस", icon: "🌾" },
+      { id: 33, english: "Marigold", nepali: "सयपत्री", scientific: "Tagetes erecta", category: "फूल", icon: "🏵️" },
+      { id: 34, english: "Globe amaranth", nepali: "मखमली", scientific: "Gomphrena globosa", category: "फूल", icon: "🌸" },
+      { id: 35, english: "Rose", nepali: "गुलाब", scientific: "Rosa spp.", category: "फूल", icon: "🌹" },
+      { id: 36, english: "Hibiscus", nepali: "जवा फूल", scientific: "Hibiscus rosa-sinensis", category: "फूल", icon: "🌺" },
+      { id: 37, english: "Sunflower", nepali: "सूर्यमुखी", scientific: "Helianthus annuus", category: "फूल", icon: "🌻" },
+      { id: 38, english: "Bougainvillea", nepali: "बोगनबेली", scientific: "Bougainvillea spp.", category: "फूल", icon: "🌸" },
+      { id: 39, english: "Morning glory", nepali: "मिर्मिरे फूल", scientific: "Ipomoea spp.", category: "फूल", icon: "🪻" },
+      { id: 40, english: "Orchid", nepali: "सुनाखरी", scientific: "Orchidaceae", category: "फूल", icon: "🌸" },
+      { id: 41, english: "Rice", nepali: "धान", scientific: "Oryza sativa", category: "बाली", icon: "🌾" },
+      { id: 42, english: "Maize", nepali: "मकै", scientific: "Zea mays", category: "बाली", icon: "🌽" },
+      { id: 43, english: "Wheat", nepali: "गहुँ", scientific: "Triticum aestivum", category: "बाली", icon: "🌾" },
+      { id: 44, english: "Mustard", nepali: "तोरी", scientific: "Brassica juncea", category: "बाली", icon: "🌼" },
+      { id: 45, english: "Potato", nepali: "आलु", scientific: "Solanum tuberosum", category: "बाली", icon: "🥔" },
+      { id: 46, english: "Tomato", nepali: "गोलभेँडा", scientific: "Solanum lycopersicum", category: "बाली", icon: "🍅" },
+      { id: 47, english: "Chilli", nepali: "खुर्सानी", scientific: "Capsicum spp.", category: "बाली", icon: "🌶️" },
+      { id: 48, english: "Ginger", nepali: "अदुवा", scientific: "Zingiber officinale", category: "जडीबुटी", icon: "🫚" },
+      { id: 49, english: "Turmeric", nepali: "बेसार", scientific: "Curcuma longa", category: "जडीबुटी", icon: "🫚" },
+      { id: 50, english: "Holy basil", nepali: "तुलसी", scientific: "Ocimum tenuiflorum", category: "जडीबुटी", icon: "🌿" }
+    ];
+
+    // ================= STATE VARIABLES =================
+    let selectedPlantId = parseInt(localStorage.getItem('selectedNepalPlantId')) || 4;
+    let timerDurationMins = 25;
+    let timerTotalSecs = 25 * 60;
+    let timerRemainingSecs = 25 * 60;
+    let isSessionActive = false;
+    let sessionTimerInterval = null;
+    let activeForestFilter = 'today';
+    let currentCatalogCategory = 'all';
+
+    function getCurrentPlant() {
+      return NEPAL_PLANTS.find(p => p.id === selectedPlantId) || NEPAL_PLANTS[3];
+    }
+
+    // ================= THEME SELECTOR =================
+    function changeForestTheme(themeClass) {
+      document.body.className = '';
+      if (themeClass && themeClass !== 'default') {
+        document.body.classList.add(themeClass);
+      }
+      try {
+        localStorage.setItem('selectedTheme', themeClass);
+      } catch (e) {}
+    }
+
+    // Load saved theme
+    (function initTheme() {
+      const savedTheme = localStorage.getItem('selectedTheme') || 'theme-forest';
+      if (savedTheme) {
+        changeForestTheme(savedTheme);
+        const sel = document.getElementById('forestThemeSelect');
+        if (sel) sel.value = savedTheme;
+      }
+    })();
+
+    // ================= FULLSCREEN =================
+    function toggleFullscreen() {
+      const isFull = document.body.classList.toggle('is-fullscreen');
+      const btn = document.getElementById('btnFullscreenHeader');
+      if (isFull) {
+        if (btn) btn.innerHTML = '✕ <span>निस्कनुहोस्</span>';
+        if (document.documentElement.requestFullscreen && !document.fullscreenElement) {
+          document.documentElement.requestFullscreen().catch(() => {});
+        }
+      } else {
+        if (btn) btn.innerHTML = '⛶ <span>पूर्ण स्क्रिन</span>';
+        if (document.exitFullscreen && document.fullscreenElement) {
+          document.exitFullscreen().catch(() => {});
+        }
+      }
+    }
+
+    // ================= TIMER DURATION =================
+    function setTimerDuration(mins, btn) {
+      if (isSessionActive) return;
+      timerDurationMins = mins;
+      timerTotalSecs = mins * 60;
+      timerRemainingSecs = timerTotalSecs;
+
+      document.querySelectorAll('#forestDurationRow .duration-pill').forEach(el => el.classList.remove('active'));
+      if (btn) btn.classList.add('active');
+      renderTimerDisplay();
+    }
+
+    // ================= GROWTH GRAPHICS =================
+    function getPlantGrowthSvg(plant, percent, isWithered) {
+      if (isWithered) {
+        return `
+          <svg width="120" height="120" viewBox="0 0 100 100">
+            <ellipse cx="50" cy="85" rx="36" ry="7" fill="#8d6e63" opacity="0.4"/>
+            <path d="M50 85 Q48 60 46 45 Q42 35 32 30 M46 45 Q55 35 62 34 M49 60 Q62 55 68 56" stroke="#8d6e63" stroke-width="4" stroke-linecap="round" fill="none"/>
+            <circle cx="30" cy="30" r="3" fill="#a1887f"/>
+            <circle cx="64" cy="34" r="3" fill="#a1887f"/>
+            <text x="50" y="24" font-size="24" text-anchor="middle">🥀</text>
+          </svg>
+        `;
+      }
+      if (percent < 25) {
+        return `
+          <svg width="120" height="120" viewBox="0 0 100 100">
+            <ellipse cx="50" cy="82" rx="38" ry="8" fill="#5d4037" opacity="0.5"/>
+            <circle cx="50" cy="80" r="9" fill="#8d6e63"/>
+            <path d="M50 74 Q50 64 54 58" stroke="#4caf50" stroke-width="3" stroke-linecap="round" fill="none"/>
+            <ellipse cx="56" cy="56" rx="4" ry="2" fill="#81c784" transform="rotate(-25 56 56)"/>
+            <text x="50" y="32" font-size="28" text-anchor="middle">🌱</text>
+          </svg>
+        `;
+      } else if (percent < 60) {
+        return `
+          <svg width="120" height="120" viewBox="0 0 100 100">
+            <ellipse cx="50" cy="84" rx="40" ry="9" fill="#5d4037" opacity="0.5"/>
+            <path d="M50 84 Q49 55 50 42" stroke="#388e3c" stroke-width="4" stroke-linecap="round" fill="none"/>
+            <path d="M50 58 Q38 48 35 52 Q40 60 49 58 Z" fill="#66bb6a"/>
+            <path d="M50 48 Q62 40 65 44 Q60 52 51 50 Z" fill="#4caf50"/>
+            <text x="50" y="28" font-size="30" text-anchor="middle">🌿</text>
+          </svg>
+        `;
+      } else if (percent < 95) {
+        return `
+          <svg width="120" height="120" viewBox="0 0 100 100">
+            <ellipse cx="50" cy="85" rx="40" ry="9" fill="#5d4037" opacity="0.4"/>
+            <path d="M50 85 Q49 60 50 35" stroke="#6d4c41" stroke-width="5" stroke-linecap="round" fill="none"/>
+            <circle cx="50" cy="24" r="14" fill="#43a047" opacity="0.85"/>
+            <text x="50" y="30" font-size="24" text-anchor="middle">${plant.icon || '🌲'}</text>
+          </svg>
+        `;
+      } else {
+        return `
+          <svg width="120" height="120" viewBox="0 0 100 100">
+            <ellipse cx="50" cy="86" rx="42" ry="10" fill="#4e342e" opacity="0.4"/>
+            <path d="M50 86 Q48 65 50 42" stroke="#5d4037" stroke-width="7" stroke-linecap="round" fill="none"/>
+            <circle cx="50" cy="38" r="28" fill="var(--success)" opacity="0.9"/>
+            <circle cx="36" cy="34" r="18" fill="#66bb6a" opacity="0.85"/>
+            <circle cx="64" cy="34" r="18" fill="#388e3c" opacity="0.85"/>
+            <text x="50" y="44" font-size="34" text-anchor="middle">${plant.icon || '🌳'}</text>
+          </svg>
+        `;
+      }
+    }
+
+    // ================= RENDER TIMER =================
+    function renderTimerDisplay(isWithered = false) {
+      const plant = getCurrentPlant();
+      const mins = Math.floor(timerRemainingSecs / 60);
+      const secs = timerRemainingSecs % 60;
+      const str = `${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
+
+      const digits = document.getElementById('forestTimerDigits');
+      if (digits) digits.innerText = str;
+
+      const elapsed = timerTotalSecs - timerRemainingSecs;
+      const pct = timerTotalSecs > 0 ? (elapsed / timerTotalSecs) * 100 : 0;
+
+      const ring = document.getElementById('forestGrowthRing');
+      if (ring) {
+        const circum = 660;
+        const offset = circum - (circum * pct / 100);
+        ring.style.strokeDashoffset = offset;
+        ring.style.stroke = isWithered ? 'var(--danger)' : 'var(--primary)';
+      }
+
+      const graphic = document.getElementById('forestGrowthStageGraphic');
+      if (graphic) {
+        graphic.innerHTML = getPlantGrowthSvg(plant, pct, isWithered);
+      }
+
+      const status = document.getElementById('forestStatusLabel');
+      if (status) {
+        if (isWithered) {
+          status.innerText = '🥀 ओइलायो / सुक्यो (Session Abandoned)';
+          status.style.color = 'var(--danger)';
+        } else if (!isSessionActive) {
+          status.innerText = pct >= 100 ? `🎉 ${plant.nepali} सफलतापुर्वक रोपियो!` : 'तयार (Ready to Plant)';
+          status.style.color = 'var(--primary)';
+        } else if (pct < 25) {
+          status.innerText = `🌱 ${plant.nepali}को बीउ अंकुरिँदै (Sprouting)`;
+          status.style.color = 'var(--primary)';
+        } else if (pct < 60) {
+          status.innerText = `🌿 ${plant.nepali}को काण्ड बढ्दै (Growing)`;
+          status.style.color = 'var(--primary)';
+        } else if (pct < 95) {
+          status.innerText = `🪴 ${plant.nepali} झाँगिँदै (Budding)`;
+          status.style.color = 'var(--primary)';
+        } else {
+          status.innerText = `🌳 परिपक्व ${plant.nepali} बन्दै (Maturing)`;
+          status.style.color = 'var(--primary)';
+        }
+      }
+    }
+
+    // ================= SESSION CONTROL =================
+    function startOrResumeSession() {
+      if (isSessionActive) return;
+      isSessionActive = true;
+      timerRemainingSecs = timerTotalSecs;
+
+      const btnStart = document.getElementById('btnStartForestSession');
+      const btnGiveUp = document.getElementById('btnGiveUpForestSession');
+      const pillRow = document.getElementById('forestDurationRow');
+
+      if (btnStart) btnStart.style.display = 'none';
+      if (btnGiveUp) btnGiveUp.style.display = 'inline-flex';
+      if (pillRow) pillRow.style.opacity = '0.4';
+
+      renderTimerDisplay();
+
+      sessionTimerInterval = setInterval(() => {
+        if (timerRemainingSecs > 0) {
+          timerRemainingSecs--;
+          renderTimerDisplay();
+        } else {
+          completeForestSession();
+        }
+      }, 1000);
+    }
+
+    function giveUpSession() {
+      if (!isSessionActive) return;
+      const plant = getCurrentPlant();
+      const ok = confirm(`के तपाईं अध्ययन रोक्न चाहनुहुन्छ? यसो गर्दा तपाईंको "${plant.nepali}" ओइलाउनेछ!`);
+      if (!ok) return;
+
+      clearInterval(sessionTimerInterval);
+      sessionTimerInterval = null;
+      isSessionActive = false;
+
+      const studiedMinutes = Math.max(1, Math.round((timerTotalSecs - timerRemainingSecs) / 60));
+      saveForestRecord(plant, studiedMinutes, false);
+
+      renderTimerDisplay(true);
+
+      const btnStart = document.getElementById('btnStartForestSession');
+      const btnGiveUp = document.getElementById('btnGiveUpForestSession');
+      const pillRow = document.getElementById('forestDurationRow');
+
+      if (btnStart) {
+        btnStart.style.display = 'inline-flex';
+        btnStart.innerText = '🌱 फेरि रोप्न सुरु गर्नुहोस् (Try Again)';
+      }
+      if (btnGiveUp) btnGiveUp.style.display = 'none';
+      if (pillRow) pillRow.style.opacity = '1';
+
+      renderForestPlots();
+    }
+
+    function completeForestSession() {
+      clearInterval(sessionTimerInterval);
+      sessionTimerInterval = null;
+      isSessionActive = false;
+
+      const plant = getCurrentPlant();
+      const studiedMinutes = Math.round(timerTotalSecs / 60);
+      saveForestRecord(plant, studiedMinutes, true);
+
+      playSuccessChime();
+      renderTimerDisplay(false);
+
+      const btnStart = document.getElementById('btnStartForestSession');
+      const btnGiveUp = document.getElementById('btnGiveUpForestSession');
+      const pillRow = document.getElementById('forestDurationRow');
+
+      if (btnStart) {
+        btnStart.style.display = 'inline-flex';
+        btnStart.innerText = '🌱 नयाँ बिरुवा रोप्नुहोस् (Plant Another)';
+      }
+      if (btnGiveUp) btnGiveUp.style.display = 'none';
+      if (pillRow) pillRow.style.opacity = '1';
+
+      alert(`बधाई छ! तपाईंको "${plant.nepali}" सफलतापूर्वक तपाईंको वनमा रोपियो! 🎉`);
+      renderForestPlots();
+    }
+
+    // ================= AUDIO CHIME =================
+    function playSuccessChime() {
+      try {
+        const AudioCtx = window.AudioContext || window.webkitAudioContext;
+        if (!AudioCtx) return;
+        const ctx = new AudioCtx();
+        const now = ctx.currentTime;
+
+        const osc1 = ctx.createOscillator();
+        const gain1 = ctx.createGain();
+        osc1.type = 'sine';
+        osc1.frequency.setValueAtTime(392, now); // G4
+        gain1.gain.setValueAtTime(0.15, now);
+        gain1.gain.exponentialRampToValueAtTime(0.001, now + 1.2);
+        osc1.connect(gain1);
+        gain1.connect(ctx.destination);
+        osc1.start(now);
+        osc1.stop(now + 1.2);
+
+        const osc2 = ctx.createOscillator();
+        const gain2 = ctx.createGain();
+        osc2.type = 'sine';
+        osc2.frequency.setValueAtTime(523.25, now + 0.25); // C5
+        gain2.gain.setValueAtTime(0.2, now + 0.25);
+        gain2.gain.exponentialRampToValueAtTime(0.001, now + 1.8);
+        osc2.connect(gain2);
+        gain2.connect(ctx.destination);
+        osc2.start(now + 0.25);
+        osc2.stop(now + 1.8);
+      } catch (e) {
+        console.log('Audio chime error:', e);
+      }
+    }
+
+    // ================= STORAGE =================
+    function saveForestRecord(plant, minutes, isHealthy) {
+      let history = [];
+      try {
+        history = JSON.parse(localStorage.getItem('nepalForestHistory')) || [];
+      } catch (e) {}
+
+      history.push({
+        id: plant.id,
+        nepali: plant.nepali,
+        english: plant.english,
+        scientific: plant.scientific,
+        category: plant.category,
+        icon: plant.icon,
+        minutes: minutes,
+        isHealthy: isHealthy,
+        timestamp: Date.now()
+      });
+
+      try {
+        localStorage.setItem('nepalForestHistory', JSON.stringify(history));
+      } catch (e) {}
+    }
+
+    function renderActivePlant() {
+      const plant = getCurrentPlant();
+      document.getElementById('activePlantAvatar').innerText = plant.icon;
+      document.getElementById('activePlantNepali').innerText = plant.nepali;
+      document.getElementById('activePlantEnglish').innerText = plant.english;
+      document.getElementById('activePlantScientific').innerText = plant.scientific;
+      document.getElementById('activePlantCategory').innerText = plant.category;
+      if (plant.desc) {
+        document.getElementById('activePlantDescription').innerText = plant.desc;
+      }
+      renderTimerDisplay();
+    }
+
+    // ================= MY FOREST PLOTS =================
+    function renderForestPlots() {
+      let history = [];
+      try {
+        history = JSON.parse(localStorage.getItem('nepalForestHistory')) || [];
+      } catch (e) {}
+
+      const now = new Date();
+      const startOfDay = new Date(now.getFullYear(), now.getMonth(), now.getDate()).getTime();
+      const startOfWeek = startOfDay - (now.getDay() * 24 * 60 * 60 * 1000);
+
+      let filtered = history;
+      if (activeForestFilter === 'today') {
+        filtered = history.filter(item => item.timestamp >= startOfDay);
+      } else if (activeForestFilter === 'week') {
+        filtered = history.filter(item => item.timestamp >= startOfWeek);
+      }
+
+      const total = filtered.length;
+      const healthy = filtered.filter(item => item.isHealthy).length;
+      const withered = filtered.filter(item => !item.isHealthy).length;
+      const totalMinutes = filtered.reduce((acc, cur) => acc + (cur.minutes || 0), 0);
+
+      const statPlanted = document.getElementById('statTotalPlanted');
+      const statTime = document.getElementById('statTotalFocusTime');
+      const statThriving = document.getElementById('statThrivingCount');
+      const statWithered = document.getElementById('statWitheredCount');
+
+      if (statPlanted) statPlanted.innerText = total;
+      if (statTime) {
+        const h = Math.floor(totalMinutes / 60);
+        const m = totalMinutes % 60;
+        statTime.innerText = h > 0 ? `${h}h ${m}m` : `${m}m`;
+      }
+      if (statThriving) statThriving.innerText = healthy;
+      if (statWithered) statWithered.innerText = withered;
+
+      const container = document.getElementById('forestPlotsContainer');
+      if (!container) return;
+
+      if (filtered.length === 0) {
+        container.innerHTML = `
+          <div style="grid-column: 1 / -1; text-align: center; padding: 40px 16px; color: var(--text-tertiary);">
+            <div style="font-size: 40px; margin-bottom: 8px;">🌱</div>
+            <div style="font-weight: 800; font-size: 15px; color: var(--text);">अहिलेसम्म कुनै बिरुवा रोपिएको छैन</div>
+            <div style="font-size: 12px; margin-top: 4px;">अध्ययन सुरु गरेर नेपालका ५० रैथाने वनस्पतिहरूले आफ्नो वन सजाउनुहोस्!</div>
+          </div>
+        `;
+        return;
+      }
+
+      container.innerHTML = filtered.slice().reverse().map(item => {
+        const timeDate = new Date(item.timestamp);
+        const formatted = timeDate.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+        const isWith = !item.isHealthy;
+        return `
+          <div class="forest-plot-item ${isWith ? 'withered' : ''}" title="${item.nepali} (${item.english}) - ${item.minutes} मिनेट">
+            <div class="plot-item-icon">${isWith ? '🥀' : (item.icon || '🌲')}</div>
+            <div class="plot-item-nepali">${item.nepali}</div>
+            <div class="plot-item-time">${item.minutes}m • ${formatted}</div>
+          </div>
+        `;
+      }).join('');
+    }
+
+    function filterForest(type) {
+      activeForestFilter = type;
+      document.getElementById('btnFilterToday')?.classList.toggle('active', type === 'today');
+      document.getElementById('btnFilterWeek')?.classList.toggle('active', type === 'week');
+      document.getElementById('btnFilterAll')?.classList.toggle('active', type === 'all');
+      renderForestPlots();
+    }
+
+    // ================= 50 PLANTS CATALOG MODAL =================
+    function openPlantsModal() {
+      const modal = document.getElementById('catalogModal');
+      if (modal) {
+        modal.style.display = 'flex';
+        renderCatalogList();
+      }
+    }
+
+    function closePlantsModal() {
+      const modal = document.getElementById('catalogModal');
+      if (modal) modal.style.display = 'none';
+    }
+
+    function closeModalOnBackdrop(e) {
+      if (e.target.id === 'catalogModal') {
+        closePlantsModal();
+      }
+    }
+
+    function setCategoryFilter(cat, btn) {
+      currentCatalogCategory = cat;
+      const parent = btn?.parentElement;
+      if (parent) {
+        parent.querySelectorAll('.duration-pill').forEach(el => el.classList.remove('active'));
+        btn.classList.add('active');
+      }
+      renderCatalogList();
+    }
+
+    function filterPlantsCatalog() {
+      renderCatalogList();
+    }
+
+    function renderCatalogList() {
+      const container = document.getElementById('catalogPlantsList');
+      if (!container) return;
+
+      const query = (document.getElementById('catalogSearchInput')?.value || '').toLowerCase().trim();
+
+      const list = NEPAL_PLANTS.filter(plant => {
+        const matchesCategory = currentCatalogCategory === 'all' || plant.category.includes(currentCatalogCategory);
+        const matchesQuery = !query ||
+          plant.nepali.toLowerCase().includes(query) ||
+          plant.english.toLowerCase().includes(query) ||
+          plant.scientific.toLowerCase().includes(query);
+        return matchesCategory && matchesQuery;
+      });
+
+      container.innerHTML = list.map(plant => {
+        const isSel = plant.id === selectedPlantId;
+        return `
+          <div class="catalog-card-item ${isSel ? 'selected' : ''}" onclick="pickPlant(${plant.id})">
+            <div class="catalog-icon">${plant.icon}</div>
+            <div class="catalog-meta">
+              <div class="catalog-meta-top">
+                <span class="catalog-nepali">${plant.id}. ${plant.nepali}</span>
+                <span class="catalog-badge">${plant.category}</span>
+              </div>
+              <div class="catalog-english">${plant.english}</div>
+              <div class="catalog-scientific">${plant.scientific}</div>
+            </div>
+          </div>
+        `;
+      }).join('');
+    }
+
+    function pickPlant(id) {
+      if (isSessionActive) {
+        alert("अध्ययन सत्र चलिरहेको छ! सत्र समाप्त भएपछि नयाँ बिरुवा रोज्न सक्नुहुन्छ।");
+        return;
+      }
+      selectedPlantId = id;
+      try {
+        localStorage.setItem('selectedNepalPlantId', id);
+      } catch (e) {}
+      renderActivePlant();
+      closePlantsModal();
+    }
+
+    // Keyboard shortcuts
+    document.addEventListener('keydown', (e) => {
+      if (e.key === 'Escape') {
+        closePlantsModal();
+        if (document.body.classList.contains('is-fullscreen')) {
+          toggleFullscreen();
+        }
+      }
+    });
+
+    // Window load initialization
+    window.addEventListener('load', () => {
+      renderActivePlant();
+      renderForestPlots();
+    });
+  </script>
+</body>
+</html>

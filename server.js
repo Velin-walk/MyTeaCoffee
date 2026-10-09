@@ -16,6 +16,11 @@ app.get('/manifest.json', (req, res) => {
   res.sendFile(path.join(__dirname, 'Manifest.json'));
 });
 
+// Dedicated Forest App route
+app.get('/forest', (req, res) => {
+  res.sendFile(path.join(__dirname, 'forest.html'));
+});
+
 // Single Page Application fallback to index.html
 app.get('*', (req, res) => {
   res.sendFile(path.join(__dirname, 'index.html'));
