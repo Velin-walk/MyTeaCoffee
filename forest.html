@@ -553,12 +553,33 @@
 
     /* Forest History & Stats */
     .my-forest-card {
+      width: 100vw;
+      position: relative;
+      left: 50%;
+      right: 50%;
+      margin-left: -50vw;
+      margin-right: -50vw;
+      box-sizing: border-box;
       background: var(--card-bg);
-      border: 1px solid var(--border-color);
-      border-radius: 20px;
-      padding: 26px;
+      border-top: 1px solid var(--border-color);
+      border-bottom: 1px solid var(--border-color);
+      border-left: none;
+      border-right: none;
+      border-radius: 0;
+      padding: 28px 24px;
       box-shadow: var(--card-shadow);
       margin-bottom: 30px;
+    }
+
+    body.is-fullscreen .my-forest-card {
+      width: 100%;
+      left: 0;
+      right: 0;
+      margin-left: 0;
+      margin-right: 0;
+      padding: 28px 0;
+      border-top: none;
+      border-bottom: none;
     }
 
     .forest-stats-grid {
@@ -566,6 +587,8 @@
       grid-template-columns: repeat(auto-fit, minmax(170px, 1fr));
       gap: 14px;
       margin-bottom: 24px;
+      width: 100%;
+      box-sizing: border-box;
     }
 
     .stat-box {
@@ -600,64 +623,222 @@
       padding-bottom: 16px;
       border-bottom: 1px solid var(--border-color);
       margin-bottom: 20px;
+      width: 100%;
+      box-sizing: border-box;
     }
 
-    .forest-grid-plots {
-      display: grid;
-      grid-template-columns: repeat(auto-fill, minmax(105px, 1fr));
-      gap: 14px;
-      min-height: 180px;
-      background: radial-gradient(circle, rgba(76, 175, 80, 0.05) 10%, transparent 70%);
-      padding: 20px;
-      border-radius: 16px;
-      border: 1px dashed var(--border-color);
+    /* Mini Grassland with Soil Terrain */
+    .mini-grassland-terrain {
+      width: 100%;
+      box-sizing: border-box;
+      position: relative;
+      border-radius: 20px;
+      overflow: hidden;
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.12), 0 2px 8px rgba(0, 0, 0, 0.06);
+      border: 2px solid rgba(255, 255, 255, 0.28);
+      display: flex;
+      flex-direction: column;
+      background: #3e261a;
     }
 
-    .forest-plot-item {
-      background: var(--card-bg);
-      border: 1px solid var(--border-color);
-      border-radius: 14px;
-      padding: 14px 8px;
+    /* 1. Lush Green Grassland Meadow Surface (Top) */
+    .grassland-surface {
+      position: relative;
+      width: 100%;
+      min-height: 220px;
+      background: linear-gradient(180deg, #8dc754 0%, #75b542 45%, #5d9b32 100%);
+      box-shadow: inset 0 2px 4px rgba(255, 255, 255, 0.45), inset 0 -4px 8px rgba(0, 0, 0, 0.15);
+      padding: 24px 20px;
       display: flex;
       flex-direction: column;
       align-items: center;
+      justify-content: center;
+      box-sizing: border-box;
+    }
+
+    .grassland-surface::before {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background-image: 
+        radial-gradient(ellipse at 50% 0%, rgba(255, 255, 255, 0.25) 0%, transparent 65%),
+        radial-gradient(circle at 18% 40%, rgba(255, 255, 255, 0.08) 0%, transparent 35%),
+        radial-gradient(circle at 82% 50%, rgba(255, 255, 255, 0.08) 0%, transparent 35%);
+      pointer-events: none;
+    }
+
+    /* Grass-edge fringe transition into the soil */
+    .grassland-fringe {
+      position: relative;
+      width: 100%;
+      height: 14px;
+      background: #4f852a;
+      background-image: radial-gradient(circle at 10px 0, #5d9b32 10px, #427221 11px);
+      background-size: 20px 14px;
+      border-bottom: 2px solid #361f14;
+    }
+
+    /* 2. Rich Soil Earth Layer (Bottom Cross-Section) */
+    .grassland-soil {
+      position: relative;
+      width: 100%;
+      height: 54px;
+      background: linear-gradient(180deg, #4d3326 0%, #3d251a 55%, #27160d 100%);
+      box-shadow: inset 0 4px 8px rgba(0, 0, 0, 0.5);
+      border-top: 1px solid #5a3c2e;
+      overflow: hidden;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      box-sizing: border-box;
+    }
+
+    .grassland-soil::before {
+      content: '';
+      position: absolute;
+      inset: 0;
+      opacity: 0.35;
+      background-image: 
+        radial-gradient(#d7ccc8 1px, transparent 1px),
+        radial-gradient(#a1887f 1.5px, transparent 1.5px),
+        radial-gradient(#5d4037 2px, transparent 2px);
+      background-size: 28px 28px, 44px 44px, 18px 18px;
+      background-position: 0 0, 14px 14px, 7px 7px;
+      pointer-events: none;
+    }
+
+    .grassland-soil::after {
+      content: '';
+      position: absolute;
+      top: 22px;
+      left: 0;
+      right: 0;
+      height: 1.5px;
+      background: rgba(255, 255, 255, 0.07);
+      box-shadow: 0 16px 0 rgba(0, 0, 0, 0.25);
+      pointer-events: none;
+    }
+
+    .soil-caption {
+      position: relative;
+      z-index: 1;
+      font-size: 11px;
+      font-weight: 700;
+      letter-spacing: 0.8px;
+      color: rgba(230, 210, 190, 0.65);
+      text-transform: uppercase;
+      user-select: none;
+    }
+
+    /* Empty Grassland: Zero plants, peaceful and simple */
+    .grassland-empty-view {
+      position: relative;
+      z-index: 2;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
       text-align: center;
+      padding: 24px 16px;
+    }
+
+    .btn-empty-grassland-cue {
+      background: rgba(255, 255, 255, 0.25);
+      backdrop-filter: blur(8px);
+      -webkit-backdrop-filter: blur(8px);
+      border: 1px solid rgba(255, 255, 255, 0.45);
+      color: #ffffff;
+      font-size: 13px;
+      font-weight: 700;
+      padding: 10px 22px;
+      border-radius: 24px;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
       cursor: pointer;
-      transition: all 0.2s;
+      transition: all 0.2s ease;
+      letter-spacing: 0.3px;
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
     }
 
-    .forest-plot-item:hover {
+    .btn-empty-grassland-cue:hover {
+      background: rgba(255, 255, 255, 0.38);
+      transform: translateY(-2px);
+      box-shadow: 0 6px 16px rgba(0, 0, 0, 0.15);
+    }
+
+    /* Planted trees on the grassland */
+    .grassland-trees-grid {
+      position: relative;
+      z-index: 2;
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(110px, 1fr));
+      gap: 16px;
+      width: 100%;
+      box-sizing: border-box;
+      max-width: 1200px;
+    }
+
+    .planted-tree-item {
+      background: rgba(255, 255, 255, 0.18);
+      backdrop-filter: blur(4px);
+      -webkit-backdrop-filter: blur(4px);
+      border: 1px solid rgba(255, 255, 255, 0.35);
+      border-radius: 16px;
+      padding: 12px 8px 10px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      text-align: center;
+      transition: transform 0.2s ease, box-shadow 0.2s ease, background 0.2s ease;
+      cursor: pointer;
+      position: relative;
+    }
+
+    .planted-tree-item:hover {
       transform: translateY(-4px);
-      box-shadow: 0 6px 14px rgba(0,0,0,0.08);
-      border-color: var(--primary);
+      background: rgba(255, 255, 255, 0.28);
+      box-shadow: 0 8px 20px rgba(0, 0, 0, 0.15);
     }
 
-    .forest-plot-item.withered {
-      opacity: 0.7;
-      border-color: var(--danger);
-      background: rgba(234, 67, 53, 0.04);
+    .planted-tree-item.withered {
+      filter: grayscale(0.7);
+      opacity: 0.75;
     }
 
-    .plot-item-icon {
-      font-size: 32px;
+    .planted-tree-icon {
+      width: 58px;
+      height: 58px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
       margin-bottom: 6px;
+      filter: drop-shadow(0 4px 6px rgba(0, 0, 0, 0.2));
     }
 
-    .plot-item-nepali {
+    .planted-tree-icon svg {
+      width: 100% !important;
+      height: 100% !important;
+    }
+
+    .planted-tree-name {
       font-size: 12px;
       font-weight: 800;
-      color: var(--text);
+      color: #ffffff;
+      text-shadow: 0 1px 3px rgba(0, 0, 0, 0.4);
+      margin-bottom: 2px;
       white-space: nowrap;
       overflow: hidden;
       text-overflow: ellipsis;
       max-width: 100%;
     }
 
-    .plot-item-time {
+    .planted-tree-meta {
       font-size: 10px;
-      font-weight: 600;
-      color: var(--text-secondary);
-      margin-top: 2px;
+      font-weight: 700;
+      color: rgba(255, 255, 255, 0.85);
+      text-shadow: 0 1px 2px rgba(0, 0, 0, 0.4);
     }
 
     /* Modal */
@@ -1030,7 +1211,7 @@
     const NEPAL_PLANTS = window.NEPAL_PLANTS || [];
 
     // ================= ORIGINAL SOURCE API & LOGGING =================
-    const WEB_APP_URL = "https://script.google.com/macros/s/AKfycbwXOTn__dyqNI-8JvsTPEGtC4OPJYuC9-_jqIlq-lutQZDeQzlmM-46XwWAmWYQu8mT/exec";
+    const WEB_APP_URL = "/api/data";
 
     function logData(type, duration, target) {
       fetch(WEB_APP_URL, {
@@ -1554,30 +1735,56 @@
       const container = document.getElementById('forestPlotsContainer');
       if (!container) return;
 
+      // Mini grassland terrain with rich soil: NO PLANTS when ready for plantation, simple & elegant
+      let surfaceContent = '';
       if (filtered.length === 0) {
-        container.innerHTML = `
-          <div style="grid-column: 1 / -1; text-align: center; padding: 40px 16px; color: var(--text-tertiary);">
-            <div style="font-size: 40px; margin-bottom: 8px;">🌱</div>
-            <div style="font-weight: 800; font-size: 15px; color: var(--text);">No plants cultivated yet</div>
-            <div style="font-size: 12px; margin-top: 4px;">Start a focus session to grow Nepal's native plants in your forest!</div>
+        surfaceContent = `
+          <div class="grassland-empty-view">
+            <button class="btn-empty-grassland-cue" onclick="scrollToForestTimer()">
+              Ready for plantation • Start focus timer to plant a tree
+            </button>
           </div>
         `;
-        return;
+      } else {
+        const plantedPlots = filtered.slice().reverse().map(item => {
+          const timeDate = new Date(item.timestamp);
+          const formatted = timeDate.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+          const isWith = !item.isHealthy;
+          const iconContent = getBotanicalPlotIconSvg(item, isWith);
+          return `
+            <div class="planted-tree-item ${isWith ? 'withered' : ''}" title="${item.nepali} (${item.english}) - ${item.minutes}m • ${formatted}">
+              <div class="planted-tree-icon">${iconContent}</div>
+              <div class="planted-tree-name">${item.nepali}</div>
+              <div class="planted-tree-meta">${item.minutes}m • ${formatted}</div>
+            </div>
+          `;
+        }).join('');
+
+        surfaceContent = `
+          <div class="grassland-trees-grid">
+            ${plantedPlots}
+          </div>
+        `;
       }
 
-      container.innerHTML = filtered.slice().reverse().map(item => {
-        const timeDate = new Date(item.timestamp);
-        const formatted = timeDate.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
-        const isWith = !item.isHealthy;
-        const iconContent = getBotanicalPlotIconSvg(item, isWith);
-        return `
-          <div class="forest-plot-item ${isWith ? 'withered' : ''}" title="${item.nepali} (${item.english}) - ${item.minutes}m">
-            <div class="plot-item-icon">${iconContent}</div>
-            <div class="plot-item-nepali">${item.nepali}</div>
-            <div class="plot-item-time">${item.minutes}m • ${formatted}</div>
+      container.innerHTML = `
+        <div class="mini-grassland-terrain">
+          <div class="grassland-surface">
+            ${surfaceContent}
           </div>
-        `;
-      }).join('');
+          <div class="grassland-fringe"></div>
+          <div class="grassland-soil">
+            <span class="soil-caption">FERTILE SOIL • READY FOR PLANTATION</span>
+          </div>
+        </div>
+      `;
+    }
+
+    function scrollToForestTimer() {
+      const timer = document.querySelector('.timer-focus-card') || document.querySelector('.forest-workspace-grid');
+      if (timer) {
+        timer.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      }
     }
 
     function filterForest(type) {
