@@ -1555,7 +1555,7 @@
       </svg>
       <span>Install App</span>
     </button>
-    <label for="themeSelect">🎨 Theme:</label>
+    <label for="themeSelect" style="display:inline-flex;align-items:center;gap:4px;"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display:inline-block; vertical-align:middle;"><circle cx="13.5" cy="6.5" r=".5" fill="currentColor"/><circle cx="17.5" cy="10.5" r=".5" fill="currentColor"/><circle cx="8.5" cy="7.5" r=".5" fill="currentColor"/><circle cx="6.5" cy="12.5" r=".5" fill="currentColor"/><path d="M12 2C6.5 2 2 6.5 2 12s4.5 10 10 10c.926 0 1.648-.746 1.648-1.688 0-.437-.18-.835-.437-1.125-.29-.289-.438-.652-.438-1.125a1.64 1.64 0 0 1 1.668-1.668h1.996c3.051 0 5.563-2.512 5.563-5.563C21.438 6.5 17.5 2 12 2z"/></svg> Theme:</label>
     <select id="themeSelect" onchange="changeTheme(this.value)">
       <option value="default">Light</option>
       <option value="theme-paper">Old Paper</option>
@@ -1578,23 +1578,23 @@
   <div class="dashboard-container">
     
     <div class="card">
-      <h3>⏱️ SESSION CONTROLS</h3>
+      <h3 style="display:flex;align-items:center;gap:6px;"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display:inline-block; vertical-align:middle;"><circle cx="12" cy="13" r="8"/><path d="M12 9v4l2 2"/><path d="M5 3L2 6"/><path d="M22 6l-3-3"/><path d="M12 2v3"/></svg> SESSION CONTROLS</h3>
       <div style="display: flex; flex-direction: column; gap: 12px; margin-top: 16px;">
         <div id="card-open" style="background: var(--text); color: white; padding: 16px; border-radius: 6px;">
-          <div style="font-size: 10px; font-weight: 700; margin-bottom: 8px; text-transform: uppercase; letter-spacing: 1px;">⏱️ Open Timer</div>
+          <div style="font-size: 10px; font-weight: 700; margin-bottom: 8px; text-transform: uppercase; letter-spacing: 1px; display:flex; align-items:center; gap:5px;"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display:inline-block; vertical-align:middle;"><circle cx="12" cy="13" r="8"/><path d="M12 9v4l2 2"/><path d="M5 3L2 6"/><path d="M22 6l-3-3"/><path d="M12 2v3"/></svg> Open Timer</div>
           <div id="openDisplay" style="color: white; font-size: 36px; font-family: monospace; font-weight: 800; margin-bottom: 14px; letter-spacing: 2px;">00:00:00</div>
           <div style="display: flex; gap: 8px;">
-            <button id="startO" onclick="startOpen()" style="flex: 1; padding: 10px; background: white; color: var(--text); border: none; border-radius: 4px; font-weight: 700; cursor: pointer; font-size: 12px;">▶ START</button>
-            <button id="stopO" onclick="stopOpen()" style="flex: 1; padding: 10px; background: var(--danger); color: white; border: none; border-radius: 4px; font-weight: 700; cursor: pointer; font-size: 12px;">⏹ STOP</button>
+            <button id="startO" onclick="startOpen()" style="flex: 1; padding: 10px; background: white; color: var(--text); border: none; border-radius: 4px; font-weight: 700; cursor: pointer; font-size: 12px;" style="display:inline-flex;align-items:center;justify-content:center;gap:5px;"><svg width="12" height="12" viewBox="0 0 24 24" fill="currentColor" style="display:inline-block; vertical-align:middle;"><polygon points="5 3 19 12 5 21 5 3"/></svg> START</button>
+            <button id="stopO" onclick="stopOpen()" style="flex: 1; padding: 10px; background: var(--danger); color: white; border: none; border-radius: 4px; font-weight: 700; cursor: pointer; font-size: 12px;" style="display:inline-flex;align-items:center;justify-content:center;gap:5px;"><svg width="12" height="12" viewBox="0 0 24 24" fill="currentColor" style="display:inline-block; vertical-align:middle;"><rect x="4" y="4" width="16" height="16" rx="2"/></svg> STOP</button>
           </div>
         </div>
         <div style="background: var(--input-bg); color: var(--text); padding: 16px; border-radius: 6px; border: 2px solid var(--text);">
-          <div style="font-size: 10px; font-weight: 700; margin-bottom: 8px; text-transform: uppercase; letter-spacing: 1px;">🏆 Daily Goal</div>
+          <div style="font-size: 10px; font-weight: 700; margin-bottom: 8px; text-transform: uppercase; letter-spacing: 1px; display:flex; align-items:center; gap:5px;"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display:inline-block; vertical-align:middle;"><path d="M6 9H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h2"/><path d="M18 9h2a2 2 0 0 0 2-2V5a2 2 0 0 0-2-2h-2"/><path d="M4 22h16"/><path d="M10 14.66V17c0 .55-.45 1-1 1H7c-.55 0-1 .45-1 1v1c0 .55.45 1 1 1h10c.55 0 1-.45 1-1v-1c0-.55-.45-1-1-1h-2c-.55 0-1-.45-1-1v-2.34"/><path d="M6 3h12v7a6 6 0 0 1-12 0V3z"/></svg> Daily Goal</div>
           <div style="display: flex; gap: 6px; margin-bottom: 12px; align-items: center; justify-content: center;">
             <input type="number" id="goalInput" value="4" min="0.5" step="0.5" style="width: 60px; padding: 8px; font-size: 14px; font-weight: 600; border: 1px solid var(--text); border-radius: 4px; background: white; color: var(--text);">
             <span style="font-weight: 700; font-size: 11px;">hrs</span>
           </div>
-          <button onclick="saveGoal()" style="width: 100%; padding: 10px; background: var(--text); color: white; border: none; border-radius: 4px; font-weight: 700; cursor: pointer; font-size: 12px;">💾 SAVE</button>
+          <button onclick="saveGoal()" style="width: 100%; padding: 10px; background: var(--text); color: white; border: none; border-radius: 4px; font-weight: 700; cursor: pointer; font-size: 12px;" style="display:inline-flex;align-items:center;justify-content:center;gap:6px;"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display:inline-block; vertical-align:middle;"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/><polyline points="7 3 7 8 15 8"/></svg> SAVE</button>
         </div>
       </div>
 <div style="background: var(--input-bg); color: var(--text); padding: 16px; border-radius: 6px; margin-top: 12px; text-align: center;">
@@ -1606,7 +1606,7 @@
 </div>
 
     <div class="card">
-      <h3>⏰ Master Study Chronometer</h3>
+      <h3 style="display:flex;align-items:center;gap:6px;"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display:inline-block; vertical-align:middle;"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg> Master Study Chronometer</h3>
       <div class="master-watch-container">
         <svg id="masterWatch" width="300" height="300" viewBox="0 0 300 300" style="filter: drop-shadow(0 8px 15px rgba(0,0,0,0.05));">
           <defs>
@@ -1641,7 +1641,7 @@
     </div>
 
 <div class="card">
-  <h3>📅 Daily Study Schedule</h3>
+  <h3 style="display:flex;align-items:center;gap:6px;"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display:inline-block; vertical-align:middle;"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg> Daily Study Schedule</h3>
 
   <!-- Time Setter — Top Right -->
   <div style="position: absolute; top: 16px; right: 50px; display: flex; gap: 8px; align-items: center; z-index: 10;">
@@ -1655,7 +1655,7 @@
 </div>
 
     <div class="card">
-      <h3>✅ Daily Study Actual</h3>
+      <h3 style="display:flex;align-items:center;gap:6px;"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display:inline-block; vertical-align:middle;"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg> Daily Study Actual</h3>
       <div id="actualContainer" style="margin-top: 12px;">
         <div style="text-align: center; color: var(--text-tertiary); font-size: 12px; padding: 20px;">No sessions logged today yet</div>
       </div>
@@ -1677,14 +1677,14 @@
     
     <div class="card">
       <div class="chart-header">
-        <h3>📅 Weekly Timeline</h3>
-        <button class="btn-view" onclick="loadPlannerWithCache()" style="font-size: 10px;">🔄 Sync</button>
+        <h3 style="display:flex;align-items:center;gap:6px;"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display:inline-block; vertical-align:middle;"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg> Weekly Timeline</h3>
+        <button class="btn-view" onclick="loadPlannerWithCache()" style="font-size: 10px;" style="display:inline-flex;align-items:center;gap:4px;"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="display:inline-block; vertical-align:middle;"><path d="M21.5 2v6h-6M21.34 15.57a10 10 0 1 1-.57-8.38l5.67-5.67"/></svg> Sync</button>
       </div>
       <div class="grid-wrapper" id="gridWrapper"></div>
     </div>
 
     <div class="card">
-      <h3 style="margin-bottom: 4px;">🔥 Consistency</h3>
+      <h3 style="margin-bottom: 4px; display:flex; align-items:center; gap:6px;"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display:inline-block; vertical-align:middle;"><path d="M8.5 14.5A2.5 2.5 0 0 0 11 12c0-1.38-.5-2-1-3-1.072-2.143-.224-4.054 2-6 .5 2.5 2 4.9 4 6.5 2 1.6 3 3.5 3 5.5a7 7 0 1 1-14 0c0-1.153.433-2.294 1-3a2.5 2.5 0 0 0 2.5 2.5z"/></svg> Consistency</h3>
 
       <!-- Month/Year Navigation -->
       <div style="display: flex; gap: 6px; margin-bottom: 0; justify-content: flex-end; align-items: center; position: absolute; top: 16px; right: 50px; z-index: 10;">
@@ -1719,53 +1719,53 @@
     </div>
      
     <div class="card">
-      <h3>⏰ Most Active Hours</h3>
+      <h3 style="display:flex;align-items:center;gap:6px;"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display:inline-block; vertical-align:middle;"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg> Most Active Hours</h3>
       <div style="margin-top: 40px;">
-        <div style="font-size: 9px; font-weight: 700; color: var(--text-secondary); text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 6px;">🌅 Morning</div>
+        <div style="font-size: 9px; font-weight: 700; color: var(--text-secondary); text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 6px;" style="display:flex;align-items:center;gap:4px;"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display:inline-block; vertical-align:middle;"><path d="M12 2v6"/><path d="M4.93 10.93l4.24-4.24"/><path d="M2 18h20"/><path d="M20 18a8 8 0 0 0-16 0"/><path d="M19.07 10.93l-4.24-4.24"/></svg> Morning</div>
         <div id="activeHoursChartAM" style="height: 170px; width: 100%;"></div>
-        <div style="font-size: 9px; font-weight: 700; color: var(--text-secondary); text-transform: uppercase; letter-spacing: 0.5px; margin: 14px 0 6px 0;">🌙 Afternoon / Evening</div>
+        <div style="font-size: 9px; font-weight: 700; color: var(--text-secondary); text-transform: uppercase; letter-spacing: 0.5px; margin: 14px 0 6px 0;" style="display:flex;align-items:center;gap:4px;"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display:inline-block; vertical-align:middle;"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg> Afternoon / Evening</div>
         <div id="activeHoursChartPM" style="height: 170px; width: 100%;"></div>
       </div>
     </div>
 
     <div class="card">
-      <h3>📊 Daily Analytics</h3>
+      <h3 style="display:flex;align-items:center;gap:6px;"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display:inline-block; vertical-align:middle;"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg> Daily Analytics</h3>
       <div id="chart_div_daily" style="height: 400px;"></div>
     </div>
  
     <div class="card">
-      <h3>📊 Weekly Analytics</h3>
+      <h3 style="display:flex;align-items:center;gap:6px;"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display:inline-block; vertical-align:middle;"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg> Weekly Analytics</h3>
       <div id="chart_div_weekly" style="height: 400px;"></div>
     </div>
  
     <div class="card">
-      <h3>📊 Monthly Analytics</h3>
+      <h3 style="display:flex;align-items:center;gap:6px;"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display:inline-block; vertical-align:middle;"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg> Monthly Analytics</h3>
       <div id="chart_div_monthly" style="height: 400px;"></div>
     </div>
 
     <div class="card">
-      <h3>📈 Weekly Sessions Pattern</h3>
+      <h3 style="display:flex;align-items:center;gap:6px;"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display:inline-block; vertical-align:middle;"><polyline points="23 6 13.5 15.5 8.5 10.5 1 18"/><polyline points="17 6 23 6 23 12"/></svg> Weekly Sessions Pattern</h3>
       <div id="weeklySessionsChart" style="height: 350px; width: 100%;"></div>
     </div>
 
     <div class="card">
-      <h3>📈 Daily Progress</h3>
+      <h3 style="display:flex;align-items:center;gap:6px;"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display:inline-block; vertical-align:middle;"><polyline points="23 6 13.5 15.5 8.5 10.5 1 18"/><polyline points="17 6 23 6 23 12"/></svg> Daily Progress</h3>
       <div id="dailyProgressChart" style="height: 300px;"></div>
     </div>
 
     <div class="card">
-      <h3>⚡ Productivity Peaks</h3>
+      <h3 style="display:flex;align-items:center;gap:6px;"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display:inline-block; vertical-align:middle;"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg> Productivity Peaks</h3>
       <div id="hourly_dist_chart" style="height: 150px; width: 100%;"></div>
     </div>
 
     <div class="card">
-      <h3>🏔️ Knowledge Mountain</h3>
+      <h3 style="display:flex;align-items:center;gap:6px;"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display:inline-block; vertical-align:middle;"><path d="M2 20h20"/><path d="M6 20l6-11 6 11"/><path d="M9 14.5l3-5.5 3 5.5"/></svg> Knowledge Mountain</h3>
       <div id="mountain_chart" style="height: 150px; width: 100%;"></div>
     </div>
 
 
     <div class="card">
-      <h3>🎯 Goal Accuracy</h3>
+      <h3 style="display:flex;align-items:center;gap:6px;"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display:inline-block; vertical-align:middle;"><circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="6"/><circle cx="12" cy="12" r="2"/></svg> Goal Accuracy</h3>
       <div id="scatter_chart" style="height: 150px; width: 100%;"></div>
     </div>
 </div>
@@ -1774,18 +1774,18 @@
   <div class="bottom-tab-switcher-card" id="mainTabBar">
     <div class="tab-switcher-header">
       <div class="tab-switcher-title-group">
-        <span class="tab-switcher-badge">📑 VIEW SWITCHER</span>
+        <span class="tab-switcher-badge" style="display:inline-flex;align-items:center;gap:4px;"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display:inline-block; vertical-align:middle;"><polygon points="12 2 2 7 12 12 22 7 12 2"/><polyline points="2 17 12 22 22 17"/><polyline points="2 12 12 17 22 12"/></svg> VIEW SWITCHER</span>
         <h3 class="tab-switcher-title">Choose Active View</h3>
         <p class="tab-switcher-desc">Instantly switch between Study Charts and Nepal Forest Study.</p>
       </div>
       <button class="fullscreen-shortcut-btn" onclick="toggleForestFullscreen()" title="Open Nepal Forest in Fullscreen">
-        ⛶ Fullscreen Mode
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display:inline-block; vertical-align:middle;"><path d="M8 3H5a2 2 0 0 0-2 2v3m18 0V5a2 2 0 0 0-2-2h-3m0 18h3a2 2 0 0 0 2-2v-3M3 16v3a2 2 0 0 0 2 2h3"/></svg> Fullscreen Mode
       </button>
     </div>
 
     <div class="tab-switcher-buttons-row">
       <button id="tabBtnCharts" class="bottom-tab-card-btn active" onclick="switchMainTab('charts')">
-        <div class="tab-btn-icon-box">📊</div>
+        <div class="tab-btn-icon-box"><svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg></div>
         <div class="tab-btn-content">
           <div class="tab-btn-label-row">
             <span class="tab-btn-nepali">Study Charts & Analytics</span>
@@ -1793,13 +1793,13 @@
           </div>
           <div class="tab-btn-english">Study Charts, Master Chronometer & Analytics</div>
           <div class="tab-btn-features">
-            <span>⏱️ Chronometer</span> • <span>📅 Timeline</span> • <span>📈 Daily Progress</span> • <span>🏔️ Analytics</span>
+            <span><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display:inline-block; vertical-align:middle;"><circle cx="12" cy="13" r="8"/><path d="M12 9v4l2 2"/><path d="M5 3L2 6"/><path d="M22 6l-3-3"/><path d="M12 2v3"/></svg> Chronometer</span> • <span><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display:inline-block; vertical-align:middle;"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg> Timeline</span> • <span><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display:inline-block; vertical-align:middle;"><polyline points="23 6 13.5 15.5 8.5 10.5 1 18"/><polyline points="17 6 23 6 23 12"/></svg> Daily Progress</span> • <span><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display:inline-block; vertical-align:middle;"><path d="M2 20h20"/><path d="M6 20l6-11 6 11"/><path d="M9 14.5l3-5.5 3 5.5"/></svg> Analytics</span>
           </div>
         </div>
       </button>
 
       <button id="tabBtnForest" class="bottom-tab-card-btn" onclick="switchMainTab('forest')">
-        <div class="tab-btn-icon-box forest-icon-box">🌲</div>
+        <div class="tab-btn-icon-box forest-icon-box"><svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2L6 10h3l-4 7h14l-4-7h3L12 2z"/><path d="M12 17v5"/></svg></div>
         <div class="tab-btn-content">
           <div class="tab-btn-label-row">
             <span class="tab-btn-nepali">Nepal Forest Study</span>
@@ -1807,7 +1807,7 @@
           </div>
           <div class="tab-btn-english">Nepal Forest Study Focus (Botanical Pomodoro)</div>
           <div class="tab-btn-features">
-            <span>🌱 Pomodoro Timer</span> • <span>🌺 50 Native Plants</span> • <span>🌳 My Forest</span> • <span>⛶ Fullscreen</span>
+            <span><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display:inline-block; vertical-align:middle;"><path d="M12 22V12M12 12C9 12 6 9.5 6 6c3.5 0 6 2.5 6 6zM12 14c3 0 6-2 6-5-3 0-6 2-6 5z"/></svg> Pomodoro Timer</span> • <span><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display:inline-block; vertical-align:middle;"><circle cx="12" cy="12" r="3"/><path d="M12 5a3 3 0 0 0-3 3c0 2 3 4 3 4s3-2 3-4a3 3 0 0 0-3-3zM12 19a3 3 0 0 0 3-3c0-2-3-4-3-4s-3 2-3 4a3 3 0 0 0 3 3z"/><path d="M5 12a3 3 0 0 0 3 3c2 0 4-3 4-3s-2-3-4-3a3 3 0 0 0-3 3zM19 12a3 3 0 0 0-3-3c-2 0-4 3-4 3s2 3 4 3a3 3 0 0 0 3-3z"/></svg> 50 Native Plants</span> • <span><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display:inline-block; vertical-align:middle;"><path d="M12 14v7M8 14c-2.5 0-4-2-4-4.5 0-2 1.5-4 3.5-4.5.5-2.5 2.5-4 4.5-4s4 1.5 4.5 4c2 .5 3.5 2.5 3.5 4.5 0 2.5-1.5 4.5-4 4.5H8z"/></svg> My Forest</span> • <span><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display:inline-block; vertical-align:middle;"><path d="M8 3H5a2 2 0 0 0-2 2v3m18 0V5a2 2 0 0 0-2-2h-3m0 18h3a2 2 0 0 0 2-2v-3M3 16v3a2 2 0 0 0 2 2h3"/></svg> Fullscreen</span>
           </div>
         </div>
       </button>
@@ -1818,15 +1818,15 @@
   <section id="nepalForestTab" class="nepal-forest-tab">
     <div class="forest-header-card">
       <div class="forest-header-info">
-        <h2>🌲 Nepal Forest Study <span style="font-size: 13px; font-weight: 700; color: var(--success); background: rgba(52, 168, 83, 0.12); padding: 4px 10px; border-radius: 20px;">Nepal Forest Focus</span></h2>
+        <h2 style="display:flex;align-items:center;gap:8px;"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2L6 10h3l-4 7h14l-4-7h3L12 2z"/><path d="M12 17v5"/></svg> Nepal Forest Study <span style="font-size: 13px; font-weight: 700; color: var(--success); background: rgba(52, 168, 83, 0.12); padding: 4px 10px; border-radius: 20px;">Nepal Forest Focus</span></h2>
         <p>Focus on your studies with calm dedication and cultivate Nepal's 50 native plants.</p>
       </div>
       <div class="forest-header-actions">
         <button class="forest-action-btn" onclick="openPlantsCatalogModal()">
-          🌿 50 Plants Catalog
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display:inline-block; vertical-align:middle;"><path d="M11 20A7 7 0 0 1 4 13c0-4.5 4-8 10-10 1 6-2.5 13-3 17z"/><path d="M11 20c1.5-3 4-6 9-7-2 3-5 5.5-9 7z"/></svg> 50 Plants Catalog
         </button>
         <button id="btnForestFullscreen" class="forest-action-btn btn-primary" onclick="toggleForestFullscreen()">
-          ⛶ Fullscreen Focus
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display:inline-block; vertical-align:middle;"><path d="M8 3H5a2 2 0 0 0-2 2v3m18 0V5a2 2 0 0 0-2-2h-3m0 18h3a2 2 0 0 0 2-2v-3M3 16v3a2 2 0 0 0 2 2h3"/></svg> Fullscreen Focus
         </button>
       </div>
     </div>
@@ -1835,13 +1835,13 @@
     <div class="forest-main-grid">
       <!-- Active Plant Profile -->
       <div class="forest-plant-card">
-        <div class="plant-avatar-emblem" id="activePlantEmblem">🌺</div>
+        <div class="plant-avatar-emblem" id="activePlantEmblem"><svg width="46" height="46" viewBox="0 0 24 24" fill="none" stroke="#2e7d32" stroke-width="1.8"><circle cx="12" cy="12" r="3"/><path d="M12 5a3 3 0 0 0-3 3c0 2 3 4 3 4s3-2 3-4a3 3 0 0 0-3-3zM12 19a3 3 0 0 0 3-3c0-2-3-4-3-4s-3 2-3 4a3 3 0 0 0 3 3z"/><path d="M5 12a3 3 0 0 0 3 3c2 0 4-3 4-3s-2-3-4-3a3 3 0 0 0-3 3zM19 12a3 3 0 0 0-3-3c-2 0-4 3-4 3s2 3 4 3a3 3 0 0 0 3-3z"/></svg></div>
         <h3 class="plant-nepali-title" id="activePlantNepali">लालीगुराँस</h3>
         <div class="plant-english-sub" id="activePlantEnglish">Rhododendron</div>
         <div class="plant-scientific-name" id="activePlantScientific">Rhododendron arboreum</div>
         <div class="plant-category-badge" id="activePlantCategory">National Flower / Tree</div>
         <button class="forest-action-btn" onclick="openPlantsCatalogModal()" style="width: 100%; justify-content: center; margin-top: auto;">
-          🔄 Change Plant
+          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="display:inline-block; vertical-align:middle;"><path d="M21.5 2v6h-6M21.34 15.57a10 10 0 1 1-.57-8.38l5.67-5.67"/></svg> Change Plant
         </button>
       </div>
 
@@ -1861,8 +1861,8 @@
 
         <!-- Timer Mode Toggle -->
         <div class="timer-mode-switcher" style="display: flex; justify-content: center; gap: 8px; margin-bottom: 14px;">
-          <button id="btnForestModeFixed" class="duration-pill active" onclick="setForestTimerMode('fixed')">⏱️ Fixed Timer</button>
-          <button id="btnForestModeOpen" class="duration-pill" onclick="setForestTimerMode('open')">♾️ Open Timer</button>
+          <button id="btnForestModeFixed" class="duration-pill active" onclick="setForestTimerMode('fixed')" style="display:inline-flex;align-items:center;gap:5px;"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display:inline-block; vertical-align:middle;"><circle cx="12" cy="13" r="8"/><path d="M12 9v4l2 2"/><path d="M5 3L2 6"/><path d="M22 6l-3-3"/><path d="M12 2v3"/></svg> Fixed Timer</button>
+          <button id="btnForestModeOpen" class="duration-pill" onclick="setForestTimerMode('open')" style="display:inline-flex;align-items:center;gap:5px;"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display:inline-block; vertical-align:middle;"><path d="M18.178 8c5.096 0 5.096 8 0 8-2.695 0-4.743-2.18-6.178-4-1.435 1.82-3.483 4-6.178 4-5.096 0-5.096-8 0-8 2.695 0 4.743 2.18 6.178 4 1.435-1.82 3.483-4 6.178-4z"/></svg> Open Timer</button>
         </div>
 
         <!-- Duration Selectors -->
@@ -1877,13 +1877,13 @@
 
         <div class="forest-controls-row">
           <button id="btnForestStart" class="btn-plant-start" onclick="toggleForestSession()">
-            🌱 Plant & Focus
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display:inline-block; vertical-align:middle;"><path d="M12 22V12M12 12C9 12 6 9.5 6 6c3.5 0 6 2.5 6 6zM12 14c3 0 6-2 6-5-3 0-6 2-6 5z"/></svg> Plant & Focus
           </button>
           <button id="btnForestCompleteOpen" class="btn-plant-start" onclick="completeForestOpenSession()" style="display: none; background: #2e7d32;">
-            🌿 Finish & Plant
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display:inline-block; vertical-align:middle;"><path d="M11 20A7 7 0 0 1 4 13c0-4.5 4-8 10-10 1 6-2.5 13-3 17z"/><path d="M11 20c1.5-3 4-6 9-7-2 3-5 5.5-9 7z"/></svg> Finish & Plant
           </button>
           <button id="btnForestGiveUp" class="btn-plant-giveup" onclick="giveUpForestSession()" style="display: none;">
-            ❌ Give Up
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display:inline-block; vertical-align:middle;"><circle cx="12" cy="12" r="10"/><line x1="15" y1="9" x2="9" y2="15"/><line x1="9" y1="9" x2="15" y2="15"/></svg> Give Up
           </button>
         </div>
       </div>
@@ -1894,25 +1894,25 @@
       <div class="forest-stats-banner">
         <div class="forest-stat-box">
           <div id="statForestTotalTrees" class="forest-stat-val">0</div>
-          <div class="forest-stat-lbl">🌳 Total Planted</div>
+          <div class="forest-stat-lbl" style="display:flex;align-items:center;justify-content:center;gap:4px;"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display:inline-block; vertical-align:middle;"><path d="M12 14v7M8 14c-2.5 0-4-2-4-4.5 0-2 1.5-4 3.5-4.5.5-2.5 2.5-4 4.5-4s4 1.5 4.5 4c2 .5 3.5 2.5 3.5 4.5 0 2.5-1.5 4.5-4 4.5H8z"/></svg> Total Planted</div>
         </div>
         <div class="forest-stat-box">
           <div id="statForestTotalTime" class="forest-stat-val">0m</div>
-          <div class="forest-stat-lbl">⏱️ Total Focus Time</div>
+          <div class="forest-stat-lbl" style="display:flex;align-items:center;justify-content:center;gap:4px;"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display:inline-block; vertical-align:middle;"><circle cx="12" cy="13" r="8"/><path d="M12 9v4l2 2"/><path d="M5 3L2 6"/><path d="M22 6l-3-3"/><path d="M12 2v3"/></svg> Total Focus Time</div>
         </div>
         <div class="forest-stat-box">
           <div id="statForestHealthy" class="forest-stat-val" style="color: var(--success);">0</div>
-          <div class="forest-stat-lbl">🌿 Thriving Plants</div>
+          <div class="forest-stat-lbl" style="display:flex;align-items:center;justify-content:center;gap:4px;"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display:inline-block; vertical-align:middle;"><path d="M11 20A7 7 0 0 1 4 13c0-4.5 4-8 10-10 1 6-2.5 13-3 17z"/><path d="M11 20c1.5-3 4-6 9-7-2 3-5 5.5-9 7z"/></svg> Thriving Plants</div>
         </div>
         <div class="forest-stat-box">
           <div id="statForestWithered" class="forest-stat-val" style="color: var(--danger);">0</div>
-          <div class="forest-stat-lbl">🥀 Withered Plants</div>
+          <div class="forest-stat-lbl" style="display:flex;align-items:center;justify-content:center;gap:4px;"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display:inline-block; vertical-align:middle;"><path d="M12 22V13"/><path d="M12 13c-2-2-4-3-7-3 1 4 4 6 7 3z"/><path d="M12 10c2-1 4-1 6 1-1-3-4-4-6-1z"/></svg> Withered Plants</div>
         </div>
       </div>
 
       <div class="forest-filter-bar">
         <div style="font-weight: 800; font-size: 16px; color: var(--text);">
-          🌿 My Planted Forest
+          <span style="display:inline-flex;align-items:center;gap:6px;"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display:inline-block; vertical-align:middle;"><path d="M11 20A7 7 0 0 1 4 13c0-4.5 4-8 10-10 1 6-2.5 13-3 17z"/><path d="M11 20c1.5-3 4-6 9-7-2 3-5 5.5-9 7z"/></svg> My Planted Forest</span>
         </div>
         <div style="display: flex; gap: 6px;">
           <button class="duration-pill active" id="filterTodayBtn" onclick="filterForestGrid('today')">Today</button>
@@ -1932,7 +1932,7 @@
       <div class="catalog-modal-header">
         <div>
           <h3 style="margin: 0 0 4px; font-size: 18px; font-weight: 800; display:flex; align-items:center; gap:8px;">
-            🇳🇵 10 Native Plants of Nepal
+            <span style="display:inline-flex;align-items:center;gap:6px;"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display:inline-block; vertical-align:middle;"><polygon points="4 2 18 10 9 10 18 19 4 19 4 2"/><line x1="4" y1="2" x2="4" y2="22"/></svg> 10 Native Plants of Nepal</span>
           </h3>
           <p style="margin: 0; font-size: 12px; color: var(--text-secondary);">Select an authentic native plant of Nepal to cultivate during your focus session.</p>
         </div>
@@ -1940,7 +1940,7 @@
       </div>
 
       <div class="catalog-search-bar">
-        <input type="text" id="plantSearchInput" class="catalog-search-input" placeholder="🔍 Search plants (e.g. साल, लालीगुराँस, Rhododendron, Pine, पीपल, कमल)..." oninput="renderPlantsCatalog()">
+        <input type="text" id="plantSearchInput" class="catalog-search-input" placeholder="Search plants (e.g. Sal, Rhododendron, Pine, Peepal, Lotus)..." oninput="renderPlantsCatalog()">
         <div style="display: flex; gap: 6px; flex-wrap: wrap;">
           <button class="duration-pill active" onclick="filterCatalogCategory('all', this)">All (10)</button>
           <button class="duration-pill" onclick="filterCatalogCategory('Tree', this)">Trees (5)</button>
@@ -2078,6 +2078,73 @@ function formatHours(decimalHours) {
       if (masterTotalHours) masterTotalHours.innerText = formatHours(totalStudyH);
       if (masterBreak) masterBreak.innerText = Math.round(totalBreakM) + 'm';
       if (masterRest) masterRest.innerText = formatHours(totalRestH);
+
+      // 2-Way Sync: Auto-plant study chart sessions into Nepal Forest
+      syncWatchSessionsToForest(sessions);
+    }
+
+    function syncWatchSessionsToForest(sessions) {
+      if (!Array.isArray(sessions) || sessions.length === 0) return;
+      let history = [];
+      try {
+        history = JSON.parse(localStorage.getItem('nepalForestHistory')) || [];
+      } catch (e) {
+        history = [];
+      }
+
+      const now = new Date();
+      const startOfDay = new Date(now.getFullYear(), now.getMonth(), now.getDate()).getTime();
+      const dateKey = now.toISOString().slice(0, 10);
+      let updated = false;
+
+      const plant = (typeof getSelectedPlant === 'function')
+        ? getSelectedPlant()
+        : { id: 4, english: 'Rhododendron', nepali: 'लालीगुराँस', scientific: 'Rhododendron arboreum', category: 'Flower', icon: '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display:inline-block; vertical-align:middle;"><circle cx="12" cy="12" r="3"/><path d="M12 5a3 3 0 0 0-3 3c0 2 3 4 3 4s3-2 3-4a3 3 0 0 0-3-3zM12 19a3 3 0 0 0 3-3c0-2-3-4-3-4s-3 2-3 4a3 3 0 0 0 3 3z"/><path d="M5 12a3 3 0 0 0 3 3c2 0 4-3 4-3s-2-3-4-3a3 3 0 0 0-3 3zM19 12a3 3 0 0 0-3-3c-2 0-4 3-4 3s2 3 4 3a3 3 0 0 0 3-3z"/></svg>' };
+
+      sessions.forEach(sess => {
+        if (typeof sess.hrs !== 'number' || sess.hrs <= 0) return;
+        const mins = Math.max(1, Math.round(sess.hrs * 60));
+        const startHour = Math.floor(sess.start);
+        const startMin = Math.round((sess.start % 1) * 60);
+        const sessTime = new Date(now.getFullYear(), now.getMonth(), now.getDate(), startHour, startMin).getTime() + (mins * 60 * 1000);
+        const sessionKey = `${dateKey}_${sess.start.toFixed(2)}_${sess.hrs.toFixed(2)}`;
+
+        const alreadyPlanted = history.some(item => {
+          if (item.sessionKey === sessionKey) return true;
+          if (item.timestamp >= startOfDay) {
+            const timeDiff = Math.abs(item.timestamp - sessTime);
+            const minDiff = Math.abs((item.minutes || 0) - mins);
+            if (timeDiff <= 15 * 60 * 1000 && minDiff <= 3) return true;
+          }
+          return false;
+        });
+
+        if (!alreadyPlanted) {
+          history.push({
+            id: plant.id,
+            nepali: plant.nepali,
+            english: plant.english,
+            scientific: plant.scientific,
+            category: plant.category,
+            icon: plant.icon,
+            minutes: mins,
+            isHealthy: true,
+            timestamp: sessTime,
+            sessionKey: sessionKey,
+            source: 'charts'
+          });
+          updated = true;
+        }
+      });
+
+      if (updated) {
+        try {
+          localStorage.setItem('nepalForestHistory', JSON.stringify(history));
+        } catch (e) {}
+        if (typeof renderMyForest === 'function') {
+          renderMyForest();
+        }
+      }
     }
 
     function displayPlannerTable(data) {
@@ -2650,10 +2717,10 @@ function loadHourlyDist() {
     function renderSchedule(schedule, hoursRemaining, sessionCount, studyDuration, breakDuration, isFeasible, isTight, bufferMinutes, startTime, endTime, breaksRemoved, endTimeExtended) {
       let html = `<div class="schedule-info"><strong>${hoursRemaining.toFixed(1)}h</strong> remaining to meet your ${(parseFloat(document.getElementById('goalInput').value)).toFixed(1)}h goal<br><strong>Recommended:</strong> ${sessionCount} sessions</div>`;
       if (breaksRemoved && !endTimeExtended) {
-        html += `<div style="background: var(--input-bg); border-left: 4px solid var(--warning); padding: 10px; border-radius: 6px; margin-bottom: 12px; font-size: 12px; color: var(--warning);"><strong>⚠️ Breaks removed</strong> to fit goal within end time</div>`;
+        html += `<div style="background: var(--input-bg); border-left: 4px solid var(--warning); padding: 10px; border-radius: 6px; margin-bottom: 12px; font-size: 12px; color: var(--warning); display:flex; align-items:center; gap:6px;"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display:inline-block; vertical-align:middle;"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg> <span><strong>Breaks removed</strong> to fit goal within end time</span></div>`;
       }
       if (endTimeExtended) {
-        html += `<div style="background: var(--input-bg); border-left: 4px solid var(--danger); padding: 10px; border-radius: 6px; margin-bottom: 12px; font-size: 12px; color: var(--danger);"><strong>❌ End time extended</strong> — goal requires more time even with 0 breaks</div>`;
+        html += `<div style="background: var(--input-bg); border-left: 4px solid var(--danger); padding: 10px; border-radius: 6px; margin-bottom: 12px; font-size: 12px; color: var(--danger); display:flex; align-items:center; gap:6px;"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display:inline-block; vertical-align:middle;"><circle cx="12" cy="12" r="10"/><line x1="15" y1="9" x2="9" y2="15"/><line x1="9" y1="9" x2="15" y2="15"/></svg> <span><strong>End time extended</strong> — goal requires more time even with 0 breaks</span></div>`;
       }
       let currentTime = new Date(startTime);
       let sessionNum = 1, i = 0;
@@ -2694,12 +2761,12 @@ function loadHourlyDist() {
       }
       if (isFeasible) {
         const badgeClass = isTight ? 'feasibility-warning' : 'feasibility-good';
-        const badgeText = isTight ? `⚠️ Tight schedule (${bufferMinutes}m buffer)` : `✅ Achievable (${bufferMinutes}m buffer)`;
+        const badgeText = isTight ? `Tight schedule (${bufferMinutes}m buffer)` : `Achievable (${bufferMinutes}m buffer)`;
         html += `<div class="feasibility-badge ${badgeClass}">${badgeText}</div>`;
       } else {
-        html += `<div class="feasibility-badge feasibility-bad">❌ Not achievable in time</div>`;
+        html += `<div class="feasibility-badge feasibility-bad" style="display:inline-flex;align-items:center;gap:6px;"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display:inline-block; vertical-align:middle;"><circle cx="12" cy="12" r="10"/><line x1="15" y1="9" x2="9" y2="15"/><line x1="9" y1="9" x2="15" y2="15"/></svg> Not achievable in time</div>`;
       }
-      html += `<p style="font-size: 11px; color: var(--text-tertiary); margin-top: 12px; text-align: center;">💡 Based on ultradian rhythm & focus cycles</p>`;
+      html += `<p style="font-size: 11px; color: var(--text-tertiary); margin-top: 12px; text-align: center; display:flex; align-items:center; justify-content:center; gap:6px;"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display:inline-block; vertical-align:middle;"><path d="M9 18h6M10 22h4M12 2a7 7 0 0 0-7 7c0 2.5 1.5 4.5 3 6h8c1.5-1.5 3-3.5 3-6a7 7 0 0 0-7-7z"/></svg> Based on ultradian rhythm & focus cycles</p>`;
       document.getElementById('scheduleContainer').innerHTML = html;
     }
 
@@ -3217,7 +3284,7 @@ function syncForestTimerState() {
 
 function getSelectedPlant() {
   const plants = window.NEPAL_PLANTS || NEPAL_PLANTS || [];
-  return plants.find(p => p.id === selectedForestPlantId) || plants[0] || { id: 4, english: 'Rhododendron', nepali: 'लालीगुराँस', scientific: 'Rhododendron arboreum', category: 'Flower', icon: '🌺', desc: 'National flower of Nepal' };
+  return plants.find(p => p.id === selectedForestPlantId) || plants[0] || { id: 4, english: 'Rhododendron', nepali: 'लालीगुराँस', scientific: 'Rhododendron arboreum', category: 'Flower', icon: '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display:inline-block; vertical-align:middle;"><circle cx="12" cy="12" r="3"/><path d="M12 5a3 3 0 0 0-3 3c0 2 3 4 3 4s3-2 3-4a3 3 0 0 0-3-3zM12 19a3 3 0 0 0 3-3c0-2-3-4-3-4s-3 2-3 4a3 3 0 0 0 3 3z"/><path d="M5 12a3 3 0 0 0 3 3c2 0 4-3 4-3s-2-3-4-3a3 3 0 0 0-3 3zM19 12a3 3 0 0 0-3-3c-2 0-4 3-4 3s2 3 4 3a3 3 0 0 0 3-3z"/></svg>', desc: 'National flower of Nepal' };
 }
 
 function setForestTimerMode(mode) {
@@ -3233,7 +3300,7 @@ function setForestTimerMode(mode) {
 
   const btnStart = document.getElementById('btnForestStart');
   if (btnStart) {
-    btnStart.innerText = mode === 'fixed' ? '🌱 Plant & Focus' : '🌱 Start Focus';
+    btnStart.innerHTML = mode === 'fixed' ? '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display:inline-block; vertical-align:middle;"><path d="M12 22V12M12 12C9 12 6 9.5 6 6c3.5 0 6 2.5 6 6zM12 14c3 0 6-2 6-5-3 0-6 2-6 5z"/></svg> Plant & Focus' : '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display:inline-block; vertical-align:middle;"><path d="M12 22V12M12 12C9 12 6 9.5 6 6c3.5 0 6 2.5 6 6zM12 14c3 0 6-2 6-5-3 0-6 2-6 5z"/></svg> Start Focus';
   }
 
   if (mode === 'open') {
@@ -3281,7 +3348,7 @@ function switchMainTab(tab) {
     // Top toggle button label & state
     if (topForestBtn) {
       topForestBtn.classList.remove('active');
-      topForestBtn.innerHTML = '🌲 <span>Nepal Forest</span>';
+      topForestBtn.innerHTML = '<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display:inline-block; vertical-align:middle;"><path d="M12 2L6 10h3l-4 7h14l-4-7h3L12 2z"/><path d="M12 17v5"/></svg> <span>Nepal Forest</span>';
       topForestBtn.title = 'Nepal Forest Study';
     }
 
@@ -3326,7 +3393,7 @@ function switchMainTab(tab) {
     // Top toggle button label & active style
     if (topForestBtn) {
       topForestBtn.classList.add('active');
-      topForestBtn.innerHTML = '📊 <span>Study Charts</span>';
+      topForestBtn.innerHTML = '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display:inline-block; vertical-align:middle;"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg> <span>Study Charts</span>';
       topForestBtn.title = 'Study Charts & Analytics';
     }
 
@@ -3360,7 +3427,7 @@ function toggleForestFullscreen() {
   const isNowFullscreen = forestTab.classList.toggle('fullscreen-mode');
   
   if (btn) {
-    btn.innerHTML = isNowFullscreen ? '✕ Exit Fullscreen' : '⛶ Fullscreen Focus';
+    btn.innerHTML = isNowFullscreen ? '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display:inline-block; vertical-align:middle;margin-right:4px;"><path d="M8 3v3a2 2 0 0 1-2 2H3m18 0h-3a2 2 0 0 1-2-2V3m0 18v-3a2 2 0 0 1 2-2h3M3 16h3a2 2 0 0 1 2 2v3"/></svg>Exit Fullscreen' : '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display:inline-block; vertical-align:middle;"><path d="M8 3H5a2 2 0 0 0-2 2v3m18 0V5a2 2 0 0 0-2-2h-3m0 18h3a2 2 0 0 0 2-2v-3M3 16v3a2 2 0 0 0 2 2h3"/></svg> Fullscreen Focus';
   }
   if (navBtnLabel) {
     navBtnLabel.textContent = isNowFullscreen ? 'Exit Fullscreen' : 'Fullscreen';
@@ -3423,22 +3490,22 @@ function updateForestDisplay(isWithered = false) {
 
     if (stageLabel) {
       if (isWithered) {
-        stageLabel.innerText = '🥀 Session Discarded';
+        stageLabel.innerText = 'Session Discarded';
         stageLabel.style.color = 'var(--danger)';
       } else if (!isForestRunning) {
         stageLabel.innerText = 'Ready to Focus (Open Timer)';
         stageLabel.style.color = 'var(--success)';
       } else if (forestOpenElapsedSeconds < 300) {
-        stageLabel.innerText = `🌱 Sprouting ${plant.nepali}...`;
+        stageLabel.innerText = `Sprouting ${plant.nepali}...`;
         stageLabel.style.color = 'var(--success)';
       } else if (forestOpenElapsedSeconds < 900) {
-        stageLabel.innerText = `🌿 Growing ${plant.nepali}... (${Math.floor(forestOpenElapsedSeconds / 60)}m)`;
+        stageLabel.innerText = `Growing ${plant.nepali}... (${Math.floor(forestOpenElapsedSeconds / 60)}m)`;
         stageLabel.style.color = 'var(--success)';
       } else if (forestOpenElapsedSeconds < 1500) {
-        stageLabel.innerText = `🪴 Budding ${plant.nepali}... (${Math.floor(forestOpenElapsedSeconds / 60)}m)`;
+        stageLabel.innerText = `Budding ${plant.nepali}... (${Math.floor(forestOpenElapsedSeconds / 60)}m)`;
         stageLabel.style.color = 'var(--success)';
       } else {
-        stageLabel.innerText = `🌳 Thriving ${plant.nepali}! (${Math.floor(forestOpenElapsedSeconds / 60)}m)`;
+        stageLabel.innerText = `Thriving ${plant.nepali}! (${Math.floor(forestOpenElapsedSeconds / 60)}m)`;
         stageLabel.style.color = 'var(--success)';
       }
     }
@@ -3468,22 +3535,22 @@ function updateForestDisplay(isWithered = false) {
 
   if (stageLabel) {
     if (isWithered) {
-      stageLabel.innerText = '🥀 Withered (Session Abandoned)';
+      stageLabel.innerText = 'Withered (Session Abandoned)';
       stageLabel.style.color = 'var(--danger)';
     } else if (!isForestRunning) {
-      stageLabel.innerText = progressPercent >= 100 ? `🎉 ${plant.nepali} successfully planted!` : 'Ready to Plant';
+      stageLabel.innerText = progressPercent >= 100 ? `${plant.nepali} successfully planted!` : 'Ready to Plant';
       stageLabel.style.color = 'var(--success)';
     } else if (progressPercent < 25) {
-      stageLabel.innerText = `🌱 Sprouting ${plant.nepali}...`;
+      stageLabel.innerText = `Sprouting ${plant.nepali}...`;
       stageLabel.style.color = 'var(--success)';
     } else if (progressPercent < 60) {
-      stageLabel.innerText = `🌿 Growing ${plant.nepali}...`;
+      stageLabel.innerText = `Growing ${plant.nepali}...`;
       stageLabel.style.color = 'var(--success)';
     } else if (progressPercent < 95) {
-      stageLabel.innerText = `🪴 Budding ${plant.nepali}...`;
+      stageLabel.innerText = `Budding ${plant.nepali}...`;
       stageLabel.style.color = 'var(--success)';
     } else {
-      stageLabel.innerText = `🌳 Maturing ${plant.nepali}...`;
+      stageLabel.innerText = `Maturing ${plant.nepali}...`;
       stageLabel.style.color = 'var(--success)';
     }
   }
@@ -3509,7 +3576,7 @@ function toggleForestSession() {
     if (btnCompleteOpen) btnCompleteOpen.style.display = 'inline-flex';
     if (btnGiveUp) {
       btnGiveUp.style.display = 'inline-flex';
-      btnGiveUp.innerText = '❌ Discard';
+      btnGiveUp.innerHTML = '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display:inline-block; vertical-align:middle;"><circle cx="12" cy="12" r="10"/><line x1="15" y1="9" x2="9" y2="15"/><line x1="9" y1="9" x2="15" y2="15"/></svg> Discard';
     }
     updateForestDisplay();
     forestTimerInterval = setInterval(syncForestTimerState, 1000);
@@ -3520,7 +3587,7 @@ function toggleForestSession() {
     if (btnCompleteOpen) btnCompleteOpen.style.display = 'none';
     if (btnGiveUp) {
       btnGiveUp.style.display = 'inline-flex';
-      btnGiveUp.innerText = '❌ Give Up';
+      btnGiveUp.innerText = '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display:inline-block; vertical-align:middle;"><circle cx="12" cy="12" r="10"/><line x1="15" y1="9" x2="9" y2="15"/><line x1="9" y1="9" x2="15" y2="15"/></svg> Give Up';
     }
     updateForestDisplay();
     forestTimerInterval = setInterval(syncForestTimerState, 1000);
@@ -3550,14 +3617,14 @@ function completeForestOpenSession() {
 
   if (btnStart) {
     btnStart.style.display = 'inline-flex';
-    btnStart.innerText = '🌱 Start Focus';
+    btnStart.innerHTML = '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display:inline-block; vertical-align:middle;"><path d="M12 22V12M12 12C9 12 6 9.5 6 6c3.5 0 6 2.5 6 6zM12 14c3 0 6-2 6-5-3 0-6 2-6 5z"/></svg> Start Focus';
   }
   if (btnCompleteOpen) btnCompleteOpen.style.display = 'none';
   if (btnGiveUp) btnGiveUp.style.display = 'none';
   if (durationRow) durationRow.style.opacity = '1';
   if (modeSwitcher) modeSwitcher.style.opacity = '1';
 
-  alert(`Congratulations! You studied for ${studiedMinutes} minutes and successfully planted "${plant.nepali}" in your forest! 🎉`);
+  alert(`Congratulations! You studied for ${studiedMinutes} minutes and successfully planted "${plant.nepali}" in your forest!`);
 
   const logDuration = `${Math.floor(studiedMinutes / 60).toString().padStart(2, '0')}:${(studiedMinutes % 60).toString().padStart(2, '0')}:00`;
   logData("Forest", logDuration, plant.nepali);
@@ -3591,7 +3658,7 @@ function giveUpForestSession() {
 
     if (btnStart) {
       btnStart.style.display = 'inline-flex';
-      btnStart.innerText = '🌱 Start Focus';
+      btnStart.innerHTML = '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display:inline-block; vertical-align:middle;"><path d="M12 22V12M12 12C9 12 6 9.5 6 6c3.5 0 6 2.5 6 6zM12 14c3 0 6-2 6-5-3 0-6 2-6 5z"/></svg> Start Focus';
     }
     if (btnCompleteOpen) btnCompleteOpen.style.display = 'none';
     if (btnGiveUp) btnGiveUp.style.display = 'none';
@@ -3629,7 +3696,7 @@ function giveUpForestSession() {
 
   if (btnStart) {
     btnStart.style.display = 'inline-flex';
-    btnStart.innerText = '🌱 Try Again';
+    btnStart.innerHTML = '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display:inline-block; vertical-align:middle;"><path d="M12 22V12M12 12C9 12 6 9.5 6 6c3.5 0 6 2.5 6 6zM12 14c3 0 6-2 6-5-3 0-6 2-6 5z"/></svg> Try Again';
   }
   if (btnCompleteOpen) btnCompleteOpen.style.display = 'none';
   if (btnGiveUp) btnGiveUp.style.display = 'none';
@@ -3662,14 +3729,14 @@ function finishForestSession() {
 
   if (btnStart) {
     btnStart.style.display = 'inline-flex';
-    btnStart.innerText = '🌱 Plant Another';
+    btnStart.innerHTML = '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display:inline-block; vertical-align:middle;"><path d="M12 22V12M12 12C9 12 6 9.5 6 6c3.5 0 6 2.5 6 6zM12 14c3 0 6-2 6-5-3 0-6 2-6 5z"/></svg> Plant Another';
   }
   if (btnCompleteOpen) btnCompleteOpen.style.display = 'none';
   if (btnGiveUp) btnGiveUp.style.display = 'none';
   if (durationRow) durationRow.style.opacity = '1';
   if (modeSwitcher) modeSwitcher.style.opacity = '1';
 
-  alert(`Congratulations! Your "${plant.nepali}" was successfully planted in your forest! 🎉`);
+  alert(`Congratulations! Your "${plant.nepali}" was successfully planted in your forest!`);
 
   // Also log into study analytics chronometer
   const logDuration = `${Math.floor(studiedMinutes / 60).toString().padStart(2, '0')}:${(studiedMinutes % 60).toString().padStart(2, '0')}:00`;
@@ -3949,7 +4016,7 @@ window.addEventListener('pageshow', () => {
   <nav class="app-bottom-nav" id="appBottomNav" aria-label="Bottom Navigation">
     <div class="bottom-nav-inner">
       <button id="navItemCharts" class="nav-tab-btn active" onclick="switchMainTab('charts')" title="Study Charts & Analytics">
-        <span class="nav-tab-icon">📊</span>
+        <span class="nav-tab-icon"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg></span>
         <div class="nav-tab-text-group">
           <span class="nav-tab-title">Study Charts</span>
           <span class="nav-tab-sub">Charts & Chronometer</span>
@@ -3957,7 +4024,7 @@ window.addEventListener('pageshow', () => {
       </button>
 
       <button id="navItemForest" class="nav-tab-btn" onclick="switchMainTab('forest')" title="Nepal Forest Study">
-        <span class="nav-tab-icon">🌲</span>
+        <span class="nav-tab-icon"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2L6 10h3l-4 7h14l-4-7h3L12 2z"/><path d="M12 17v5"/></svg></span>
         <div class="nav-tab-text-group">
           <span class="nav-tab-title">Nepal Forest</span>
           <span class="nav-tab-sub">50 Native Plants</span>
@@ -3965,7 +4032,7 @@ window.addEventListener('pageshow', () => {
       </button>
 
       <button id="navItemFullscreen" class="nav-tab-btn nav-action-btn" onclick="toggleForestFullscreen()" title="Fullscreen Focus Mode">
-        <span class="nav-tab-icon">⛶</span>
+        <span class="nav-tab-icon"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M8 3H5a2 2 0 0 0-2 2v3m18 0V5a2 2 0 0 0-2-2h-3m0 18h3a2 2 0 0 0 2-2v-3M3 16v3a2 2 0 0 0 2 2h3"/></svg></span>
         <div class="nav-tab-text-group">
           <span class="nav-tab-title" id="navFullscreenLabel">Fullscreen</span>
           <span class="nav-tab-sub">Full Screen</span>

@@ -11,7 +11,7 @@
     nepali: "तितेपाती",
     scientific: "Artemisia vulgaris",
     category: "Herb",
-    icon: "🌿",
+    icon: '<svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2"><path d="M11 20A7 7 0 0 1 4 13c0-4.5 4-8 10-10 1 6-2.5 13-3 17z"/><path d="M11 20c1.5-3 4-6 9-7-2 3-5 5.5-9 7z"/></svg>',
     desc: "Aromatic Himalayan medicinal herb with reddish stems, deeply serrated pinnatifid foliage, and nodding floral shoots.",
     stages: {
       sprout: `
@@ -21,7 +21,7 @@
         <path d="M50 64 C58 62 64 56 66 50 C60 52 54 58 50 60 Z" fill="#388e3c"/>
         <path d="M50 62 C48 54 49 44 50 40 C51 44 52 54 50 62 Z" fill="#43a047"/>
         <circle cx="50" cy="38" r="2" fill="#81c784"/>
-        <text x="50" y="28" font-size="18" text-anchor="middle">🌱</text>
+
       `,
       growing: `
         <ellipse cx="50" cy="86" rx="34" ry="7" fill="#4e342e" opacity="0.4"/>
@@ -32,7 +32,7 @@
         <path d="M50 62 Q68 54 72 44 Q64 46 60 52 Q54 56 50 58 Z" fill="#388e3c"/>
         <path d="M50 50 Q46 38 50 30 Q54 38 50 50 Z" fill="#4caf50"/>
         <path d="M50 74 L50 32" stroke="#a5d6a7" stroke-width="0.8" opacity="0.7"/>
-        <text x="50" y="24" font-size="16" text-anchor="middle">🌿</text>
+
       `,
       mature: `
         <ellipse cx="50" cy="88" rx="36" ry="7" fill="#4e342e" opacity="0.4"/>
@@ -70,7 +70,7 @@
         <path d="M49 76 Q36 72 24 64 M48 74 Q60 70 66 62" stroke="#795548" stroke-width="1.5" stroke-linecap="round" fill="none"/>
         <path d="M44 48 Q30 46 22 56 Q28 60 42 54 Z" fill="#8d6e63" opacity="0.85"/>
         <path d="M45 44 Q56 42 62 50 Q56 56 43 50 Z" fill="#795548" opacity="0.85"/>
-        <text x="50" y="24" font-size="20" text-anchor="middle">🥀</text>
+
       `
     }
   };

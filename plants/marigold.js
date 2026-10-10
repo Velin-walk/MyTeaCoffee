@@ -49,7 +49,7 @@ function createMarigoldDefinition() {
 		nepali: "सयपत्री",
 		scientific: "Tagetes erecta",
 		category: "Flower",
-		icon: "🏵️",
+		icon: '<svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><circle cx="12" cy="12" r="8" stroke-dasharray="2 2"/></svg>',
 		desc: "The glorious hundred-petaled (सयपत्री) golden-orange flower essential to Tihar garlands and sacred blessings.",
 		stages: {
 			sprout,

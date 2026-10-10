@@ -11,7 +11,7 @@
     nepali: "सिस्नु",
     scientific: "Urtica dioica",
     category: "Herb",
-    icon: "🌿",
+    icon: '<svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2"><path d="M11 20A7 7 0 0 1 4 13c0-4.5 4-8 10-10 1 6-2.5 13-3 17z"/><path d="M11 20c1.5-3 4-6 9-7-2 3-5 5.5-9 7z"/></svg>',
     desc: "Revered Himalayan super-herb with square stems, opposite pairs of deeply serrated heart-based leaves, and catkins.",
     stages: {
       sprout: `
@@ -20,7 +20,7 @@
         <path d="M50 64 C42 60 34 62 30 70 C36 72 44 70 50 64 Z" fill="#2e7d32"/>
         <path d="M50 64 C58 60 66 62 70 70 C64 72 56 70 50 64 Z" fill="#388e3c"/>
         <path d="M50 60 L50 48" stroke="#4caf50" stroke-width="1.5"/>
-        <text x="50" y="28" font-size="18" text-anchor="middle">🌱</text>
+
       `,
       growing: `
         <ellipse cx="50" cy="86" rx="32" ry="6" fill="#4e342e" opacity="0.4"/>
@@ -30,7 +30,7 @@
         <path d="M50 50 C36 46 20 44 14 52 C20 54 28 54 36 54 C42 54 46 52 50 50 Z" fill="#388e3c"/>
         <path d="M50 50 C64 46 80 44 86 52 C80 54 72 54 64 54 C58 54 54 52 50 50 Z" fill="#388e3c"/>
         <path d="M50 32 L50 20" stroke="#4caf50" stroke-width="1.6"/>
-        <text x="50" y="14" font-size="14" text-anchor="middle">🌿</text>
+
       `,
       mature: `
         <ellipse cx="50" cy="88" rx="34" ry="7" fill="#4e342e" opacity="0.4"/>
@@ -57,7 +57,7 @@
         <path d="M50 88 Q48 60 42 38" stroke="#4e342e" stroke-width="3" stroke-linecap="round" fill="none"/>
         <path d="M46 64 C36 64 24 72 26 80 C32 76 42 72 46 64 Z" fill="#6d4c41"/>
         <path d="M48 64 C58 64 70 72 68 80 C62 76 52 72 48 64 Z" fill="#6d4c41"/>
-        <text x="50" y="28" font-size="20" text-anchor="middle">🥀</text>
+
       `
     }
   };

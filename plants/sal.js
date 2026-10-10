@@ -11,7 +11,7 @@
     nepali: "साल",
     scientific: "Shorea robusta",
     category: "Tree",
-    icon: "🌳",
+    icon: '<svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 14v7M8 14c-2.5 0-4-2-4-4.5 0-2 1.5-4 3.5-4.5.5-2.5 2.5-4 4.5-4s4 1.5 4.5 4c2 .5 3.5 2.5 3.5 4.5 0 2.5-1.5 4.5-4 4.5H8z"/></svg>',
     desc: "Majestic columnar hardwood tree native to Nepal's valleys with textured fissured bark and glossy ovate ribbed foliage.",
     stages: {
       sprout: `
@@ -20,7 +20,7 @@
         <path d="M50 64 C40 60 38 48 44 42 C48 48 48 58 50 64 Z" fill="#2e7d32"/>
         <path d="M50 64 C60 60 62 48 56 42 C52 48 52 58 50 64 Z" fill="#388e3c"/>
         <path d="M44 42 L47 54 M56 42 L53 54" stroke="#a5d6a7" stroke-width="0.8"/>
-        <text x="50" y="28" font-size="18" text-anchor="middle">🌱</text>
+
       `,
       growing: `
         <ellipse cx="50" cy="86" rx="34" ry="7" fill="#3e2723" opacity="0.45"/>
@@ -30,7 +30,7 @@
         <ellipse cx="74" cy="34" rx="14" ry="10" fill="#2e7d32"/>
         <ellipse cx="50" cy="24" rx="18" ry="12" fill="#388e3c"/>
         <ellipse cx="50" cy="30" rx="14" ry="9" fill="#1b5e20" opacity="0.85"/>
-        <text x="50" y="14" font-size="14" text-anchor="middle">🌿</text>
+
       `,
       mature: `
         <ellipse cx="50" cy="88" rx="34" ry="7" fill="#3e2723" opacity="0.45"/>
@@ -58,7 +58,7 @@
         <ellipse cx="24" cy="30" rx="12" ry="8" fill="#795548" opacity="0.7"/>
         <ellipse cx="76" cy="30" rx="12" ry="8" fill="#795548" opacity="0.7"/>
         <ellipse cx="50" cy="24" rx="14" ry="9" fill="#6d4c41" opacity="0.75"/>
-        <text x="50" y="16" font-size="20" text-anchor="middle">🥀</text>
+
       `
     }
   };

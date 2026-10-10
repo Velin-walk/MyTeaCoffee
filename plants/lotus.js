@@ -11,7 +11,7 @@
     nepali: "कमल",
     scientific: "Nelumbo nucifera",
     category: "Flower",
-    icon: "🪷",
+    icon: '<svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 3c-1.5 4-4 7-8 9 4 1 8 0 8-3 0 3 4 4 8 3-4-2-6.5-5-8-9z"/><path d="M12 9c-2 3-4 5-8 6 3 3 8 2 8 0 0 2 5 3 8 0-4-1-6-3-8-6z"/></svg>',
     desc: "Sacred blossom emerging above broad floating emerald pads with layered delicate pink petals and a golden seed core.",
     stages: {
       sprout: `
@@ -20,7 +20,7 @@
         <ellipse cx="36" cy="84" rx="14" ry="5" fill="#388e3c"/>
         <path d="M52 86 Q54 68 52 54" stroke="#43a047" stroke-width="2.5" stroke-linecap="round" fill="none"/>
         <path d="M52 54 C48 50 48 42 52 36 C56 42 56 50 52 54 Z" fill="#f48fb1"/>
-        <text x="50" y="24" font-size="18" text-anchor="middle">🌱</text>
+
       `,
       growing: `
         <ellipse cx="50" cy="86" rx="42" ry="7" fill="#78909c" opacity="0.3"/>
@@ -29,7 +29,7 @@
         <path d="M52 86 Q50 62 50 44" stroke="#43a047" stroke-width="2.6" stroke-linecap="round" fill="none"/>
         <path d="M50 44 C42 40 42 28 50 20 C58 28 58 40 50 44 Z" fill="#e91e63"/>
         <path d="M50 44 C46 38 46 30 50 24 C54 30 54 38 50 44 Z" fill="#f48fb1"/>
-        <text x="50" y="14" font-size="14" text-anchor="middle">🪷</text>
+
       `,
       mature: `
         <ellipse cx="50" cy="86" rx="44" ry="7" fill="#b0bec5" opacity="0.3"/>
@@ -73,7 +73,7 @@
         <ellipse cx="42" cy="46" rx="6" ry="4" fill="#5d4037"/>
         <ellipse cx="36" cy="87" rx="4" ry="2" fill="#8d6e63"/>
         <ellipse cx="58" cy="87" rx="3.5" ry="1.5" fill="#8d6e63"/>
-        <text x="50" y="32" font-size="20" text-anchor="middle">🥀</text>
+
       `
     }
   };

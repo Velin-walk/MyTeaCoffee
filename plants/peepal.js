@@ -11,7 +11,7 @@
     nepali: "पीपल",
     scientific: "Ficus religiosa",
     category: "Tree",
-    icon: "🌳",
+    icon: '<svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 14v7M8 14c-2.5 0-4-2-4-4.5 0-2 1.5-4 3.5-4.5.5-2.5 2.5-4 4.5-4s4 1.5 4.5 4c2 .5 3.5 2.5 3.5 4.5 0 2.5-1.5 4.5-4 4.5H8z"/></svg>',
     desc: "Sacred mountain tree famous for its distinctive heart-shaped leaves with long slender weeping drip tips.",
     stages: {
       sprout: `
@@ -20,7 +20,7 @@
         <path d="M50 62 C40 54 34 58 36 68 C38 74 46 80 48 86 C47 78 52 72 50 62 Z" fill="#388e3c"/>
         <path d="M50 62 C60 54 66 58 64 68 C62 74 54 80 52 86 C53 78 48 72 50 62 Z" fill="#43a047"/>
         <path d="M50 62 Q49 46 50 38" stroke="#a5d6a7" stroke-width="1.2"/>
-        <text x="50" y="28" font-size="18" text-anchor="middle">🌱</text>
+
       `,
       growing: `
         <ellipse cx="50" cy="86" rx="36" ry="7" fill="#546e7a" opacity="0.35"/>
@@ -29,7 +29,7 @@
         <path d="M24 38 C18 30 10 34 10 42 C10 48 18 54 20 62 C19 54 26 50 26 42 C26 34 24 34 24 38 Z" fill="#388e3c"/>
         <path d="M72 38 C78 30 86 34 86 42 C86 48 78 54 76 62 C77 54 70 50 70 42 C70 34 72 34 72 38 Z" fill="#43a047"/>
         <path d="M48 42 C42 32 38 38 42 46 C46 52 48 56 49 64 C49 56 54 50 54 44 C54 36 50 32 48 42 Z" fill="#4caf50"/>
-        <text x="50" y="16" font-size="14" text-anchor="middle">🌿</text>
+
       `,
       mature: `
         <ellipse cx="50" cy="88" rx="38" ry="8" fill="#546e7a" opacity="0.35"/>
@@ -57,7 +57,7 @@
         <path d="M20 42 C14 36 12 44 14 52 C16 58 22 56 20 42 Z" fill="#8d6e63"/>
         <path d="M76 40 C82 34 84 42 82 50 C80 56 74 54 76 40 Z" fill="#8d6e63"/>
         <path d="M48 24 C44 18 42 26 44 34 C46 38 50 36 48 24 Z" fill="#6d4c41"/>
-        <text x="50" y="20" font-size="20" text-anchor="middle">🥀</text>
+
       `
     }
   };

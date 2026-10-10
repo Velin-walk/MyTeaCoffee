@@ -11,7 +11,7 @@
     nepali: "बर",
     scientific: "Ficus benghalensis",
     category: "Tree",
-    icon: "🌳",
+    icon: '<svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 14v7M8 14c-2.5 0-4-2-4-4.5 0-2 1.5-4 3.5-4.5.5-2.5 2.5-4 4.5-4s4 1.5 4.5 4c2 .5 3.5 2.5 3.5 4.5 0 2.5-1.5 4.5-4 4.5H8z"/></svg>',
     desc: "Immense sacred tree of Chautari rest-stops, spreading wide with characteristic aerial prop roots descending to earth.",
     stages: {
       sprout: `
@@ -20,7 +20,7 @@
         <ellipse cx="40" cy="54" rx="8" ry="5" fill="#1b5e20" transform="rotate(-20 40 54)"/>
         <ellipse cx="60" cy="54" rx="8" ry="5" fill="#2e7d32" transform="rotate(20 60 54)"/>
         <ellipse cx="50" cy="44" rx="7" ry="4" fill="#388e3c"/>
-        <text x="50" y="28" font-size="18" text-anchor="middle">🌱</text>
+
       `,
       growing: `
         <ellipse cx="50" cy="86" rx="38" ry="7" fill="#4e342e" opacity="0.45"/>
@@ -31,7 +31,7 @@
         <ellipse cx="32" cy="40" rx="18" ry="12" fill="#2e7d32"/>
         <ellipse cx="68" cy="40" rx="18" ry="12" fill="#2e7d32"/>
         <ellipse cx="50" cy="28" rx="20" ry="12" fill="#388e3c"/>
-        <text x="50" y="14" font-size="14" text-anchor="middle">🌿</text>
+
       `,
       mature: `
         <ellipse cx="50" cy="88" rx="42" ry="8" fill="#4e342e" opacity="0.45"/>
@@ -59,7 +59,7 @@
         <ellipse cx="50" cy="34" rx="26" ry="12" fill="#795548" opacity="0.8"/>
         <ellipse cx="30" cy="40" rx="16" ry="9" fill="#8d6e63" opacity="0.75"/>
         <ellipse cx="70" cy="40" rx="16" ry="9" fill="#8d6e63" opacity="0.75"/>
-        <text x="50" y="22" font-size="20" text-anchor="middle">🥀</text>
+
       `
     }
   };

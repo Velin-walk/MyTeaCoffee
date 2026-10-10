@@ -11,7 +11,7 @@
     nepali: "लालीगुराँस",
     scientific: "Rhododendron arboreum",
     category: "Flower",
-    icon: "🌺",
+    icon: '<svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M12 5a3 3 0 0 0-3 3c0 2 3 4 3 4s3-2 3-4a3 3 0 0 0-3-3z"/><path d="M12 19a3 3 0 0 0 3-3c0-2-3-4-3-4s-3 2-3 4a3 3 0 0 0 3 3z"/><path d="M5 12a3 3 0 0 0 3 3c2 0 4-3 4-3s-2-3-4-3a3 3 0 0 0-3 3z"/><path d="M19 12a3 3 0 0 0-3-3c-2 0-4 3-4 3s2 3 4 3a3 3 0 0 0 3-3z"/></svg>',
     desc: "National flower of Nepal with dark leathery leaves and spectacular bright scarlet-crimson blossom clusters.",
     stages: {
       sprout: `
@@ -21,7 +21,7 @@
         <path d="M50 64 C58 62 64 54 64 46 C56 48 52 56 50 64 Z" fill="#2e7d32"/>
         <path d="M50 64 C46 54 48 44 50 38 C52 44 54 54 50 64 Z" fill="#388e3c"/>
         <circle cx="50" cy="36" r="2.8" fill="#d32f2f"/>
-        <text x="50" y="26" font-size="18" text-anchor="middle">🌱</text>
+
       `,
       growing: `
         <ellipse cx="50" cy="86" rx="36" ry="7" fill="#4e342e" opacity="0.45"/>
@@ -33,7 +33,7 @@
         <path d="M66 38 C62 28 58 22 54 18 C54 26 58 34 66 38 Z" fill="#2e7d32"/>
         <path d="M50 36 C44 30 44 20 50 14 C56 20 56 30 50 36 Z" fill="#c62828"/>
         <path d="M50 36 C47 28 47 22 50 18 C53 22 53 28 50 36 Z" fill="#b71c1c"/>
-        <text x="50" y="10" font-size="14" text-anchor="middle">🌿</text>
+
       `,
       mature: `
         <ellipse cx="50" cy="88" rx="38" ry="8" fill="#4e342e" opacity="0.45"/>
@@ -74,7 +74,7 @@
         <circle cx="54" cy="42" r="5" fill="#6d4c41"/>
         <ellipse cx="38" cy="88" rx="4" ry="2" fill="#8d6e63"/>
         <ellipse cx="60" cy="87" rx="3" ry="1.5" fill="#6d4c41"/>
-        <text x="50" y="22" font-size="20" text-anchor="middle">🥀</text>
+
       `
     }
   };

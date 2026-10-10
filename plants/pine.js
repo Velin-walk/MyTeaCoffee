@@ -11,7 +11,7 @@
     nepali: "रानी सल्ला",
     scientific: "Pinus roxburghii",
     category: "Tree",
-    icon: "🌲",
+    icon: '<svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2L6 10h3l-4 7h14l-4-7h3L12 2z"/><path d="M12 17v5"/></svg>',
     desc: "Aromatic Himalayan Queen Pine with tall plated reddish trunk, tiered branches, and long weeping 3-needle fascicles.",
     stages: {
       sprout: `
@@ -19,7 +19,7 @@
         <path d="M50 86 L50 62" stroke="#8d4024" stroke-width="3" stroke-linecap="round"/>
         <path d="M50 62 L38 52 M50 62 L42 44 M50 62 L50 40 M50 62 L58 44 M50 62 L62 52" stroke="#2e7d32" stroke-width="1.8" stroke-linecap="round"/>
         <circle cx="50" cy="62" r="2.5" fill="#5d4037"/>
-        <text x="50" y="28" font-size="18" text-anchor="middle">🌱</text>
+
       `,
       growing: `
         <ellipse cx="50" cy="86" rx="34" ry="7" fill="#4e342e" opacity="0.45"/>
@@ -30,7 +30,7 @@
         <path d="M28 44 Q24 52 24 60 M72 44 Q76 52 76 60" stroke="#388e3c" stroke-width="1.6" stroke-linecap="round" fill="none"/>
         <path d="M50 28 L50 16 M46 22 L40 18 M54 22 L60 18" stroke="#4caf50" stroke-width="1.6" stroke-linecap="round"/>
         <ellipse cx="34" cy="46" rx="2.5" ry="3.5" fill="#5d4037"/>
-        <text x="50" y="12" font-size="14" text-anchor="middle">🌲</text>
+
       `,
       mature: `
         <ellipse cx="50" cy="88" rx="34" ry="7" fill="#4e342e" opacity="0.45"/>
@@ -58,7 +58,7 @@
         <path d="M49 46 Q38 46 28 50 M50 46 Q62 46 72 50" stroke="#4a1c0d" stroke-width="1.8" stroke-linecap="round" fill="none"/>
         <path d="M22 66 L18 78 M78 66 L82 78 M28 50 L24 60 M72 50 L76 60" stroke="#8d6e63" stroke-width="1.2" stroke-linecap="round"/>
         <ellipse cx="28" cy="52" rx="3" ry="4" fill="#5d4037"/>
-        <text x="50" y="18" font-size="20" text-anchor="middle">🥀</text>
+
       `
     }
   };
