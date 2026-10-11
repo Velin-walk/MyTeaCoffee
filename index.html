@@ -44,6 +44,8 @@
   <script src="/plants/nettle.js"></script>
   <script src="/plants/lotus.js"></script>
   <script src="/plants/marigold.js"></script>
+  <script src="/plants/sunakhari.js"></script>
+  <script src="/plants/sunpati.js"></script>
   <script src="/plants/registry.js"></script>
   <style>
     /* ============= THEME DEFINITIONS ============= */
@@ -1965,7 +1967,16 @@ function formatHours(decimalHours) {
     // ============= INDEXEDDB SETUP =============
     const WEB_APP_URL = "https://script.google.com/macros/s/AKfycbwXOTn__dyqNI-8JvsTPEGtC4OPJYuC9-_jqIlq-lutQZDeQzlmM-46XwWAmWYQu8mT/exec";
     let db;
-    let openInt, openSecs = 0, openStartTime;
+    let openInt = null, openSecs = 0, openStartTime = null;
+    let forestTimerMode = 'open'; // 'open' or 'fixed'
+    let forestOpenElapsedSeconds = 0;
+    let forestDurationMinutes = 25;
+    let forestTimerInterval = null;
+    let forestRemainingSeconds = 25 * 60;
+    let forestTotalSeconds = 25 * 60;
+    let forestSessionStartTime = null;
+    let forestSessionEndTime = null;
+    let isForestRunning = false;
 
     // Initialize IndexedDB
     function initIndexedDB() {
@@ -2314,33 +2325,210 @@ function formatHours(decimalHours) {
       }
     }
 
-    function startOpen(isRestoring = false) {
-      if (openInt) clearInterval(openInt);
-      if (!isRestoring) { 
-        openStartTime = Date.now(); 
-        saveState("Open", Date.now()); 
+    // ============= UNIFIED MASTER TIMER & WATCH SYNC =============
+    function syncSharedTimerTick() {
+      if (!isForestRunning && !openStartTime) return;
+      const now = Date.now();
+      const startTime = openStartTime || forestSessionStartTime || now;
+      const elapsed = Math.max(0, Math.floor((now - startTime) / 1000));
+
+      openSecs = elapsed;
+      forestOpenElapsedSeconds = elapsed;
+
+      // 1. Update Study Charts Chronometer / Open Watch
+      const openDisplay = document.getElementById('openDisplay');
+      if (openDisplay) {
+        openDisplay.innerText = fmt(elapsed, true);
+        openDisplay.style.color = '#FFD700';
       }
+      const cardOpen = document.getElementById('card-open');
+      if (cardOpen) {
+        let progress = ((elapsed % 3600) / 3600) * 100;
+        cardOpen.style.background = `linear-gradient(to right, white ${progress}%, var(--text) ${progress}%)`;
+      }
+      if (typeof toggleButtons === 'function') {
+        toggleButtons('O', true);
+      }
+
+      // 2. Update Nepal Forest Watch Display
+      if (forestTimerMode === 'fixed') {
+        const remaining = Math.max(0, Math.round((forestSessionEndTime - now) / 1000));
+        forestRemainingSeconds = remaining;
+        if (typeof updateForestDisplay === 'function') {
+          updateForestDisplay();
+        }
+        if (remaining <= 0) {
+          finishForestSession();
+        }
+      } else {
+        if (typeof updateForestDisplay === 'function') {
+          updateForestDisplay();
+        }
+      }
+    }
+
+    function startSharedFocusSession(mode = 'open', isRestoring = false) {
+      if (openInt) clearInterval(openInt);
+      if (forestTimerInterval && forestTimerInterval !== openInt) clearInterval(forestTimerInterval);
+
+      isForestRunning = true;
+      forestTimerMode = mode || 'open';
+
+      if (!isRestoring) {
+        const now = Date.now();
+        openStartTime = now;
+        forestSessionStartTime = now;
+        if (typeof saveState === 'function') {
+          saveState("Open", now);
+        }
+        try {
+          localStorage.setItem('activeFocusSession', JSON.stringify({
+            startTime: now,
+            mode: forestTimerMode,
+            durationMinutes: forestDurationMinutes
+          }));
+        } catch (e) {}
+      } else {
+        forestSessionStartTime = openStartTime;
+      }
+
+      if (forestTimerMode === 'fixed') {
+        forestTotalSeconds = forestDurationMinutes * 60;
+        forestRemainingSeconds = forestTotalSeconds;
+        forestSessionEndTime = forestSessionStartTime + (forestTotalSeconds * 1000);
+      } else {
+        forestOpenElapsedSeconds = Math.max(0, Math.floor((Date.now() - openStartTime) / 1000));
+      }
+
+      // Study Charts button & display
+      if (typeof toggleButtons === 'function') toggleButtons('O', true);
       const openDisplay = document.getElementById('openDisplay');
       if (openDisplay) openDisplay.style.color = '#FFD700';
 
-      toggleButtons('O', true);
-      openInt = setInterval(() => {
-        openSecs = Math.floor((Date.now() - openStartTime) / 1000);
-        document.getElementById('openDisplay').innerText = fmt(openSecs, true);
-        let progress = ((openSecs % 3600) / 3600) * 100;
-       document.getElementById('card-open').style.background = 
-  `linear-gradient(to right, white ${progress}%, var(--text) ${progress}%)`;
-      }, 500);
+      // Nepal Forest controls
+      const btnStart = document.getElementById('btnForestStart');
+      const btnCompleteOpen = document.getElementById('btnForestCompleteOpen');
+      const btnGiveUp = document.getElementById('btnForestGiveUp');
+      const durationRow = document.getElementById('forestDurationPills');
+      const modeSwitcher = document.querySelector('.timer-mode-switcher');
+
+      if (btnStart) btnStart.style.display = 'none';
+      if (durationRow) durationRow.style.opacity = '0.4';
+      if (modeSwitcher) modeSwitcher.style.opacity = '0.4';
+
+      if (forestTimerMode === 'open') {
+        if (btnCompleteOpen) btnCompleteOpen.style.display = 'inline-flex';
+        if (btnGiveUp) {
+          btnGiveUp.style.display = 'inline-flex';
+          btnGiveUp.innerHTML = '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display:inline-block; vertical-align:middle;"><circle cx="12" cy="12" r="10"/><line x1="15" y1="9" x2="9" y2="15"/><line x1="9" y1="9" x2="15" y2="15"/></svg> Discard';
+        }
+      } else {
+        if (btnCompleteOpen) btnCompleteOpen.style.display = 'none';
+        if (btnGiveUp) {
+          btnGiveUp.style.display = 'inline-flex';
+          btnGiveUp.innerHTML = '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display:inline-block; vertical-align:middle;"><circle cx="12" cy="12" r="10"/><line x1="15" y1="9" x2="9" y2="15"/><line x1="9" y1="9" x2="15" y2="15"/></svg> Give Up';
+        }
+      }
+
+      const btnModeFixed = document.getElementById('btnForestModeFixed');
+      const btnModeOpen = document.getElementById('btnForestModeOpen');
+      if (btnModeFixed) btnModeFixed.classList.toggle('active', forestTimerMode === 'fixed');
+      if (btnModeOpen) btnModeOpen.classList.toggle('active', forestTimerMode === 'open');
+
+      syncSharedTimerTick();
+      openInt = setInterval(syncSharedTimerTick, 500);
+      forestTimerInterval = openInt;
+    }
+
+    function finishAndPlantSharedSession(isAbandoned = false) {
+      if (!isForestRunning && !openStartTime) return;
+
+      if (openInt) clearInterval(openInt);
+      if (forestTimerInterval && forestTimerInterval !== openInt) clearInterval(forestTimerInterval);
+      openInt = null;
+      forestTimerInterval = null;
+
+      const now = Date.now();
+      const startTime = openStartTime || forestSessionStartTime || now;
+      const elapsed = Math.max(1, Math.floor((now - startTime) / 1000));
+      const studiedMinutes = Math.max(1, Math.round(elapsed / 60));
+      const plant = (typeof getSelectedPlant === 'function')
+        ? getSelectedPlant()
+        : { id: 4, english: 'Rhododendron', nepali: 'लालीगुराँस', scientific: 'Rhododendron arboreum', category: 'Flower', desc: 'National flower of Nepal' };
+
+      // Reset internal states
+      isForestRunning = false;
+      openStartTime = null;
+      forestSessionStartTime = null;
+      forestSessionEndTime = null;
+      openSecs = 0;
+      forestOpenElapsedSeconds = 0;
+
+      try {
+        localStorage.removeItem('activeFocusSession');
+      } catch (e) {}
+
+      // Reset Study Charts UI
+      const openDisplay = document.getElementById('openDisplay');
+      if (openDisplay) {
+        openDisplay.innerText = "00:00:00";
+        openDisplay.style.color = 'white';
+      }
+      const cardOpen = document.getElementById('card-open');
+      if (cardOpen) cardOpen.style.background = "var(--card-bg)";
+      if (typeof toggleButtons === 'function') toggleButtons('O', false);
+
+      // Reset Nepal Forest UI
+      const btnStart = document.getElementById('btnForestStart');
+      const btnCompleteOpen = document.getElementById('btnForestCompleteOpen');
+      const btnGiveUp = document.getElementById('btnForestGiveUp');
+      const durationRow = document.getElementById('forestDurationPills');
+      const modeSwitcher = document.querySelector('.timer-mode-switcher');
+
+      if (btnStart) {
+        btnStart.style.display = 'inline-flex';
+        btnStart.innerHTML = '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display:inline-block; vertical-align:middle;"><path d="M12 22V12M12 12C9 12 6 9.5 6 6c3.5 0 6 2.5 6 6zM12 14c3 0 6-2 6-5-3 0-6 2-6 5z"/></svg> ' + (forestTimerMode === 'fixed' ? 'Plant & Focus' : 'Start Focus');
+      }
+      if (btnCompleteOpen) btnCompleteOpen.style.display = 'none';
+      if (btnGiveUp) btnGiveUp.style.display = 'none';
+      if (durationRow) durationRow.style.opacity = '1';
+      if (modeSwitcher) modeSwitcher.style.opacity = '1';
+
+      if (!isAbandoned) {
+        // 1. Instantly plant botanical tree in Nepal Forest!
+        if (typeof saveForestPlantToHistory === 'function') {
+          saveForestPlantToHistory(plant, studiedMinutes, true);
+        }
+        if (typeof playForestChime === 'function') {
+          playForestChime();
+        }
+        if (typeof renderMyForest === 'function') {
+          renderMyForest();
+        }
+        if (typeof updateForestDisplay === 'function') {
+          updateForestDisplay(false);
+        }
+
+        // 2. Log data to Google Apps Script backend and charts
+        const logDuration = (typeof fmt === 'function') ? fmt(elapsed, true) : `${Math.floor(studiedMinutes / 60).toString().padStart(2, '0')}:${(studiedMinutes % 60).toString().padStart(2, '0')}:00`;
+        if (typeof logData === 'function') {
+          logData(forestTimerMode === 'fixed' ? "Forest" : "Open", logDuration, plant.nepali);
+        }
+
+        alert(`Congratulations! You studied for ${studiedMinutes} minutes and successfully planted "${plant.nepali}" in your forest!`);
+      } else {
+        if (typeof updateForestDisplay === 'function') {
+          updateForestDisplay(false);
+        }
+      }
+    }
+
+    function startOpen(isRestoring = false) {
+      startSharedFocusSession('open', isRestoring);
     }
 
     function stopOpen() {
-      clearInterval(openInt); openInt = null;
-      document.getElementById('card-open').style.background = "var(--card-bg)";
-      const logDuration = fmt(openSecs, true);
-      openSecs = 0; openStartTime = null;
-      document.getElementById('openDisplay').innerText = "00:00:00";
-      toggleButtons('O', false);
-      logData("Open", logDuration, "");
+      finishAndPlantSharedSession(false);
     }
 
     function saveState(type, startTime, targetDuration = null) {
@@ -3254,32 +3442,12 @@ updateInstallButtonVisibility();
 const NEPAL_PLANTS = window.NEPAL_PLANTS || [];
 
 let selectedForestPlantId = parseInt(localStorage.getItem('selectedNepalPlantId')) || 4;
-let forestTimerMode = 'fixed'; // 'fixed' or 'open'
-let forestOpenElapsedSeconds = 0;
-let forestDurationMinutes = 25;
-let forestTimerInterval = null;
-let forestRemainingSeconds = 25 * 60;
-let forestTotalSeconds = 25 * 60;
-let forestSessionStartTime = null;
-let forestSessionEndTime = null;
-let isForestRunning = false;
+forestTimerMode = 'fixed'; // 'fixed' or 'open'
 let forestActiveFilter = 'today';
 let catalogActiveCategory = 'all';
 
 function syncForestTimerState() {
-  if (!isForestRunning) return;
-  const now = Date.now();
-  if (forestTimerMode === 'open') {
-    forestOpenElapsedSeconds = Math.max(0, Math.floor((now - forestSessionStartTime) / 1000));
-    updateForestDisplay();
-  } else {
-    const remaining = Math.max(0, Math.round((forestSessionEndTime - now) / 1000));
-    forestRemainingSeconds = remaining;
-    updateForestDisplay();
-    if (remaining <= 0) {
-      finishForestSession();
-    }
-  }
+  syncSharedTimerTick();
 }
 
 function getSelectedPlant() {
@@ -3558,114 +3726,24 @@ function updateForestDisplay(isWithered = false) {
 
 function toggleForestSession() {
   if (isForestRunning) return;
-  isForestRunning = true;
-  forestSessionStartTime = Date.now();
-
-  const btnStart = document.getElementById('btnForestStart');
-  const btnCompleteOpen = document.getElementById('btnForestCompleteOpen');
-  const btnGiveUp = document.getElementById('btnForestGiveUp');
-  const durationRow = document.getElementById('forestDurationPills');
-  const modeSwitcher = document.querySelector('.timer-mode-switcher');
-
-  if (btnStart) btnStart.style.display = 'none';
-  if (durationRow) durationRow.style.opacity = '0.4';
-  if (modeSwitcher) modeSwitcher.style.opacity = '0.4';
-
-  if (forestTimerMode === 'open') {
-    forestOpenElapsedSeconds = 0;
-    if (btnCompleteOpen) btnCompleteOpen.style.display = 'inline-flex';
-    if (btnGiveUp) {
-      btnGiveUp.style.display = 'inline-flex';
-      btnGiveUp.innerHTML = '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display:inline-block; vertical-align:middle;"><circle cx="12" cy="12" r="10"/><line x1="15" y1="9" x2="9" y2="15"/><line x1="9" y1="9" x2="15" y2="15"/></svg> Discard';
-    }
-    updateForestDisplay();
-    forestTimerInterval = setInterval(syncForestTimerState, 1000);
-  } else {
-    forestTotalSeconds = forestDurationMinutes * 60;
-    forestRemainingSeconds = forestTotalSeconds;
-    forestSessionEndTime = forestSessionStartTime + (forestTotalSeconds * 1000);
-    if (btnCompleteOpen) btnCompleteOpen.style.display = 'none';
-    if (btnGiveUp) {
-      btnGiveUp.style.display = 'inline-flex';
-      btnGiveUp.innerText = '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display:inline-block; vertical-align:middle;"><circle cx="12" cy="12" r="10"/><line x1="15" y1="9" x2="9" y2="15"/><line x1="9" y1="9" x2="15" y2="15"/></svg> Give Up';
-    }
-    updateForestDisplay();
-    forestTimerInterval = setInterval(syncForestTimerState, 1000);
-  }
+  startSharedFocusSession(forestTimerMode, false);
 }
 
 function completeForestOpenSession() {
-  if (!isForestRunning || forestTimerMode !== 'open') return;
-
-  clearInterval(forestTimerInterval);
-  forestTimerInterval = null;
-  isForestRunning = false;
-  forestSessionStartTime = null;
-  forestSessionEndTime = null;
-
-  const plant = getSelectedPlant();
-  const studiedMinutes = Math.max(1, Math.round(forestOpenElapsedSeconds / 60));
-  saveForestPlantToHistory(plant, studiedMinutes, true);
-
-  playForestChime();
-
-  const btnStart = document.getElementById('btnForestStart');
-  const btnCompleteOpen = document.getElementById('btnForestCompleteOpen');
-  const btnGiveUp = document.getElementById('btnForestGiveUp');
-  const durationRow = document.getElementById('forestDurationPills');
-  const modeSwitcher = document.querySelector('.timer-mode-switcher');
-
-  if (btnStart) {
-    btnStart.style.display = 'inline-flex';
-    btnStart.innerHTML = '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display:inline-block; vertical-align:middle;"><path d="M12 22V12M12 12C9 12 6 9.5 6 6c3.5 0 6 2.5 6 6zM12 14c3 0 6-2 6-5-3 0-6 2-6 5z"/></svg> Start Focus';
-  }
-  if (btnCompleteOpen) btnCompleteOpen.style.display = 'none';
-  if (btnGiveUp) btnGiveUp.style.display = 'none';
-  if (durationRow) durationRow.style.opacity = '1';
-  if (modeSwitcher) modeSwitcher.style.opacity = '1';
-
-  alert(`Congratulations! You studied for ${studiedMinutes} minutes and successfully planted "${plant.nepali}" in your forest!`);
-
-  const logDuration = `${Math.floor(studiedMinutes / 60).toString().padStart(2, '0')}:${(studiedMinutes % 60).toString().padStart(2, '0')}:00`;
-  logData("Forest", logDuration, plant.nepali);
-
-  forestOpenElapsedSeconds = 0;
-  updateForestDisplay(false);
-  renderMyForest();
+  if (!isForestRunning) return;
+  finishAndPlantSharedSession(false);
 }
 
 function giveUpForestSession() {
   if (!isForestRunning) return;
   const plant = getSelectedPlant();
 
-  const btnStart = document.getElementById('btnForestStart');
-  const btnCompleteOpen = document.getElementById('btnForestCompleteOpen');
-  const btnGiveUp = document.getElementById('btnForestGiveUp');
-  const durationRow = document.getElementById('forestDurationPills');
-  const modeSwitcher = document.querySelector('.timer-mode-switcher');
-
   if (forestTimerMode === 'open') {
     const confirmDiscard = window.confirm(`Do you want to discard this open study session? Your "${plant.nepali}" will not be saved.`);
     if (!confirmDiscard) return;
 
-    clearInterval(forestTimerInterval);
-    forestTimerInterval = null;
-    isForestRunning = false;
-    forestSessionStartTime = null;
-    forestSessionEndTime = null;
-
+    finishAndPlantSharedSession(true);
     updateForestDisplay(true);
-
-    if (btnStart) {
-      btnStart.style.display = 'inline-flex';
-      btnStart.innerHTML = '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display:inline-block; vertical-align:middle;"><path d="M12 22V12M12 12C9 12 6 9.5 6 6c3.5 0 6 2.5 6 6zM12 14c3 0 6-2 6-5-3 0-6 2-6 5z"/></svg> Start Focus';
-    }
-    if (btnCompleteOpen) btnCompleteOpen.style.display = 'none';
-    if (btnGiveUp) btnGiveUp.style.display = 'none';
-    if (durationRow) durationRow.style.opacity = '1';
-    if (modeSwitcher) modeSwitcher.style.opacity = '1';
-
-    forestOpenElapsedSeconds = 0;
     setTimeout(() => {
       updateForestDisplay(false);
     }, 1500);
@@ -3676,73 +3754,22 @@ function giveUpForestSession() {
   const confirmGiveUp = window.confirm(`Do you want to abandon your session? Your "${plant.nepali}" will wither!`);
   if (!confirmGiveUp) return;
 
-  clearInterval(forestTimerInterval);
-  forestTimerInterval = null;
-  isForestRunning = false;
-  forestSessionStartTime = null;
-  forestSessionEndTime = null;
-
   const actualStudiedMinutes = Math.round((forestTotalSeconds - forestRemainingSeconds) / 60);
   const studiedMinutes = Math.max(1, actualStudiedMinutes);
   saveForestPlantToHistory(plant, studiedMinutes, false);
 
-  // Send actual focused study time to original source so all charts are populated and saved
   if (actualStudiedMinutes >= 1) {
     const logDuration = `${Math.floor(actualStudiedMinutes / 60).toString().padStart(2, '0')}:${(actualStudiedMinutes % 60).toString().padStart(2, '0')}:00`;
     logData("Forest", logDuration, plant.nepali);
   }
 
+  finishAndPlantSharedSession(true);
   updateForestDisplay(true);
-
-  if (btnStart) {
-    btnStart.style.display = 'inline-flex';
-    btnStart.innerHTML = '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display:inline-block; vertical-align:middle;"><path d="M12 22V12M12 12C9 12 6 9.5 6 6c3.5 0 6 2.5 6 6zM12 14c3 0 6-2 6-5-3 0-6 2-6 5z"/></svg> Try Again';
-  }
-  if (btnCompleteOpen) btnCompleteOpen.style.display = 'none';
-  if (btnGiveUp) btnGiveUp.style.display = 'none';
-  if (durationRow) durationRow.style.opacity = '1';
-  if (modeSwitcher) modeSwitcher.style.opacity = '1';
-
   renderMyForest();
 }
 
 function finishForestSession() {
-  clearInterval(forestTimerInterval);
-  forestTimerInterval = null;
-  isForestRunning = false;
-  forestSessionStartTime = null;
-  forestSessionEndTime = null;
-
-  const plant = getSelectedPlant();
-  const studiedMinutes = Math.round(forestTotalSeconds / 60);
-  saveForestPlantToHistory(plant, studiedMinutes, true);
-
-  playForestChime();
-
-  updateForestDisplay(false);
-
-  const btnStart = document.getElementById('btnForestStart');
-  const btnCompleteOpen = document.getElementById('btnForestCompleteOpen');
-  const btnGiveUp = document.getElementById('btnForestGiveUp');
-  const durationRow = document.getElementById('forestDurationPills');
-  const modeSwitcher = document.querySelector('.timer-mode-switcher');
-
-  if (btnStart) {
-    btnStart.style.display = 'inline-flex';
-    btnStart.innerHTML = '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display:inline-block; vertical-align:middle;"><path d="M12 22V12M12 12C9 12 6 9.5 6 6c3.5 0 6 2.5 6 6zM12 14c3 0 6-2 6-5-3 0-6 2-6 5z"/></svg> Plant Another';
-  }
-  if (btnCompleteOpen) btnCompleteOpen.style.display = 'none';
-  if (btnGiveUp) btnGiveUp.style.display = 'none';
-  if (durationRow) durationRow.style.opacity = '1';
-  if (modeSwitcher) modeSwitcher.style.opacity = '1';
-
-  alert(`Congratulations! Your "${plant.nepali}" was successfully planted in your forest!`);
-
-  // Also log into study analytics chronometer
-  const logDuration = `${Math.floor(studiedMinutes / 60).toString().padStart(2, '0')}:${(studiedMinutes % 60).toString().padStart(2, '0')}:00`;
-  logData("Forest", logDuration, plant.nepali);
-
-  renderMyForest();
+  finishAndPlantSharedSession(false);
 }
 
 function saveForestPlantToHistory(plant, minutes, isHealthy) {
@@ -3992,6 +4019,44 @@ window.addEventListener('load', () => {
   renderMyForest();
   const savedTab = localStorage.getItem('studyFlowActiveTab') || 'charts';
   switchMainTab(savedTab);
+
+  // Auto-restore active session if present
+  try {
+    const active = JSON.parse(localStorage.getItem('activeFocusSession'));
+    if (active && active.startTime && !isForestRunning) {
+      const elapsed = Math.floor((Date.now() - active.startTime) / 1000);
+      if (elapsed < 12 * 3600) {
+        openStartTime = active.startTime;
+        forestTimerMode = active.mode || 'open';
+        if (active.durationMinutes) forestDurationMinutes = active.durationMinutes;
+        startSharedFocusSession(forestTimerMode, true);
+      } else {
+        localStorage.removeItem('activeFocusSession');
+      }
+    }
+  } catch (e) {}
+});
+
+// Cross-tab synchronization
+window.addEventListener('storage', (e) => {
+  if (e.key === 'activeFocusSession') {
+    if (!e.newValue && isForestRunning) {
+      finishAndPlantSharedSession(true);
+      renderMyForest();
+    } else if (e.newValue && !isForestRunning) {
+      try {
+        const active = JSON.parse(e.newValue);
+        if (active && active.startTime) {
+          openStartTime = active.startTime;
+          forestTimerMode = active.mode || 'open';
+          if (active.durationMinutes) forestDurationMinutes = active.durationMinutes;
+          startSharedFocusSession(forestTimerMode, true);
+        }
+      } catch (err) {}
+    }
+  } else if (e.key === 'nepalForestHistory') {
+    renderMyForest();
+  }
 });
 
 // Synchronize timer immediately when returning from other apps or tabs

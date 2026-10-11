@@ -37,6 +37,8 @@
   <script src="/plants/nettle.js"></script>
   <script src="/plants/lotus.js"></script>
   <script src="/plants/marigold.js"></script>
+  <script src="/plants/sunakhari.js"></script>
+  <script src="/plants/sunpati.js"></script>
   <script src="/plants/registry.js"></script>
   <style>
     :root {
@@ -1434,10 +1436,19 @@
     }
 
     // ================= SESSION CONTROL =================
-    function startOrResumeSession() {
+    function startOrResumeSession(isResuming = false) {
       if (isSessionActive) return;
       isSessionActive = true;
-      sessionStartTime = Date.now();
+      if (!isResuming) {
+        sessionStartTime = Date.now();
+        try {
+          localStorage.setItem('activeFocusSession', JSON.stringify({
+            startTime: sessionStartTime,
+            mode: timerMode,
+            durationMinutes: timerDurationMins
+          }));
+        } catch (e) {}
+      }
 
       const btnStart = document.getElementById('btnStartForestSession');
       const btnCompleteOpen = document.getElementById('btnCompleteOpenSession');
@@ -1450,7 +1461,7 @@
       if (modeSwitcher) modeSwitcher.style.opacity = '0.4';
 
       if (timerMode === 'open') {
-        openElapsedSecs = 0;
+        openElapsedSecs = isResuming ? Math.max(0, Math.floor((Date.now() - sessionStartTime) / 1000)) : 0;
         if (btnCompleteOpen) btnCompleteOpen.style.display = 'inline-flex';
         if (btnGiveUp) {
           btnGiveUp.style.display = 'inline-flex';
@@ -1460,8 +1471,8 @@
         sessionTimerInterval = setInterval(syncForestTimer, 1000);
       } else {
         timerTotalSecs = timerDurationMins * 60;
-        timerRemainingSecs = timerTotalSecs;
         sessionTargetEndTime = sessionStartTime + (timerTotalSecs * 1000);
+        timerRemainingSecs = Math.max(0, Math.round((sessionTargetEndTime - Date.now()) / 1000));
         if (btnCompleteOpen) btnCompleteOpen.style.display = 'none';
         if (btnGiveUp) {
           btnGiveUp.style.display = 'inline-flex';
@@ -1480,6 +1491,7 @@
       isSessionActive = false;
       sessionStartTime = null;
       sessionTargetEndTime = null;
+      try { localStorage.removeItem('activeFocusSession'); } catch (e) {}
 
       const plant = getCurrentPlant();
       const studiedMinutes = Math.max(1, Math.round(openElapsedSecs / 60));
@@ -1531,6 +1543,7 @@
         isSessionActive = false;
         sessionStartTime = null;
         sessionTargetEndTime = null;
+        try { localStorage.removeItem('activeFocusSession'); } catch (e) {}
 
         renderTimerDisplay(true);
 
@@ -1559,6 +1572,7 @@
       isSessionActive = false;
       sessionStartTime = null;
       sessionTargetEndTime = null;
+      try { localStorage.removeItem('activeFocusSession'); } catch (e) {}
 
       const actualStudiedMinutes = Math.round((timerTotalSecs - timerRemainingSecs) / 60);
       const studiedMinutes = Math.max(1, actualStudiedMinutes);
@@ -1590,6 +1604,7 @@
       isSessionActive = false;
       sessionStartTime = null;
       sessionTargetEndTime = null;
+      try { localStorage.removeItem('activeFocusSession'); } catch (e) {}
 
       const plant = getCurrentPlant();
       const studiedMinutes = Math.round(timerTotalSecs / 60);
@@ -1955,11 +1970,61 @@
     window.addEventListener('load', () => {
       renderActivePlant();
       renderForestPlots();
+
+      // Auto-restore active session if present from charts/other tabs
+      try {
+        const active = JSON.parse(localStorage.getItem('activeFocusSession'));
+        if (active && active.startTime && !isSessionActive) {
+          const elapsed = Math.floor((Date.now() - active.startTime) / 1000);
+          if (elapsed < 12 * 3600) {
+            sessionStartTime = active.startTime;
+            if (active.mode) timerMode = active.mode;
+            if (active.durationMinutes) timerDurationMins = active.durationMinutes;
+            startOrResumeSession(true);
+          } else {
+            localStorage.removeItem('activeFocusSession');
+          }
+        }
+      } catch (e) {}
+
       // Sync sessions from study charts / Google Sheets backend
       fetch(`${WEB_APP_URL}?action=getWatchData&_t=${Date.now()}`)
         .then(res => res.json())
         .then(sessions => syncWatchSessionsToForest(sessions))
         .catch(() => {});
+    });
+
+    // Cross-tab synchronization
+    window.addEventListener('storage', (e) => {
+      if (e.key === 'activeFocusSession') {
+        if (!e.newValue && isSessionActive) {
+          clearInterval(sessionTimerInterval);
+          sessionTimerInterval = null;
+          isSessionActive = false;
+          sessionStartTime = null;
+          sessionTargetEndTime = null;
+          renderTimerDisplay(false);
+          renderForestPlots();
+          const btnStart = document.getElementById('btnStartForestSession');
+          const btnCompleteOpen = document.getElementById('btnCompleteOpenSession');
+          const btnGiveUp = document.getElementById('btnGiveUpForestSession');
+          if (btnStart) btnStart.style.display = 'inline-flex';
+          if (btnCompleteOpen) btnCompleteOpen.style.display = 'none';
+          if (btnGiveUp) btnGiveUp.style.display = 'none';
+        } else if (e.newValue && !isSessionActive) {
+          try {
+            const active = JSON.parse(e.newValue);
+            if (active && active.startTime) {
+              sessionStartTime = active.startTime;
+              if (active.mode) timerMode = active.mode;
+              if (active.durationMinutes) timerDurationMins = active.durationMinutes;
+              startOrResumeSession(true);
+            }
+          } catch (err) {}
+        }
+      } else if (e.key === 'nepalForestHistory') {
+        renderForestPlots();
+      }
     });
 
     // Synchronize timer immediately when returning from other apps or tabs

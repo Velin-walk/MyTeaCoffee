@@ -5,7 +5,7 @@
 (function (root) {
   root.NEPAL_PLANTS_REGISTRY = root.NEPAL_PLANTS_REGISTRY || {};
 
-  // Canonical order of the 10 Native Plants of Nepal
+  // Canonical order of Native Plants of Nepal
   const PLANT_SLUGS_ORDER = [
     'rhododendron',
     'peepal',
@@ -16,7 +16,9 @@
     'bamboo',
     'nettle',
     'lotus',
-    'marigold'
+    'marigold',
+    'sunakhari',
+    'sunpati'
   ];
 
   // Build canonical NEPAL_PLANTS array
@@ -40,10 +42,15 @@
 
   function getPlantSlug(plant) {
     if (!plant) return 'rhododendron';
+    if (typeof plant === 'object' && plant.slug && root.NEPAL_PLANTS_REGISTRY[plant.slug]) {
+      return plant.slug;
+    }
     const id = typeof plant === 'object' ? plant.id : plant;
     const name = typeof plant === 'object' ? `${plant.english || ''} ${plant.nepali || ''}`.toLowerCase() : String(plant).toLowerCase();
 
-    if (id === 4 || name.includes('rhododendron') || name.includes('गुराँस')) return 'rhododendron';
+    if (id === 37 || name.includes('sunpati') || name.includes('सुनपाती') || name.includes('anthopogon')) return 'sunpati';
+    if (id === 36 || name.includes('sunakhari') || name.includes('सुनखरी') || name.includes('orchid') || name.includes('dendrobium')) return 'sunakhari';
+    if (id === 4 || (name.includes('rhododendron') && !name.includes('sunpati') && !name.includes('सुनपाती')) || name.includes('गुराँस')) return 'rhododendron';
     if (id === 9 || name.includes('peepal') || name.includes('पीपल')) return 'peepal';
     if (id === 10 || name.includes('banyan') || name.includes('बर')) return 'banyan';
     if (id === 1 || name.includes('sal') || name.includes('साल')) return 'sal';
