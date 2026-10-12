@@ -148,9 +148,25 @@ function formatHours(decimalHours) {
       const dateKey = now.toISOString().slice(0, 10);
       let updated = false;
 
-      const plant = (typeof getSelectedPlant === 'function')
-        ? getSelectedPlant()
-        : { id: 4, english: 'Rhododendron', nepali: 'लालीगुराँस', scientific: 'Rhododendron arboreum', category: 'Flower', icon: '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display:inline-block; vertical-align:middle;"><circle cx="12" cy="12" r="3"/><path d="M12 5a3 3 0 0 0-3 3c0 2 3 4 3 4s3-2 3-4a3 3 0 0 0-3-3zM12 19a3 3 0 0 0 3-3c0-2-3-4-3-4s-3 2-3 4a3 3 0 0 0 3 3z"/><path d="M5 12a3 3 0 0 0 3 3c2 0 4-3 4-3s-2-3-4-3a3 3 0 0 0-3 3zM19 12a3 3 0 0 0-3-3c-2 0-4 3-4 3s2 3 4 3a3 3 0 0 0 3-3z"/></svg>' };
+      // Always use the plant chosen in Nepal Forest; never use a default plant fallback
+      const activePlant = (typeof getSelectedNepalPlant === 'function')
+        ? getSelectedNepalPlant()
+        : ((typeof getSelectedPlant === 'function') ? getSelectedPlant() : (function() {
+            const plants = window.NEPAL_PLANTS || [];
+            let id = null;
+            try { id = parseInt(localStorage.getItem('selectedNepalPlantId'), 10); } catch(e){}
+            if (id) {
+              const match = plants.find(p => p.id === id);
+              if (match) return match;
+            }
+            if (plants.length > 0) {
+              try { localStorage.setItem('selectedNepalPlantId', plants[0].id); } catch(e){}
+              return plants[0];
+            }
+            return null;
+          })());
+
+      if (!activePlant) return;
 
       sessions.forEach(sess => {
         if (typeof sess.hrs !== 'number' || sess.hrs <= 0) return;
@@ -172,12 +188,12 @@ function formatHours(decimalHours) {
 
         if (!alreadyPlanted) {
           history.push({
-            id: plant.id,
-            nepali: plant.nepali,
-            english: plant.english,
-            scientific: plant.scientific,
-            category: plant.category,
-            icon: plant.icon,
+            id: activePlant.id,
+            nepali: activePlant.nepali,
+            english: activePlant.english,
+            scientific: activePlant.scientific,
+            category: activePlant.category,
+            icon: activePlant.icon,
             minutes: mins,
             isHealthy: true,
             timestamp: sessTime,

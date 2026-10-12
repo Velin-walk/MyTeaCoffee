@@ -39,7 +39,8 @@
         if (completedCycles > forestOpenPlantedCount) {
           const plant = (typeof getSelectedPlant === 'function')
             ? getSelectedPlant()
-            : { id: 4, english: 'Rhododendron', nepali: 'लालीगुराँस', scientific: 'Rhododendron arboreum', category: 'Flower', desc: 'National flower of Nepal' };
+            : (typeof getSelectedNepalPlant === 'function' ? getSelectedNepalPlant() : null);
+          if (!plant) return;
 
           for (let c = forestOpenPlantedCount + 1; c <= completedCycles; c++) {
             if (typeof saveForestPlantToHistory === 'function') {
@@ -160,7 +161,8 @@
       const studiedMinutes = Math.max(1, Math.round(elapsed / 60));
       const plant = (typeof getSelectedPlant === 'function')
         ? getSelectedPlant()
-        : { id: 4, english: 'Rhododendron', nepali: 'लालीगुराँस', scientific: 'Rhododendron arboreum', category: 'Flower', desc: 'National flower of Nepal' };
+        : (typeof getSelectedNepalPlant === 'function' ? getSelectedNepalPlant() : null);
+      if (!plant) return;
 
       const wasOpenMode = (forestTimerMode === 'open');
       const priorPlantedCount = forestOpenPlantedCount;

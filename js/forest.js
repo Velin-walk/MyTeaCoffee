@@ -16,7 +16,14 @@
     }
 
     // ================= STATE VARIABLES =================
-    let selectedPlantId = parseInt(localStorage.getItem('selectedNepalPlantId')) || 4;
+    let selectedPlantId = parseInt(localStorage.getItem('selectedNepalPlantId'), 10);
+    if (isNaN(selectedPlantId) || !selectedPlantId) {
+      const initialPlant = (typeof getSelectedNepalPlant === 'function' ? getSelectedNepalPlant() : (window.NEPAL_PLANTS && window.NEPAL_PLANTS[0])) || { id: 4 };
+      selectedPlantId = initialPlant.id;
+      try {
+        localStorage.setItem('selectedNepalPlantId', selectedPlantId);
+      } catch (e) {}
+    }
     let timerMode = 'fixed'; // 'fixed' or 'open'
     let openElapsedSecs = 0;
     let openPlantedCycles = 0;
@@ -58,8 +65,22 @@
     }
 
     function getCurrentPlant() {
+      if (typeof getSelectedNepalPlant === 'function') {
+        return getSelectedNepalPlant();
+      }
       const plants = window.NEPAL_PLANTS || NEPAL_PLANTS || [];
-      return plants.find(p => p.id === selectedPlantId) || plants[0] || { id: 4, english: 'Rhododendron', nepali: 'लालीगुराँस', scientific: 'Rhododendron arboreum', category: 'Flower', icon: '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display:inline-block; vertical-align:middle;"><circle cx="12" cy="12" r="3"/><path d="M12 5a3 3 0 0 0-3 3c0 2 3 4 3 4s3-2 3-4a3 3 0 0 0-3-3zM12 19a3 3 0 0 0 3-3c0-2-3-4-3-4s-3 2-3 4a3 3 0 0 0 3 3z"/><path d="M5 12a3 3 0 0 0 3 3c2 0 4-3 4-3s-2-3-4-3a3 3 0 0 0-3 3zM19 12a3 3 0 0 0-3-3c-2 0-4 3-4 3s2 3 4 3a3 3 0 0 0 3-3z"/></svg>', desc: 'National flower of Nepal' };
+      let id = selectedPlantId;
+      try {
+        const stored = parseInt(localStorage.getItem('selectedNepalPlantId'), 10);
+        if (!isNaN(stored) && stored > 0) id = stored;
+      } catch (e) {}
+      const match = plants.find(p => p.id === id);
+      if (match) return match;
+      if (plants.length > 0) {
+        try { localStorage.setItem('selectedNepalPlantId', plants[0].id); } catch(e){}
+        return plants[0];
+      }
+      return null;
     }
 
     // ================= TIMER MODE TOGGLE =================
@@ -790,9 +811,9 @@
       const dateKey = now.toISOString().slice(0, 10);
       let updated = false;
 
-      const plant = (typeof getCurrentPlant === 'function')
-        ? getCurrentPlant()
-        : { id: 4, english: 'Rhododendron', nepali: 'लालीगुराँस', scientific: 'Rhododendron arboreum', category: 'Flower', icon: '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display:inline-block; vertical-align:middle;"><circle cx="12" cy="12" r="3"/><path d="M12 5a3 3 0 0 0-3 3c0 2 3 4 3 4s3-2 3-4a3 3 0 0 0-3-3zM12 19a3 3 0 0 0 3-3c0-2-3-4-3-4s-3 2-3 4a3 3 0 0 0 3 3z"/><path d="M5 12a3 3 0 0 0 3 3c2 0 4-3 4-3s-2-3-4-3a3 3 0 0 0-3 3zM19 12a3 3 0 0 0-3-3c-2 0-4 3-4 3s2 3 4 3a3 3 0 0 0 3-3z"/></svg>' };
+      // Always use the plant chosen in Nepal Forest; never use a default plant fallback
+      const plant = getCurrentPlant();
+      if (!plant) return;
 
       sessions.forEach(sess => {
         if (typeof sess.hrs !== 'number' || sess.hrs <= 0) return;
@@ -868,7 +889,13 @@
 
     // Cross-tab synchronization
     window.addEventListener('storage', (e) => {
-      if (e.key === 'activeFocusSession') {
+      if (e.key === 'selectedNepalPlantId') {
+        const newId = parseInt(e.newValue, 10);
+        if (!isNaN(newId) && newId > 0) {
+          selectedPlantId = newId;
+          renderActivePlant();
+        }
+      } else if (e.key === 'activeFocusSession') {
         if (!e.newValue && isSessionActive) {
           clearInterval(sessionTimerInterval);
           sessionTimerInterval = null;

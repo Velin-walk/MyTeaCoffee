@@ -155,8 +155,42 @@
     return `<svg width="24" height="24" viewBox="0 0 100 100" class="botanical-svg-plot plant-${slug} stage-${stageInfo.stage}" style="display:block;margin:0 auto;width:100%!important;height:100%!important;transform:scale(${scale});transform-origin:50% 90%;">${content}</svg>`;
   }
 
+  /**
+   * Retrieves the plant currently chosen in Nepal Forest.
+   * Nepal Forest always has a plant chosen (stored in 'selectedNepalPlantId').
+   * If not already set, it chooses and persists a plant so there is always a chosen plant.
+   */
+  function getSelectedNepalPlant() {
+    const plants = root.NEPAL_PLANTS || NEPAL_PLANTS || [];
+    let savedId = null;
+    try {
+      const stored = localStorage.getItem('selectedNepalPlantId');
+      if (stored !== null && stored !== '') {
+        const parsed = parseInt(stored, 10);
+        if (!isNaN(parsed) && parsed > 0) savedId = parsed;
+      }
+    } catch (e) {}
+
+    let chosen = null;
+    if (savedId) {
+      chosen = plants.find(p => p.id === savedId);
+    }
+
+    if (!chosen && plants.length > 0) {
+      chosen = plants[0];
+      try {
+        localStorage.setItem('selectedNepalPlantId', chosen.id);
+      } catch (e) {}
+    }
+
+    return chosen;
+  }
+
   // Assign to global root (window or globalThis)
   root.NEPAL_PLANTS = NEPAL_PLANTS;
+  root.getSelectedNepalPlant = getSelectedNepalPlant;
+  root.getSelectedPlant = getSelectedNepalPlant;
+  root.getCurrentPlant = getSelectedNepalPlant;
   root.getPlantSlug = getPlantSlug;
   root.getBotanicalSvgContent = getBotanicalSvgContent;
   root.getPlantGrowthSvg = getPlantGrowthSvg;
