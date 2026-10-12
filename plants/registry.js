@@ -91,10 +91,68 @@
     return `<svg width="36" height="36" viewBox="0 0 100 100" class="botanical-svg-icon plant-${slug}" style="display:block;margin:0 auto;">${content}</svg>`;
   }
 
+  function getPlantStageInfo(item) {
+    if (!item) return { stage: 'mature', graphicStage: 'mature', scale: 1.0, pct: 100 };
+
+    let stage = item.stage;
+    let pct = (typeof item.growthPercent === 'number') ? item.growthPercent : null;
+
+    if (!stage && pct !== null) {
+      if (pct < 25) stage = 'sprout';
+      else if (pct < 60) stage = 'growing';
+      else if (pct < 95) stage = 'budding';
+      else if (pct < 100) stage = 'maturing';
+      else stage = 'mature';
+    } else if (!stage && typeof item.minutes === 'number') {
+      if (item.minutes >= 25) {
+        stage = 'mature';
+        pct = 100;
+      } else {
+        pct = Math.min(100, (item.minutes / 25) * 100);
+        if (pct < 25) stage = 'sprout';
+        else if (pct < 60) stage = 'growing';
+        else if (pct < 95) stage = 'budding';
+        else if (pct < 100) stage = 'maturing';
+        else stage = 'mature';
+      }
+    }
+
+    if (!stage) stage = 'mature';
+    if (pct === null) {
+      pct = (stage === 'sprout') ? 20 : ((stage === 'growing') ? 50 : ((stage === 'budding') ? 80 : 100));
+    }
+
+    // Graphical artwork stage according to table:
+    // Sprout -> 'sprout'
+    // Growing -> 'growing'
+    // Budding (Mature graphic) -> 'mature'
+    // Maturing -> 'mature'
+    // Planted -> 'mature'
+    const graphicStage = (stage === 'sprout') ? 'sprout' : ((stage === 'growing') ? 'growing' : 'mature');
+
+    // Visual scale factor based on stage of growth:
+    // Sprout: 0.58 (small seedling)
+    // Growing: 0.78 (young growing plant)
+    // Budding: 0.88 (budding flower/tree)
+    // Maturing: 0.94 (maturing tree)
+    // Mature / Planted: 1.0 (fully mature)
+    let scale = 1.0;
+    if (stage === 'sprout') scale = 0.58;
+    else if (stage === 'growing') scale = 0.78;
+    else if (stage === 'budding') scale = 0.88;
+    else if (stage === 'maturing') scale = 0.94;
+    else scale = 1.0;
+
+    return { stage, graphicStage, scale, pct };
+  }
+
   function getBotanicalPlotIconSvg(item, isWithered) {
     const slug = getPlantSlug(item);
-    const content = getBotanicalSvgContent(slug, 'mature', isWithered);
-    return `<svg width="24" height="24" viewBox="0 0 100 100" class="botanical-svg-plot plant-${slug}" style="display:block;margin:0 auto;">${content}</svg>`;
+    const stageInfo = getPlantStageInfo(item);
+    const graphicStage = isWithered ? 'mature' : stageInfo.graphicStage;
+    const content = getBotanicalSvgContent(slug, graphicStage, isWithered);
+    const scale = isWithered ? 0.88 : stageInfo.scale;
+    return `<svg width="24" height="24" viewBox="0 0 100 100" class="botanical-svg-plot plant-${slug} stage-${stageInfo.stage}" style="display:block;margin:0 auto;width:100%!important;height:100%!important;transform:scale(${scale});transform-origin:50% 90%;">${content}</svg>`;
   }
 
   // Assign to global root (window or globalThis)
@@ -106,4 +164,5 @@
   root.getBotanicalAvatarSvg = getBotanicalAvatarSvg;
   root.getBotanicalIconSvg = getBotanicalIconSvg;
   root.getBotanicalPlotIconSvg = getBotanicalPlotIconSvg;
+  root.getPlantStageInfo = getPlantStageInfo;
 })(typeof globalThis !== 'undefined' ? globalThis : (typeof window !== 'undefined' ? window : this));

@@ -1,0 +1,1006 @@
+    :root {
+      --primary: #2e7d32;
+      --primary-hover: #1b5e20;
+      --success: #34A853;
+      --danger: #EA4335;
+      --warning: #FBBC04;
+      --bg: #F4F7F6;
+      --text: #202124;
+      --card-bg: #FFFFFF;
+      --card-shadow: 0 4px 16px rgba(0, 0, 0, 0.08);
+      --border-color: #E0E0E0;
+      --input-border: #D0D0D0;
+      --input-bg: #F9FAF9;
+      --button-bg: #E8F5E9;
+      --button-text: #2e7d32;
+      --text-secondary: #5F6368;
+      --text-tertiary: #80868B;
+    }
+
+    body.theme-paper {
+      --primary: #8B7355; --success: #6B5344; --danger: #A0522D; --warning: #CD853F;
+      --bg: #F5E6D3; --text: #3E2723; --card-bg: #FFF8DC; --card-shadow: 0 4px 8px rgba(0,0,0,0.1);
+      --border-color: rgba(139, 115, 85, 0.2); --input-border: #D2B48C; --input-bg: #FFFAF0;
+      --button-bg: #F0E68C; --button-text: #654321; --text-secondary: #5D4037; --text-tertiary: #8B7355;
+    }
+    body.theme-blackboard {
+      --primary: #FFD700; --success: #90EE90; --danger: #FF6B6B; --warning: #FFB6C1;
+      --bg: #1A1A1A; --text: #FFFFFF; --card-bg: #2D2D2D; --card-shadow: 0 4px 12px rgba(0,0,0,0.4);
+      --border-color: rgba(255, 215, 0, 0.2); --input-border: #FFD700; --input-bg: #3D3D3D;
+      --button-bg: #404040; --button-text: #FFD700; --text-secondary: #BFBFBF; --text-tertiary: #909090;
+    }
+    body.theme-sketch {
+      --primary: #4A4A4A; --success: #5A5A5A; --danger: #3A3A3A; --warning: #6A6A6A;
+      --bg: #ECECEC; --text: #1A1A1A; --card-bg: #F5F5F5; --card-shadow: 0 3px 8px rgba(0, 0, 0, 0.15);
+      --border-color: rgba(74, 74, 74, 0.15); --input-border: #BFBFBF; --input-bg: #FAFAFA;
+      --button-bg: #E0E0E0; --button-text: #4A4A4A; --text-secondary: #5A5A5A; --text-tertiary: #8A8A8A;
+    }
+    body.theme-galaxy {
+      --primary: #00D4FF; --success: #00FF88; --danger: #FF006E; --warning: #FFB703;
+      --bg: #0a0e27; --text: #E0E7FF; --card-bg: #16213E; --card-shadow: 0 8px 16px rgba(0, 212, 255, 0.15);
+      --border-color: rgba(0, 212, 255, 0.2); --input-border: #00D4FF; --input-bg: #1a2847;
+      --button-bg: #1F2937; --button-text: #00D4FF; --text-secondary: #9CA3AF; --text-tertiary: #6B7280;
+    }
+    body.theme-forest {
+      --primary: #4CAF50; --success: #81C784; --danger: #E57373; --warning: #FFB74D;
+      --bg: #132A13; --text: #ECF39E; --card-bg: #1D3A1D; --card-shadow: 0 8px 20px rgba(0,0,0,0.4);
+      --border-color: rgba(129, 199, 132, 0.25); --input-border: #81C784; --input-bg: #163216;
+      --button-bg: #2D5016; --button-text: #ECF39E; --text-secondary: #A3B18A; --text-tertiary: #7F8E6A;
+    }
+    body.theme-cyberpunk {
+      --primary: #FF006E; --success: #00F5FF; --danger: #FF006E; --warning: #FFBE0B;
+      --bg: #0D0221; --text: #FFFFFF; --card-bg: #1A0033; --card-shadow: 0 0 20px rgba(255, 0, 110, 0.3);
+      --border-color: rgba(255, 0, 110, 0.5); --input-border: #FF006E; --input-bg: #240046;
+      --button-bg: #3A0061; --button-text: #00F5FF; --text-secondary: #B5179E; --text-tertiary: #7209B7;
+    }
+    body.theme-ocean {
+      --primary: #0077BE; --success: #00D9FF; --danger: #FF6B6B; --warning: #FFA502;
+      --bg: #0A1929; --text: #E3F2FD; --card-bg: #132F4C; --card-shadow: 0 6px 16px rgba(0, 119, 190, 0.2);
+      --border-color: rgba(0, 217, 255, 0.15); --input-border: #0077BE; --input-bg: #0D2440;
+      --button-bg: #1565A0; --button-text: #00D9FF; --text-secondary: #90CAF9; --text-tertiary: #64B5F6;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      transition: background 0.3s ease, color 0.3s ease;
+      overflow-x: hidden;
+    }
+
+    /* Top Navigation Bar */
+    header.top-header {
+      position: sticky;
+      top: 0;
+      z-index: 100;
+      background: var(--card-bg);
+      border-bottom: 1px solid var(--border-color);
+      box-shadow: 0 2px 10px rgba(0,0,0,0.06);
+      backdrop-filter: blur(10px);
+      padding: 12px 20px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 12px;
+      flex-wrap: wrap;
+    }
+
+    .brand-section {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .brand-logo {
+      font-size: 28px;
+      line-height: 1;
+      filter: drop-shadow(0 2px 4px rgba(46, 125, 50, 0.2));
+    }
+
+    .brand-titles h1 {
+      font-size: 18px;
+      font-weight: 800;
+      color: var(--text);
+      line-height: 1.2;
+    }
+
+    .brand-titles span {
+      font-size: 11px;
+      font-weight: 600;
+      color: var(--text-secondary);
+      letter-spacing: 0.5px;
+    }
+
+    .header-controls {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      flex-wrap: wrap;
+    }
+
+    .header-btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 8px 14px;
+      border-radius: 10px;
+      border: 1px solid var(--border-color);
+      background: var(--input-bg);
+      color: var(--text);
+      font-size: 13px;
+      font-weight: 700;
+      cursor: pointer;
+      text-decoration: none;
+      transition: all 0.2s ease;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+    }
+
+    .header-btn:hover {
+      border-color: var(--primary);
+      transform: translateY(-1px);
+    }
+
+    .header-btn.btn-chart-link {
+      background: var(--button-bg);
+      color: var(--primary);
+      border-color: var(--primary);
+    }
+
+    .theme-select-box {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      font-size: 12px;
+      font-weight: 600;
+      color: var(--text-secondary);
+    }
+
+    .theme-select-box select {
+      padding: 7px 12px;
+      border: 1.5px solid var(--border-color);
+      border-radius: 8px;
+      background: var(--card-bg);
+      color: var(--text);
+      font-weight: 700;
+      font-size: 12px;
+      cursor: pointer;
+      outline: none;
+    }
+
+    /* Main Container */
+    main.forest-main-container {
+      max-width: 1200px;
+      width: 100%;
+      margin: 0 auto;
+      padding: 24px 16px 80px;
+      flex: 1;
+    }
+
+    /* Hero Banner */
+    .forest-hero-card {
+      background: var(--card-bg);
+      border: 1px solid var(--border-color);
+      border-radius: 20px;
+      padding: 24px 28px;
+      box-shadow: var(--card-shadow);
+      margin-bottom: 24px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 16px;
+    }
+
+    .hero-text h2 {
+      font-size: 24px;
+      font-weight: 800;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      margin-bottom: 6px;
+    }
+
+    .hero-text p {
+      font-size: 14px;
+      color: var(--text-secondary);
+    }
+
+    .hero-badge {
+      display: inline-block;
+      font-size: 12px;
+      font-weight: 700;
+      padding: 3px 10px;
+      border-radius: 20px;
+      background: rgba(46, 125, 50, 0.15);
+      color: var(--primary);
+    }
+
+    .hero-actions {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      flex-wrap: wrap;
+    }
+
+    .btn-action {
+      padding: 10px 18px;
+      border-radius: 12px;
+      font-size: 13px;
+      font-weight: 700;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      border: 1px solid var(--border-color);
+      background: var(--card-bg);
+      color: var(--text);
+      transition: all 0.2s;
+    }
+
+    .btn-action:hover {
+      border-color: var(--primary);
+      transform: translateY(-2px);
+    }
+
+    .btn-action.btn-primary {
+      background: var(--primary);
+      color: white;
+      border-color: var(--primary);
+      box-shadow: 0 4px 12px rgba(46, 125, 50, 0.25);
+    }
+
+    /* Two-column layout */
+    .forest-workspace-grid {
+      display: grid;
+      grid-template-columns: 340px 1fr;
+      gap: 24px;
+      margin-bottom: 24px;
+    }
+
+    @media (max-width: 900px) {
+      .forest-workspace-grid {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    /* Plant Card */
+    .plant-info-card {
+      background: var(--card-bg);
+      border: 1px solid var(--border-color);
+      border-radius: 20px;
+      padding: 24px;
+      box-shadow: var(--card-shadow);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      text-align: center;
+      position: relative;
+    }
+
+    .plant-avatar {
+      width: 100px;
+      height: 100px;
+      border-radius: 50%;
+      background: radial-gradient(circle, rgba(76, 175, 80, 0.2) 0%, rgba(76, 175, 80, 0.05) 70%);
+      border: 2px solid var(--border-color);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 50px;
+      margin-bottom: 16px;
+      box-shadow: 0 6px 16px rgba(0,0,0,0.06);
+    }
+
+    .plant-nepali-name {
+      font-size: 26px;
+      font-weight: 800;
+      color: var(--text);
+      margin-bottom: 4px;
+    }
+
+    .plant-english-name {
+      font-size: 15px;
+      font-weight: 600;
+      color: var(--text-secondary);
+      margin-bottom: 2px;
+    }
+
+    .plant-scientific {
+      font-size: 12px;
+      font-style: italic;
+      color: var(--text-tertiary);
+      margin-bottom: 14px;
+    }
+
+    .plant-category-pill {
+      display: inline-block;
+      padding: 4px 14px;
+      border-radius: 20px;
+      font-size: 12px;
+      font-weight: 700;
+      background: rgba(46, 125, 50, 0.12);
+      color: var(--primary);
+      margin-bottom: 20px;
+    }
+
+    .plant-description {
+      font-size: 13px;
+      color: var(--text-secondary);
+      line-height: 1.5;
+      margin-bottom: 20px;
+      text-align: left;
+      background: var(--input-bg);
+      padding: 12px 14px;
+      border-radius: 12px;
+      width: 100%;
+    }
+
+    /* Focus Timer Card */
+    .timer-focus-card {
+      background: var(--card-bg);
+      border: 1px solid var(--border-color);
+      border-radius: 20px;
+      padding: 32px 24px;
+      box-shadow: var(--card-shadow);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      text-align: center;
+      position: relative;
+    }
+
+    .growth-ring-container {
+      position: relative;
+      width: 260px;
+      height: 260px;
+      margin-bottom: 20px;
+    }
+
+    .growth-ring-svg {
+      width: 100%;
+      height: 100%;
+      transform: rotate(-90deg);
+    }
+
+    .growth-ring-bg {
+      fill: none;
+      stroke: var(--input-bg);
+      stroke-width: 10;
+    }
+
+    .growth-ring-progress {
+      fill: none;
+      stroke: var(--primary);
+      stroke-width: 10;
+      stroke-linecap: round;
+      stroke-dasharray: 660;
+      stroke-dashoffset: 660;
+      transition: stroke-dashoffset 0.5s ease, stroke 0.3s;
+    }
+
+    .growth-svg-center {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      width: 160px;
+      height: 160px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      pointer-events: none;
+    }
+
+    .timer-digits {
+      font-size: 56px;
+      font-weight: 900;
+      font-family: 'Courier New', Courier, monospace;
+      letter-spacing: 2px;
+      color: var(--text);
+      line-height: 1;
+      margin-bottom: 8px;
+    }
+
+    .stage-status-label {
+      font-size: 15px;
+      font-weight: 800;
+      color: var(--primary);
+      margin-bottom: 6px;
+    }
+
+    .quote-text {
+      font-size: 13px;
+      font-style: italic;
+      color: var(--text-secondary);
+      margin-bottom: 24px;
+      max-width: 440px;
+    }
+
+    .duration-pills-wrap {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 8px;
+      margin-bottom: 28px;
+    }
+
+    .duration-pill {
+      padding: 8px 16px;
+      border-radius: 20px;
+      border: 1.5px solid var(--border-color);
+      background: var(--input-bg);
+      color: var(--text);
+      font-size: 13px;
+      font-weight: 700;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+
+    .duration-pill:hover {
+      border-color: var(--primary);
+      transform: translateY(-1px);
+    }
+
+    .duration-pill.active {
+      background: var(--primary);
+      color: white;
+      border-color: var(--primary);
+      box-shadow: 0 4px 10px rgba(46, 125, 50, 0.3);
+    }
+
+    .timer-action-buttons {
+      display: flex;
+      gap: 14px;
+      align-items: center;
+      justify-content: center;
+      width: 100%;
+      max-width: 420px;
+    }
+
+    .btn-timer-start {
+      flex: 1;
+      padding: 16px 24px;
+      border-radius: 16px;
+      border: none;
+      background: var(--primary);
+      color: white;
+      font-size: 16px;
+      font-weight: 800;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 10px;
+      box-shadow: 0 6px 16px rgba(46, 125, 50, 0.35);
+      transition: all 0.2s;
+    }
+
+    .btn-timer-start:hover {
+      filter: brightness(1.1);
+      transform: translateY(-2px);
+    }
+
+    .btn-timer-giveup {
+      padding: 16px 24px;
+      border-radius: 16px;
+      border: none;
+      background: var(--danger);
+      color: white;
+      font-size: 15px;
+      font-weight: 800;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      transition: all 0.2s;
+    }
+
+    .btn-timer-giveup:hover {
+      filter: brightness(1.1);
+    }
+
+    /* Forest History & Stats */
+    .my-forest-card {
+      width: 100vw;
+      position: relative;
+      left: 50%;
+      right: 50%;
+      margin-left: -50vw;
+      margin-right: -50vw;
+      box-sizing: border-box;
+      background: var(--card-bg);
+      border-top: 1px solid var(--border-color);
+      border-bottom: 1px solid var(--border-color);
+      border-left: none;
+      border-right: none;
+      border-radius: 0;
+      padding: 28px 24px;
+      box-shadow: var(--card-shadow);
+      margin-bottom: 30px;
+    }
+
+    body.is-fullscreen .my-forest-card {
+      width: 100%;
+      left: 0;
+      right: 0;
+      margin-left: 0;
+      margin-right: 0;
+      padding: 28px 0;
+      border-top: none;
+      border-bottom: none;
+    }
+
+    .forest-stats-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(170px, 1fr));
+      gap: 14px;
+      margin-bottom: 24px;
+      width: 100%;
+      box-sizing: border-box;
+    }
+
+    .stat-box {
+      background: var(--input-bg);
+      border: 1px solid var(--border-color);
+      border-radius: 14px;
+      padding: 16px;
+      text-align: center;
+    }
+
+    .stat-number {
+      font-size: 28px;
+      font-weight: 900;
+      color: var(--primary);
+      margin-bottom: 4px;
+    }
+
+    .stat-label {
+      font-size: 11px;
+      font-weight: 700;
+      color: var(--text-secondary);
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+
+    .forest-toolbar {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 12px;
+      padding-bottom: 16px;
+      border-bottom: 1px solid var(--border-color);
+      margin-bottom: 20px;
+      width: 100%;
+      box-sizing: border-box;
+    }
+
+    /* Mini Grassland with Soil Terrain */
+    .mini-grassland-terrain {
+      width: 100%;
+      box-sizing: border-box;
+      position: relative;
+      border-radius: 20px;
+      overflow: hidden;
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.12), 0 2px 8px rgba(0, 0, 0, 0.06);
+      border: 2px solid rgba(255, 255, 255, 0.28);
+      display: flex;
+      flex-direction: column;
+      background: #3e261a;
+    }
+
+    /* 1. Lush Green Grassland Meadow Surface (Top) */
+    .grassland-surface {
+      position: relative;
+      width: 100%;
+      min-height: 220px;
+      background: linear-gradient(180deg, #8dc754 0%, #75b542 45%, #5d9b32 100%);
+      box-shadow: inset 0 2px 4px rgba(255, 255, 255, 0.45), inset 0 -4px 8px rgba(0, 0, 0, 0.15);
+      padding: 24px 20px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      box-sizing: border-box;
+    }
+
+    .grassland-surface::before {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background-image: 
+        radial-gradient(ellipse at 50% 0%, rgba(255, 255, 255, 0.25) 0%, transparent 65%),
+        radial-gradient(circle at 18% 40%, rgba(255, 255, 255, 0.08) 0%, transparent 35%),
+        radial-gradient(circle at 82% 50%, rgba(255, 255, 255, 0.08) 0%, transparent 35%);
+      pointer-events: none;
+    }
+
+    /* Grass-edge fringe transition into the soil */
+    .grassland-fringe {
+      position: relative;
+      width: 100%;
+      height: 14px;
+      background: #4f852a;
+      background-image: radial-gradient(circle at 10px 0, #5d9b32 10px, #427221 11px);
+      background-size: 20px 14px;
+      border-bottom: 2px solid #361f14;
+    }
+
+    /* 2. Rich Soil Earth Layer (Bottom Cross-Section) */
+    .grassland-soil {
+      position: relative;
+      width: 100%;
+      height: 54px;
+      background: linear-gradient(180deg, #4d3326 0%, #3d251a 55%, #27160d 100%);
+      box-shadow: inset 0 4px 8px rgba(0, 0, 0, 0.5);
+      border-top: 1px solid #5a3c2e;
+      overflow: hidden;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      box-sizing: border-box;
+    }
+
+    .grassland-soil::before {
+      content: '';
+      position: absolute;
+      inset: 0;
+      opacity: 0.35;
+      background-image: 
+        radial-gradient(#d7ccc8 1px, transparent 1px),
+        radial-gradient(#a1887f 1.5px, transparent 1.5px),
+        radial-gradient(#5d4037 2px, transparent 2px);
+      background-size: 28px 28px, 44px 44px, 18px 18px;
+      background-position: 0 0, 14px 14px, 7px 7px;
+      pointer-events: none;
+    }
+
+    .grassland-soil::after {
+      content: '';
+      position: absolute;
+      top: 22px;
+      left: 0;
+      right: 0;
+      height: 1.5px;
+      background: rgba(255, 255, 255, 0.07);
+      box-shadow: 0 16px 0 rgba(0, 0, 0, 0.25);
+      pointer-events: none;
+    }
+
+    .soil-caption {
+      position: relative;
+      z-index: 1;
+      font-size: 11px;
+      font-weight: 700;
+      letter-spacing: 0.8px;
+      color: rgba(230, 210, 190, 0.65);
+      text-transform: uppercase;
+      user-select: none;
+    }
+
+    /* Empty Grassland: Zero plants, peaceful and simple */
+    .grassland-empty-view {
+      position: relative;
+      z-index: 2;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      text-align: center;
+      padding: 24px 16px;
+    }
+
+    .btn-empty-grassland-cue {
+      background: rgba(255, 255, 255, 0.25);
+      backdrop-filter: blur(8px);
+      -webkit-backdrop-filter: blur(8px);
+      border: 1px solid rgba(255, 255, 255, 0.45);
+      color: #ffffff;
+      font-size: 13px;
+      font-weight: 700;
+      padding: 10px 22px;
+      border-radius: 24px;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+      cursor: pointer;
+      transition: all 0.2s ease;
+      letter-spacing: 0.3px;
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .btn-empty-grassland-cue:hover {
+      background: rgba(255, 255, 255, 0.38);
+      transform: translateY(-2px);
+      box-shadow: 0 6px 16px rgba(0, 0, 0, 0.15);
+    }
+
+    /* Planted trees on the grassland */
+    .grassland-trees-grid {
+      position: relative;
+      z-index: 2;
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(110px, 1fr));
+      gap: 16px;
+      width: 100%;
+      box-sizing: border-box;
+      max-width: 1200px;
+    }
+
+    .planted-tree-item {
+      background: rgba(255, 255, 255, 0.18);
+      backdrop-filter: blur(4px);
+      -webkit-backdrop-filter: blur(4px);
+      border: 1px solid rgba(255, 255, 255, 0.35);
+      border-radius: 16px;
+      padding: 12px 8px 10px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      text-align: center;
+      transition: transform 0.2s ease, box-shadow 0.2s ease, background 0.2s ease;
+      cursor: pointer;
+      position: relative;
+    }
+
+    .planted-tree-item:hover {
+      transform: translateY(-4px);
+      background: rgba(255, 255, 255, 0.28);
+      box-shadow: 0 8px 20px rgba(0, 0, 0, 0.15);
+    }
+
+    .planted-tree-item.withered {
+      filter: grayscale(0.7);
+      opacity: 0.75;
+    }
+
+    .planted-tree-icon {
+      width: 58px;
+      height: 58px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin-bottom: 6px;
+      filter: drop-shadow(0 4px 6px rgba(0, 0, 0, 0.2));
+    }
+
+    .planted-tree-icon svg {
+      width: 100% !important;
+      height: 100% !important;
+    }
+
+    .planted-tree-item.stage-sprout .planted-tree-icon svg {
+      transform: scale(0.58) !important;
+      transform-origin: 50% 90% !important;
+    }
+
+    .planted-tree-item.stage-growing .planted-tree-icon svg {
+      transform: scale(0.78) !important;
+      transform-origin: 50% 90% !important;
+    }
+
+    .planted-tree-item.stage-budding .planted-tree-icon svg {
+      transform: scale(0.88) !important;
+      transform-origin: 50% 90% !important;
+    }
+
+    .planted-tree-item.stage-maturing .planted-tree-icon svg {
+      transform: scale(0.94) !important;
+      transform-origin: 50% 90% !important;
+    }
+
+    .planted-tree-item.stage-mature .planted-tree-icon svg,
+    .planted-tree-item.stage-planted .planted-tree-icon svg {
+      transform: scale(1) !important;
+      transform-origin: 50% 90% !important;
+    }
+
+    .planted-tree-name {
+      font-size: 12px;
+      font-weight: 800;
+      color: #ffffff;
+      text-shadow: 0 1px 3px rgba(0, 0, 0, 0.4);
+      margin-bottom: 2px;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      max-width: 100%;
+    }
+
+    .planted-tree-meta {
+      font-size: 10px;
+      font-weight: 700;
+      color: rgba(255, 255, 255, 0.85);
+      text-shadow: 0 1px 2px rgba(0, 0, 0, 0.4);
+    }
+
+    /* Modal */
+    .catalog-modal-backdrop {
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background: rgba(0,0,0,0.65);
+      z-index: 99999;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 16px;
+      backdrop-filter: blur(6px);
+    }
+
+    .catalog-modal-box {
+      background: var(--card-bg);
+      border: 1px solid var(--border-color);
+      border-radius: 20px;
+      max-width: 850px;
+      width: 100%;
+      max-height: 85vh;
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+      box-shadow: 0 16px 40px rgba(0,0,0,0.3);
+    }
+
+    .modal-head {
+      padding: 20px 24px;
+      border-bottom: 1px solid var(--border-color);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .modal-head h3 {
+      font-size: 18px;
+      font-weight: 800;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .btn-close-modal {
+      background: none;
+      border: none;
+      font-size: 26px;
+      cursor: pointer;
+      color: var(--text-secondary);
+      line-height: 1;
+    }
+
+    .modal-filters {
+      padding: 16px 24px;
+      border-bottom: 1px solid var(--border-color);
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+
+    .search-box-input {
+      width: 100%;
+      padding: 12px 16px;
+      border-radius: 12px;
+      border: 1.5px solid var(--border-color);
+      background: var(--input-bg);
+      color: var(--text);
+      font-size: 14px;
+      outline: none;
+    }
+
+    .search-box-input:focus {
+      border-color: var(--primary);
+    }
+
+    .modal-plants-grid {
+      padding: 20px 24px;
+      overflow-y: auto;
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(230px, 1fr));
+      gap: 12px;
+      flex: 1;
+    }
+
+    .catalog-card-item {
+      background: var(--input-bg);
+      border: 1.5px solid var(--border-color);
+      border-radius: 14px;
+      padding: 12px;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+
+    .catalog-card-item:hover {
+      border-color: var(--primary);
+      transform: translateY(-2px);
+      box-shadow: 0 4px 10px rgba(0,0,0,0.06);
+    }
+
+    .catalog-card-item.selected {
+      border-color: var(--primary);
+      background: rgba(46, 125, 50, 0.1);
+      box-shadow: 0 0 0 2px var(--primary);
+    }
+
+    .catalog-icon {
+      font-size: 32px;
+      width: 48px;
+      height: 48px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: var(--card-bg);
+      border-radius: 12px;
+      border: 1px solid var(--border-color);
+      flex-shrink: 0;
+    }
+
+    .catalog-meta {
+      flex: 1;
+      min-width: 0;
+    }
+
+    .catalog-meta-top {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .catalog-nepali {
+      font-size: 14px;
+      font-weight: 800;
+      color: var(--text);
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .catalog-badge {
+      font-size: 10px;
+      font-weight: 700;
+      color: var(--primary);
+      background: rgba(46, 125, 50, 0.12);
+      padding: 2px 6px;
+      border-radius: 10px;
+    }
+
+    .catalog-english {
+      font-size: 12px;
+      color: var(--text-secondary);
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .catalog-scientific {
+      font-size: 10px;
+      font-style: italic;
+      color: var(--text-tertiary);
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    /* Fullscreen Mode */
+    body.is-fullscreen header.top-header {
+      display: none;
+    }
+
+    body.is-fullscreen main.forest-main-container {
+      padding-top: 10px;
+      max-width: 100%;
+    }
