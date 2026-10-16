@@ -18,7 +18,9 @@
     'lotus',
     'marigold',
     'sunakhari',
-    'sunpati'
+    'sunpati',
+    'suntala',
+    'jacaranda'
   ];
 
   // Build canonical NEPAL_PLANTS array
@@ -48,6 +50,8 @@
     const id = typeof plant === 'object' ? plant.id : plant;
     const name = typeof plant === 'object' ? `${plant.english || ''} ${plant.nepali || ''}`.toLowerCase() : String(plant).toLowerCase();
 
+    if (id === 39 || name.includes('jacaranda') || name.includes('ज्याकारान्दा') || name.includes('mimosifolia')) return 'jacaranda';
+    if (id === 38 || name.includes('suntala') || name.includes('सुन्तला') || name.includes('citrus') || name.includes('orange')) return 'suntala';
     if (id === 37 || name.includes('sunpati') || name.includes('सुनपाती') || name.includes('anthopogon')) return 'sunpati';
     if (id === 36 || name.includes('sunakhari') || name.includes('सुनखरी') || name.includes('orchid') || name.includes('dendrobium')) return 'sunakhari';
     if (id === 4 || (name.includes('rhododendron') && !name.includes('sunpati') && !name.includes('सुनपाती')) || name.includes('गुराँस')) return 'rhododendron';
