@@ -47,7 +47,6 @@
           const plant = getCurrentPlant();
           for (let c = openPlantedCycles + 1; c <= completedCycles; c++) {
             saveForestRecord(plant, 25, true, 'mature', 100);
-            logData("Forest", "00:25:00", plant.nepali);
           }
           openPlantedCycles = completedCycles;
           playSuccessChime();
@@ -349,10 +348,15 @@
         else stage = 'mature';
 
         saveForestRecord(plant, remainingMins, true, stage, pct);
-        const logDuration = `${Math.floor(remainingMins / 60).toString().padStart(2, '0')}:${(remainingMins % 60).toString().padStart(2, '0')}:00`;
-        logData("Forest", logDuration, plant.nepali);
       } else if (openPlantedCycles === 0 && openElapsedSecs >= 10) {
         saveForestRecord(plant, 1, true, 'sprout', Math.min(24, Math.max(1, Math.round((openElapsedSecs / 1500) * 100))));
+      }
+
+      // Log full continuous study session once for Study Charts / Google Sheets
+      const totalElapsedMins = Math.max(1, Math.round(openElapsedSecs / 60));
+      if (totalElapsedMins >= 1 && typeof logData === 'function') {
+        const fullDuration = `${Math.floor(totalElapsedMins / 60).toString().padStart(2, '0')}:${(totalElapsedMins % 60).toString().padStart(2, '0')}:00`;
+        logData("Forest", fullDuration, plant.nepali);
       }
 
       openPlantedCycles = 0;
@@ -817,38 +821,58 @@
 
       sessions.forEach(sess => {
         if (typeof sess.hrs !== 'number' || sess.hrs <= 0) return;
-        const mins = Math.max(1, Math.round(sess.hrs * 60));
+        const totalMins = Math.max(1, Math.round(sess.hrs * 60));
         const startHour = Math.floor(sess.start);
         const startMin = Math.round((sess.start % 1) * 60);
-        const sessTime = new Date(now.getFullYear(), now.getMonth(), now.getDate(), startHour, startMin).getTime() + (mins * 60 * 1000);
-        const sessionKey = `${dateKey}_${sess.start.toFixed(2)}_${sess.hrs.toFixed(2)}`;
+        const baseStartTime = new Date(now.getFullYear(), now.getMonth(), now.getDate(), startHour, startMin).getTime();
 
-        const alreadyPlanted = history.some(item => {
-          if (item.sessionKey === sessionKey) return true;
-          if (item.timestamp >= startOfDay) {
-            const timeDiff = Math.abs(item.timestamp - sessTime);
-            const minDiff = Math.abs((item.minutes || 0) - mins);
-            if (timeDiff <= 15 * 60 * 1000 && minDiff <= 3) return true;
+        // Nepal Forest plants trees within 25-minute cycles
+        const fullCycles = Math.floor(totalMins / 25);
+        const remMins = totalMins % 25;
+        const chunks = [];
+
+        if (totalMins <= 25) {
+          chunks.push({ mins: totalMins, offsetMins: 0, cycleIdx: 0 });
+        } else {
+          for (let c = 0; c < fullCycles; c++) {
+            chunks.push({ mins: 25, offsetMins: c * 25, cycleIdx: c });
           }
-          return false;
-        });
-
-        if (!alreadyPlanted) {
-          history.push({
-            id: plant.id,
-            nepali: plant.nepali,
-            english: plant.english,
-            scientific: plant.scientific,
-            category: plant.category,
-            icon: plant.icon,
-            minutes: mins,
-            isHealthy: true,
-            timestamp: sessTime,
-            sessionKey: sessionKey,
-            source: 'charts'
-          });
-          updated = true;
+          if (remMins >= 1) {
+            chunks.push({ mins: remMins, offsetMins: fullCycles * 25, cycleIdx: fullCycles });
+          }
         }
+
+        chunks.forEach(chunk => {
+          const chunkSessTime = baseStartTime + ((chunk.offsetMins + chunk.mins) * 60 * 1000);
+          const chunkSessionKey = `${dateKey}_${sess.start.toFixed(2)}_${sess.hrs.toFixed(2)}_c${chunk.cycleIdx}`;
+
+          const alreadyPlanted = history.some(item => {
+            if (item.sessionKey === chunkSessionKey) return true;
+            if (item.timestamp >= startOfDay) {
+              const timeDiff = Math.abs(item.timestamp - chunkSessTime);
+              const minDiff = Math.abs((item.minutes || 0) - chunk.mins);
+              if (timeDiff <= 15 * 60 * 1000 && minDiff <= 3) return true;
+            }
+            return false;
+          });
+
+          if (!alreadyPlanted) {
+            history.push({
+              id: plant.id,
+              nepali: plant.nepali,
+              english: plant.english,
+              scientific: plant.scientific,
+              category: plant.category,
+              icon: plant.icon,
+              minutes: chunk.mins,
+              isHealthy: true,
+              timestamp: chunkSessTime,
+              sessionKey: chunkSessionKey,
+              source: 'charts'
+            });
+            updated = true;
+          }
+        });
       });
 
       if (updated) {

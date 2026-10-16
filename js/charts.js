@@ -559,7 +559,10 @@ function loadHourlyDist() {
       Promise.all([
         fetch(`${WEB_APP_URL}?action=getWatchData&_t=${timestamp}`).then(res => res.json()),
         fetch(`${WEB_APP_URL}?action=getGoalData&_t=${timestamp}`).then(res => res.json())
-      ]).then(([sessions, goalData]) => {
+      ]).then(([rawSessions, goalData]) => {
+        const sessions = (typeof mergeContinuousSessions === 'function')
+          ? mergeContinuousSessions(rawSessions)
+          : (Array.isArray(rawSessions) ? rawSessions : []);
         if (temporalRing) temporalRing.innerHTML = ''; 
         if (goalRing) goalRing.innerHTML = '';
         const dailyGoal = (goalData && goalData.goal) || 4;
@@ -613,7 +616,10 @@ function loadHourlyDist() {
     }
 
     function loadActualStudySessions() {
-      fetch(`${WEB_APP_URL}?action=getWatchData`).then(res => res.json()).then(sessions => {
+      fetch(`${WEB_APP_URL}?action=getWatchData`).then(res => res.json()).then(rawSessions => {
+        const sessions = (typeof mergeContinuousSessions === 'function')
+          ? mergeContinuousSessions(rawSessions)
+          : (Array.isArray(rawSessions) ? rawSessions : []);
         const container = document.getElementById('actualContainer');
         if (!sessions || !Array.isArray(sessions) || sessions.length === 0) {
           container.innerHTML = '<div style="text-align: center; color: var(--text-tertiary); font-size: 12px; padding: 20px;">No sessions logged today yet</div>';
@@ -664,7 +670,10 @@ function loadHourlyDist() {
       Promise.all([
         fetch(`${WEB_APP_URL}?action=getWatchData`).then(res => res.json()),
         fetch(`${WEB_APP_URL}?view=Daily`).then(res => res.json())
-      ]).then(([todayWatch, allData]) => {
+      ]).then(([rawTodayWatch, allData]) => {
+        const todayWatch = (typeof mergeContinuousSessions === 'function')
+          ? mergeContinuousSessions(rawTodayWatch)
+          : (Array.isArray(rawTodayWatch) ? rawTodayWatch : []);
         if (!allData || !Array.isArray(allData) || allData.length <= 1) return;
         const today = new Date();
         const todayKey = today.toLocaleDateString('en-US', { month: 'short', day: '2-digit' });
@@ -871,7 +880,10 @@ setInterval(updateRealTimeClock, 1000);
 updateRealTimeClock();
 
 function loadActiveHoursChart() {
-  fetch(`${WEB_APP_URL}?action=getWatchData`).then(res => res.json()).then(sessions => {
+  fetch(`${WEB_APP_URL}?action=getWatchData`).then(res => res.json()).then(rawSessions => {
+    const sessions = (typeof mergeContinuousSessions === 'function')
+      ? mergeContinuousSessions(rawSessions)
+      : (Array.isArray(rawSessions) ? rawSessions : []);
     if (!sessions || !Array.isArray(sessions) || sessions.length === 0) {
       const empty = '<div style="text-align: center; padding: 20px; color: var(--text-tertiary); font-size: 11px;">No data</div>';
       document.getElementById('activeHoursChartAM').innerHTML = empty;

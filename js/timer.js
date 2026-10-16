@@ -46,9 +46,6 @@
             if (typeof saveForestPlantToHistory === 'function') {
               saveForestPlantToHistory(plant, 25, true, 'mature', 100);
             }
-            if (typeof logData === 'function') {
-              logData("Forest", "00:25:00", plant.nepali);
-            }
           }
           forestOpenPlantedCount = completedCycles;
 
@@ -225,15 +222,19 @@
             if (typeof saveForestPlantToHistory === 'function') {
               saveForestPlantToHistory(plant, remainingMinutes, true, stage, growthPercent);
             }
-            const logDuration = (typeof fmt === 'function') ? fmt(remainingSecs, true) : `${Math.floor(remainingMinutes / 60).toString().padStart(2, '0')}:${(remainingMinutes % 60).toString().padStart(2, '0')}:00`;
-            if (typeof logData === 'function') {
-              logData("Open", logDuration, plant.nepali);
-            }
           } else if (priorPlantedCount === 0 && elapsed >= 10) {
             // First tree stopped in early sprout (< 1 min)
             if (typeof saveForestPlantToHistory === 'function') {
               saveForestPlantToHistory(plant, 1, true, 'sprout', Math.min(24, Math.max(1, Math.round((elapsed / 1500) * 100))));
             }
+          }
+
+          // Log full continuous study session once for Study Charts / Google Sheets
+          if (studiedMinutes >= 1 && typeof logData === 'function') {
+            const fullLogDuration = (typeof fmt === 'function')
+              ? fmt(elapsed, true)
+              : `${Math.floor(studiedMinutes / 60).toString().padStart(2, '0')}:${(studiedMinutes % 60).toString().padStart(2, '0')}:00`;
+            logData("Open", fullLogDuration, plant.nepali);
           }
         } else {
           // Fixed Countdown Mode: 100% completed

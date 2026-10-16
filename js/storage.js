@@ -107,9 +107,40 @@ function formatHours(decimalHours) {
       }).catch(err => { if (!cachedData) document.getElementById('gridWrapper').innerHTML = `<div style="text-align: center; padding: 20px; color: var(--danger);">Error loading planner</div>`; });
     }
 
-    // ============= DISPLAY FUNCTIONS (NO CHANGES) =============
+    // ============= DISPLAY FUNCTIONS =============
 
-    function updateWatchDisplay(sessions) {
+    function mergeContinuousSessions(sessions) {
+      if (!Array.isArray(sessions) || sessions.length <= 1) {
+        return Array.isArray(sessions) ? [...sessions] : [];
+      }
+      const valid = sessions.filter(s => typeof s.hrs === 'number' && s.hrs > 0 && typeof s.start === 'number');
+      if (valid.length <= 1) return valid;
+      valid.sort((a, b) => a.start - b.start);
+
+      const merged = [];
+      let current = { ...valid[0] };
+
+      for (let i = 1; i < valid.length; i++) {
+        const next = valid[i];
+        const currentEnd = current.start + current.hrs;
+        const gap = next.start - currentEnd;
+
+        // Merge contiguous slices if gap is <= 3 minutes (0.05 hr) or overlapping
+        if (gap <= 0.05) {
+          const newEnd = Math.max(currentEnd, next.start + next.hrs);
+          current.hrs = newEnd - current.start;
+        } else {
+          merged.push(current);
+          current = { ...next };
+        }
+      }
+      if (current) merged.push(current);
+      return merged;
+    }
+    window.mergeContinuousSessions = mergeContinuousSessions;
+
+    function updateWatchDisplay(rawSessions) {
+      const sessions = mergeContinuousSessions(rawSessions);
       let totalStudyH = 0, totalBreakM = 0, totalRestH = 0;
       if (sessions && sessions.length > 0) {
         sessions.sort((a, b) => a.start - b.start);
@@ -170,38 +201,58 @@ function formatHours(decimalHours) {
 
       sessions.forEach(sess => {
         if (typeof sess.hrs !== 'number' || sess.hrs <= 0) return;
-        const mins = Math.max(1, Math.round(sess.hrs * 60));
+        const totalMins = Math.max(1, Math.round(sess.hrs * 60));
         const startHour = Math.floor(sess.start);
         const startMin = Math.round((sess.start % 1) * 60);
-        const sessTime = new Date(now.getFullYear(), now.getMonth(), now.getDate(), startHour, startMin).getTime() + (mins * 60 * 1000);
-        const sessionKey = `${dateKey}_${sess.start.toFixed(2)}_${sess.hrs.toFixed(2)}`;
+        const baseStartTime = new Date(now.getFullYear(), now.getMonth(), now.getDate(), startHour, startMin).getTime();
 
-        const alreadyPlanted = history.some(item => {
-          if (item.sessionKey === sessionKey) return true;
-          if (item.timestamp >= startOfDay) {
-            const timeDiff = Math.abs(item.timestamp - sessTime);
-            const minDiff = Math.abs((item.minutes || 0) - mins);
-            if (timeDiff <= 15 * 60 * 1000 && minDiff <= 3) return true;
+        // Nepal Forest plants trees within 25-minute cycles
+        const fullCycles = Math.floor(totalMins / 25);
+        const remMins = totalMins % 25;
+        const chunks = [];
+
+        if (totalMins <= 25) {
+          chunks.push({ mins: totalMins, offsetMins: 0, cycleIdx: 0 });
+        } else {
+          for (let c = 0; c < fullCycles; c++) {
+            chunks.push({ mins: 25, offsetMins: c * 25, cycleIdx: c });
           }
-          return false;
-        });
-
-        if (!alreadyPlanted) {
-          history.push({
-            id: activePlant.id,
-            nepali: activePlant.nepali,
-            english: activePlant.english,
-            scientific: activePlant.scientific,
-            category: activePlant.category,
-            icon: activePlant.icon,
-            minutes: mins,
-            isHealthy: true,
-            timestamp: sessTime,
-            sessionKey: sessionKey,
-            source: 'charts'
-          });
-          updated = true;
+          if (remMins >= 1) {
+            chunks.push({ mins: remMins, offsetMins: fullCycles * 25, cycleIdx: fullCycles });
+          }
         }
+
+        chunks.forEach(chunk => {
+          const chunkSessTime = baseStartTime + ((chunk.offsetMins + chunk.mins) * 60 * 1000);
+          const chunkSessionKey = `${dateKey}_${sess.start.toFixed(2)}_${sess.hrs.toFixed(2)}_c${chunk.cycleIdx}`;
+
+          const alreadyPlanted = history.some(item => {
+            if (item.sessionKey === chunkSessionKey) return true;
+            if (item.timestamp >= startOfDay) {
+              const timeDiff = Math.abs(item.timestamp - chunkSessTime);
+              const minDiff = Math.abs((item.minutes || 0) - chunk.mins);
+              if (timeDiff <= 15 * 60 * 1000 && minDiff <= 3) return true;
+            }
+            return false;
+          });
+
+          if (!alreadyPlanted) {
+            history.push({
+              id: activePlant.id,
+              nepali: activePlant.nepali,
+              english: activePlant.english,
+              scientific: activePlant.scientific,
+              category: activePlant.category,
+              icon: activePlant.icon,
+              minutes: chunk.mins,
+              isHealthy: true,
+              timestamp: chunkSessTime,
+              sessionKey: chunkSessionKey,
+              source: 'charts'
+            });
+            updated = true;
+          }
+        });
       });
 
       if (updated) {
