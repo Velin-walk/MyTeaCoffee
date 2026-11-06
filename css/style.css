@@ -1150,15 +1150,36 @@
     .forest-grid-canvas {
       width: 100%;
       box-sizing: border-box;
-      background: transparent;
-      border: none;
-      padding: 0;
+      background: radial-gradient(ellipse at 50% 45%, rgba(130, 205, 57, 0.09) 0%, rgba(68, 108, 40, 0.03) 50%, transparent 75%);
+      border: 1px solid rgba(255, 255, 255, 0.06);
+      border-radius: 20px;
+      padding: 30px 16px 44px;
+      margin: 8px 0;
       position: relative;
-      box-shadow: none;
+      box-shadow: inset 0 1px 1px rgba(255, 255, 255, 0.1), inset 0 -20px 40px rgba(0, 0, 0, 0.04);
       overflow: visible;
       display: flex;
       justify-content: center;
       align-items: center;
+      perspective: 1500px;
+      perspective-origin: 50% 38%;
+      transform-style: preserve-3d;
+    }
+
+    /* Ambient Depth Occlusion / Ground Cast Shadow beneath floating island */
+    .forest-grid-canvas::after {
+      content: '';
+      position: absolute;
+      bottom: 8px;
+      left: 50%;
+      transform: translateX(-50%) rotateX(65deg);
+      width: min(85%, 520px);
+      height: 110px;
+      border-radius: 50%;
+      background: radial-gradient(ellipse at center, rgba(16, 26, 12, 0.42) 0%, rgba(16, 26, 12, 0.22) 40%, rgba(16, 26, 12, 0.08) 60%, transparent 75%);
+      filter: blur(14px);
+      pointer-events: none;
+      z-index: 0;
     }
 
     /* Isometric 3D Garden Platform Terrain */
@@ -1168,6 +1189,7 @@
       margin: 0 auto;
       box-sizing: border-box;
       position: relative;
+      z-index: 1;
       border-radius: 18px;
       overflow: hidden;
       box-shadow: 0 16px 40px rgba(0, 0, 0, 0.22), 0 4px 12px rgba(0, 0, 0, 0.1);
