@@ -36,18 +36,20 @@
       } else {
         // Open Timer Mode: Once 25 minutes (1500s) is complete, start planting new tree!
         const completedCycles = Math.floor(forestOpenElapsedSeconds / 1500);
-        if (completedCycles > forestOpenPlantedCount) {
+        // Safety cap: at most 5 trees per tick to prevent runaway mass-planting from any anomaly
+        const safeTargetCycles = Math.min(completedCycles, forestOpenPlantedCount + 5);
+        if (safeTargetCycles > forestOpenPlantedCount) {
           const plant = (typeof getSelectedPlant === 'function')
             ? getSelectedPlant()
             : (typeof getSelectedNepalPlant === 'function' ? getSelectedNepalPlant() : null);
           if (!plant) return;
 
-          for (let c = forestOpenPlantedCount + 1; c <= completedCycles; c++) {
+          for (let c = forestOpenPlantedCount + 1; c <= safeTargetCycles; c++) {
             if (typeof saveForestPlantToHistory === 'function') {
               saveForestPlantToHistory(plant, 25, true, 'mature', 100);
             }
           }
-          forestOpenPlantedCount = completedCycles;
+          forestOpenPlantedCount = safeTargetCycles;
 
           if (typeof playForestChime === 'function') {
             playForestChime();
@@ -177,6 +179,11 @@
         localStorage.removeItem('activeFocusSession');
       } catch (e) {}
 
+      // Clear server state so reload never resurrects old timers
+      if (typeof saveState === 'function') {
+        saveState("Open", 0);
+      }
+
       // Reset Study Charts UI
       const openDisplay = document.getElementById('openDisplay');
       if (openDisplay) {
@@ -272,19 +279,127 @@
     }
 
     function saveState(type, startTime, targetDuration = null) {
-      fetch(WEB_APP_URL, { method: "POST", mode: "no-cors", body: JSON.stringify({ action: "saveState", type, startTime, targetDuration }) });
+      try {
+        fetch(WEB_APP_URL, {
+          method: "POST",
+          mode: "no-cors",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ action: "saveState", type, startTime, targetDuration })
+        }).catch(() => {});
+      } catch (e) {}
+    }
+
+    // Refresh all charts and dashboard panels
+    function refreshAllDashboardMetrics() {
+      if (typeof loadChartDailyWithCache === 'function') loadChartDailyWithCache();
+      if (typeof loadChartWeeklyWithCache === 'function') loadChartWeeklyWithCache();
+      if (typeof loadChartMonthlyWithCache === 'function') loadChartMonthlyWithCache();
+      if (typeof loadPlannerWithCache === 'function') loadPlannerWithCache();
+      if (typeof loadCalendarData === 'function') loadCalendarData();
+      if (typeof loadHourlyDist === 'function') loadHourlyDist();
+      if (typeof load24HourWatchWithCache === 'function') load24HourWatchWithCache();
+      if (typeof loadMountain === 'function') loadMountain();
+      if (typeof loadScatter === 'function') loadScatter();
+      if (typeof loadMasterChronometer === 'function') loadMasterChronometer();
+      if (typeof generateSchedule === 'function') generateSchedule();
+      if (typeof loadActualStudySessions === 'function') loadActualStudySessions();
+      if (typeof loadDailyProgressChart === 'function') loadDailyProgressChart();
+      if (typeof loadWeeklySessionsChart === 'function') loadWeeklySessionsChart();
+      if (typeof loadActiveHoursChart === 'function') loadActiveHoursChart();
+    }
+
+    // Resilient offline-first study session queue
+    var isFlushingLogs = false;
+    async function flushPendingStudyLogs() {
+      if (isFlushingLogs) return;
+      isFlushingLogs = true;
+      try {
+        let queue = [];
+        try {
+          queue = JSON.parse(localStorage.getItem('pendingStudyLogs')) || [];
+        } catch (e) { queue = []; }
+        if (!Array.isArray(queue) || queue.length === 0) {
+          isFlushingLogs = false;
+          return;
+        }
+
+        const remaining = [];
+        for (const item of queue) {
+          try {
+            await fetch(WEB_APP_URL, {
+              method: "POST",
+              mode: "no-cors",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify(item)
+            });
+          } catch (err) {
+            console.warn("[StudyQueue] Error sending log item, will retry:", err);
+            remaining.push(item);
+          }
+        }
+
+        try {
+          localStorage.setItem('pendingStudyLogs', JSON.stringify(remaining));
+        } catch (e) {}
+
+        // Schedule chart reloads with cold-start tolerance: initial at 2.5s and verification at 5.5s
+        setTimeout(refreshAllDashboardMetrics, 2500);
+        setTimeout(refreshAllDashboardMetrics, 5500);
+      } finally {
+        isFlushingLogs = false;
+      }
     }
 
     function logData(type, duration, target) {
-      fetch(WEB_APP_URL, { method: "POST", mode: "no-cors", body: JSON.stringify({ type, duration, target }) }).then(() => {
-        setTimeout(() => { 
-          loadChartDailyWithCache(); loadChartWeeklyWithCache(); loadChartMonthlyWithCache();
-          loadPlannerWithCache(); loadCalendarData(); loadHourlyDist();
-          load24HourWatchWithCache(); loadMountain(); loadScatter();
-          loadMasterChronometer();
-          generateSchedule(); loadActualStudySessions(); loadDailyProgressChart();
-          loadWeeklySessionsChart();
-          loadActiveHoursChart();
-        }, 1500);
-      });
+      const payload = { type, duration, target, timestamp: Date.now() };
+      let queue = [];
+      try {
+        queue = JSON.parse(localStorage.getItem('pendingStudyLogs')) || [];
+      } catch (e) { queue = []; }
+      queue.push(payload);
+      try {
+        localStorage.setItem('pendingStudyLogs', JSON.stringify(queue));
+      } catch (e) {}
+
+      flushPendingStudyLogs();
     }
+
+    window.addEventListener('online', flushPendingStudyLogs);
+    window.addEventListener('DOMContentLoaded', flushPendingStudyLogs);
+
+    // Cross-Device Sync: Check server state every 10 seconds and on visibility change to detect if timer was stopped on phone/another device
+    setInterval(() => {
+      if ((typeof isForestRunning !== 'undefined' && isForestRunning) || (typeof openStartTime !== 'undefined' && openStartTime)) {
+        fetch(`${WEB_APP_URL}?action=getState&_t=${Date.now()}`)
+          .then(res => res.json())
+          .then(props => {
+            const serverStart = props && props.Open_startTime ? parseInt(props.Open_startTime, 10) : 0;
+            if (!serverStart || serverStart <= 0) {
+              if (typeof finishAndPlantSharedSession === 'function' && isForestRunning) {
+                finishAndPlantSharedSession(true);
+              } else if (typeof stopOpen === 'function') {
+                stopOpen();
+              }
+            }
+          })
+          .catch(() => {});
+      }
+    }, 10000);
+
+    document.addEventListener('visibilitychange', () => {
+      if (!document.hidden && ((typeof isForestRunning !== 'undefined' && isForestRunning) || (typeof openStartTime !== 'undefined' && openStartTime))) {
+        fetch(`${WEB_APP_URL}?action=getState&_t=${Date.now()}`)
+          .then(res => res.json())
+          .then(props => {
+            const serverStart = props && props.Open_startTime ? parseInt(props.Open_startTime, 10) : 0;
+            if (!serverStart || serverStart <= 0) {
+              if (typeof finishAndPlantSharedSession === 'function' && isForestRunning) {
+                finishAndPlantSharedSession(true);
+              } else if (typeof stopOpen === 'function') {
+                stopOpen();
+              }
+            }
+          })
+          .catch(() => {});
+      }
+    });

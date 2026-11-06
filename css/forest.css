@@ -586,28 +586,41 @@
       box-sizing: border-box;
     }
 
-    /* Mini Grassland with Soil Terrain */
-    .mini-grassland-terrain {
+    .forest-grid-plots {
       width: 100%;
       box-sizing: border-box;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+    }
+
+    /* Isometric 3D Garden Platform Terrain */
+    .mini-grassland-terrain {
+      width: fit-content;
+      max-width: 100%;
+      margin: 0 auto;
+      box-sizing: border-box;
       position: relative;
-      border-radius: 20px;
+      border-radius: 18px;
       overflow: hidden;
-      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.12), 0 2px 8px rgba(0, 0, 0, 0.06);
-      border: 2px solid rgba(255, 255, 255, 0.28);
+      box-shadow: 0 16px 40px rgba(0, 0, 0, 0.22), 0 4px 12px rgba(0, 0, 0, 0.1);
+      border: 2px solid rgba(255, 255, 255, 0.45);
       display: flex;
       flex-direction: column;
       background: #3e261a;
+      transform: perspective(1400px) rotateX(10deg);
+      transform-style: preserve-3d;
     }
 
-    /* 1. Lush Green Grassland Meadow Surface (Top) */
+    /* Vibrant Isometric Grassland Surface - tightly bounded to plant edges */
     .grassland-surface {
       position: relative;
-      width: 100%;
-      min-height: 220px;
-      background: linear-gradient(180deg, #8dc754 0%, #75b542 45%, #5d9b32 100%);
-      box-shadow: inset 0 2px 4px rgba(255, 255, 255, 0.45), inset 0 -4px 8px rgba(0, 0, 0, 0.15);
-      padding: 24px 20px;
+      width: fit-content;
+      max-width: 100%;
+      min-height: auto;
+      background: linear-gradient(135deg, #a3d957 0%, #82cd39 50%, #6bc025 100%);
+      box-shadow: inset 0 2px 6px rgba(255, 255, 255, 0.5), inset 0 -4px 12px rgba(0, 0, 0, 0.2);
+      padding: 4px 6px;
       display: flex;
       flex-direction: column;
       align-items: center;
@@ -619,22 +632,26 @@
       content: '';
       position: absolute;
       inset: 0;
+      opacity: 0.35;
       background-image: 
-        radial-gradient(ellipse at 50% 0%, rgba(255, 255, 255, 0.25) 0%, transparent 65%),
-        radial-gradient(circle at 18% 40%, rgba(255, 255, 255, 0.08) 0%, transparent 35%),
-        radial-gradient(circle at 82% 50%, rgba(255, 255, 255, 0.08) 0%, transparent 35%);
+        linear-gradient(45deg, rgba(255, 255, 255, 0.15) 25%, transparent 25%), 
+        linear-gradient(-45deg, rgba(255, 255, 255, 0.15) 25%, transparent 25%), 
+        linear-gradient(45deg, transparent 75%, rgba(255, 255, 255, 0.15) 75%), 
+        linear-gradient(-45deg, transparent 75%, rgba(255, 255, 255, 0.15) 75%);
+      background-size: 40px 40px;
+      background-position: 0 0, 0 20px, 20px -20px, -20px 0px;
       pointer-events: none;
     }
 
-    /* Grass-edge fringe transition into the soil */
+    /* Soil-edge fringe transition into the soil layer */
     .grassland-fringe {
       position: relative;
       width: 100%;
       height: 14px;
-      background: #4f852a;
-      background-image: radial-gradient(circle at 10px 0, #5d9b32 10px, #427221 11px);
+      background: #442a1b;
+      background-image: radial-gradient(circle at 10px 0, #543422 10px, #321c11 11px);
       background-size: 20px 14px;
-      border-bottom: 2px solid #361f14;
+      border-bottom: 2px solid #201109;
     }
 
     /* 2. Rich Soil Earth Layer (Bottom Cross-Section) */
@@ -731,34 +748,39 @@
       position: relative;
       z-index: 2;
       display: grid;
-      grid-template-columns: repeat(auto-fill, minmax(110px, 1fr));
-      gap: 16px;
+      grid-template-columns: repeat(auto-fill, minmax(100px, 1fr));
+      gap: 2px 4px;
+      justify-items: center;
+      align-items: end;
       width: 100%;
       box-sizing: border-box;
       max-width: 1200px;
+      padding: 8px 0;
     }
 
     .planted-tree-item {
-      background: rgba(255, 255, 255, 0.18);
-      backdrop-filter: blur(4px);
-      -webkit-backdrop-filter: blur(4px);
-      border: 1px solid rgba(255, 255, 255, 0.35);
-      border-radius: 16px;
-      padding: 12px 8px 10px;
+      background: transparent;
+      backdrop-filter: none;
+      -webkit-backdrop-filter: none;
+      border: none;
+      border-radius: 0;
+      padding: 0;
+      margin: -8px -6px;
       display: flex;
       flex-direction: column;
       align-items: center;
-      justify-content: center;
+      justify-content: flex-end;
       text-align: center;
-      transition: transform 0.2s ease, box-shadow 0.2s ease, background 0.2s ease;
+      transition: transform 0.2s ease, z-index 0.2s ease;
       cursor: pointer;
       position: relative;
     }
 
     .planted-tree-item:hover {
-      transform: translateY(-4px);
-      background: rgba(255, 255, 255, 0.28);
-      box-shadow: 0 8px 20px rgba(0, 0, 0, 0.15);
+      transform: translateY(-6px) scale(1.05);
+      background: transparent;
+      box-shadow: none;
+      z-index: 10;
     }
 
     .planted-tree-item.withered {
@@ -767,13 +789,13 @@
     }
 
     .planted-tree-icon {
-      width: 58px;
-      height: 58px;
+      width: 174px;
+      height: 174px;
       display: flex;
       align-items: center;
       justify-content: center;
-      margin-bottom: 6px;
-      filter: drop-shadow(0 4px 6px rgba(0, 0, 0, 0.2));
+      margin-bottom: 2px;
+      filter: drop-shadow(0 5px 10px rgba(0, 0, 0, 0.25));
     }
 
     .planted-tree-icon svg {

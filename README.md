@@ -1,6 +1,6 @@
 # 📲 Installation Instructions
 
-This is a **Progressive Web App (PWA)**. You can install it on your device to use it as a standalone app that works offline.
+This is a **Progressive Web App (PWA)**. You can install it on your device to use it as a standalone app. (An internet connection is required: the app deliberately does no caching, but study sessions that finish while offline are queued and sent when you reconnect.)
 
 ### 💻 Desktop (Chrome or Edge)
 1. Open the app link in your browser.

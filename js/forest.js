@@ -666,7 +666,6 @@
           return `
             <div class="planted-tree-item ${isWith ? 'withered' : ''} stage-${stageInfo.stage}" title="${item.nepali} (${item.english}) - ${item.minutes}m • ${formatted}">
               <div class="planted-tree-icon">${iconContent}</div>
-              <div class="planted-tree-name">${item.nepali}</div>
               <div class="planted-tree-meta">${item.minutes}m • ${formatted}</div>
             </div>
           `;
@@ -690,6 +689,7 @@
           </div>
         </div>
       `;
+      setTimeout(initForestZoom, 50);
     }
 
     function scrollToForestTimer() {
@@ -704,8 +704,62 @@
       document.getElementById('btnFilterToday')?.classList.toggle('active', type === 'today');
       document.getElementById('btnFilterWeek')?.classList.toggle('active', type === 'week');
       document.getElementById('btnFilterAll')?.classList.toggle('active', type === 'all');
+      document.getElementById('filterTodayBtn')?.classList.toggle('active', type === 'today');
+      document.getElementById('filterWeekBtn')?.classList.toggle('active', type === 'week');
+      document.getElementById('filterAllBtn')?.classList.toggle('active', type === 'all');
       renderForestPlots();
     }
+    window.filterForest = filterForest;
+    window.filterForestGrid = filterForest;
+
+    var forestZoomLevel = 1.0;
+    function initForestZoom() {
+      const terrain = document.querySelector('.mini-grassland-terrain');
+      if (!terrain || terrain.dataset.zoomInitialized) return;
+      terrain.dataset.zoomInitialized = 'true';
+
+      // Mouse wheel zoom
+      terrain.addEventListener('wheel', (e) => {
+        e.preventDefault();
+        const delta = e.deltaY < 0 ? 0.12 : -0.12;
+        forestZoomLevel = Math.max(0.5, Math.min(3.0, forestZoomLevel + delta));
+        terrain.style.transform = `perspective(1400px) rotateX(10deg) scale(${forestZoomLevel})`;
+        terrain.style.transformOrigin = 'center top';
+      }, { passive: false });
+
+      // Mobile touch pinch zoom
+      let initialPinchDistance = null;
+      terrain.addEventListener('touchstart', (e) => {
+        if (e.touches.length === 2) {
+          initialPinchDistance = Math.hypot(
+            e.touches[0].clientX - e.touches[1].clientX,
+            e.touches[0].clientY - e.touches[1].clientY
+          );
+        }
+      }, { passive: true });
+
+      terrain.addEventListener('touchmove', (e) => {
+        if (e.touches.length === 2 && initialPinchDistance !== null) {
+          e.preventDefault();
+          const currentDistance = Math.hypot(
+            e.touches[0].clientX - e.touches[1].clientX,
+            e.touches[0].clientY - e.touches[1].clientY
+          );
+          const scaleFactor = currentDistance / initialPinchDistance;
+          initialPinchDistance = currentDistance;
+          forestZoomLevel = Math.max(0.5, Math.min(3.0, forestZoomLevel * scaleFactor));
+          terrain.style.transform = `perspective(1400px) rotateX(10deg) scale(${forestZoomLevel})`;
+          terrain.style.transformOrigin = 'center top';
+        }
+      }, { passive: false });
+
+      terrain.addEventListener('touchend', (e) => {
+        if (e.touches.length < 2) {
+          initialPinchDistance = null;
+        }
+      });
+    }
+    window.initForestZoom = initForestZoom;
 
     // ================= 50 PLANTS CATALOG MODAL =================
     function openPlantsModal() {
@@ -904,12 +958,95 @@
         }
       } catch (e) {}
 
-      // Sync sessions from study charts / Google Sheets backend
-      fetch(`${WEB_APP_URL}?action=getWatchData&_t=${Date.now()}`)
-        .then(res => res.json())
-        .then(sessions => syncWatchSessionsToForest(sessions))
-        .catch(() => {});
+      // Sync past 7 days of sessions from study charts / Google Sheets backend
+      fetchPastWeekWatchSessionsToForest();
     });
+
+    async function fetchPastWeekWatchSessionsToForest() {
+      const plant = getCurrentPlant();
+      if (!plant) return;
+      let history = [];
+      try {
+        history = JSON.parse(localStorage.getItem('nepalForestHistory')) || [];
+      } catch (e) { history = []; }
+
+      let updated = false;
+      const now = new Date();
+
+      for (let d = 0; d < 7; d++) {
+        try {
+          const res = await fetch(`${WEB_APP_URL}?action=getWatchData&daysAgo=${d}&_t=${Date.now()}`);
+          const sessions = await res.json();
+          if (!Array.isArray(sessions) || sessions.length === 0) continue;
+
+          const targetDate = new Date(now.getFullYear(), now.getMonth(), now.getDate() - d);
+          const dateKey = targetDate.toISOString().slice(0, 10);
+
+          sessions.forEach(sess => {
+            if (typeof sess.hrs !== 'number' || sess.hrs <= 0) return;
+            const totalMins = Math.max(1, Math.round(sess.hrs * 60));
+            const startHour = Math.floor(sess.start);
+            const startMin = Math.round((sess.start % 1) * 60);
+            const baseStartTime = new Date(targetDate.getFullYear(), targetDate.getMonth(), targetDate.getDate(), startHour, startMin).getTime();
+
+            const fullCycles = Math.floor(totalMins / 25);
+            const remMins = totalMins % 25;
+            const chunks = [];
+
+            if (totalMins <= 25) {
+              chunks.push({ mins: totalMins, offsetMins: 0, cycleIdx: 0 });
+            } else {
+              for (let c = 0; c < fullCycles; c++) {
+                chunks.push({ mins: 25, offsetMins: c * 25, cycleIdx: c });
+              }
+              if (remMins >= 1) {
+                chunks.push({ mins: remMins, offsetMins: fullCycles * 25, cycleIdx: fullCycles });
+              }
+            }
+
+            chunks.forEach(chunk => {
+              const chunkSessTime = baseStartTime + ((chunk.offsetMins + chunk.mins) * 60 * 1000);
+              const chunkSessionKey = `${dateKey}_${sess.start.toFixed(2)}_${sess.hrs.toFixed(2)}_c${chunk.cycleIdx}`;
+
+              const alreadyPlanted = history.some(item => {
+                if (item.sessionKey === chunkSessionKey) return true;
+                const timeDiff = Math.abs(item.timestamp - chunkSessTime);
+                const minDiff = Math.abs((item.minutes || 0) - chunk.mins);
+                if (timeDiff <= 30 * 60 * 1000 && minDiff <= 3) return true;
+                return false;
+              });
+
+              if (!alreadyPlanted) {
+                history.push({
+                  id: plant.id,
+                  slug: plant.slug,
+                  nepali: plant.nepali,
+                  english: plant.english,
+                  scientific: plant.scientific,
+                  category: plant.category,
+                  minutes: chunk.mins,
+                  isHealthy: true,
+                  stage: chunk.mins >= 25 ? 'mature' : 'growing',
+                  growthPercent: chunk.mins >= 25 ? 100 : Math.round((chunk.mins / 25) * 100),
+                  timestamp: chunkSessTime,
+                  sessionKey: chunkSessionKey,
+                  source: 'charts-sync'
+                });
+                updated = true;
+              }
+            });
+          });
+        } catch (e) {}
+      }
+
+      if (updated) {
+        try {
+          localStorage.setItem('nepalForestHistory', JSON.stringify(history));
+        } catch (e) {}
+        if (typeof renderForestPlots === 'function') renderForestPlots();
+        if (typeof renderMyForest === 'function') renderMyForest();
+      }
+    }
 
     // Cross-tab synchronization
     window.addEventListener('storage', (e) => {

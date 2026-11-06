@@ -51,12 +51,15 @@ app.all(['/api/data', '/api/proxy'], async (req, res) => {
         if (response.ok) {
           const text = await response.text();
           if (cacheKey && text) {
+            if (memoryCache.size >= 200) memoryCache.delete(memoryCache.keys().next().value);
             memoryCache.set(cacheKey, text);
           }
           res.setHeader('Content-Type', 'application/json; charset=utf-8');
           res.setHeader('Access-Control-Allow-Origin', '*');
           return res.status(200).send(text);
         }
+        res.setHeader('Access-Control-Allow-Origin', '*');
+        return res.status(502).json({ error: 'Upstream error', status: response.status });
       } catch (networkErr) {
         console.warn('[Proxy] Network fetch failed, checking memory cache:', networkErr.message);
         if (cacheKey && memoryCache.has(cacheKey)) {
@@ -96,6 +99,13 @@ app.all(['/api/data', '/api/proxy'], async (req, res) => {
   }
 });
 
+// Never serve server/config files as static assets
+const BLOCKED_FILES = new Set(['/server.js', '/package.json', '/package-lock.json', '/metadata.json', '/wrangler.jsonc', '/bun.lock', '/readme.md']);
+app.use((req, res, next) => {
+  if (BLOCKED_FILES.has(req.path.toLowerCase())) return res.status(404).send('Not found');
+  next();
+});
+
 // Serve static assets with strict no-cache
 app.use(express.static(__dirname, {
   etag: false,
@@ -119,6 +129,7 @@ app.get('/forest', (req, res) => {
 
 // Single Page Application fallback to index.html
 app.get('*', (req, res) => {
+  if (path.extname(req.path)) return res.status(404).send('Not found');
   res.sendFile(path.join(__dirname, 'index.html'));
 });
 

@@ -133,9 +133,22 @@
     };
 
     function restoreSessions(props) {
-      if (props.Open_startTime) { 
-        openStartTime = parseInt(props.Open_startTime); 
-        startOpen(true); 
+      // Do not override if an active session (such as Fixed countdown) was already restored or started locally
+      if (typeof isForestRunning !== 'undefined' && isForestRunning) return;
+      if (!props || !props.Open_startTime) return;
+
+      const serverStart = parseInt(props.Open_startTime, 10);
+      if (isNaN(serverStart) || serverStart <= 0) return;
+
+      // 12-hour expiration cap to prevent resurrecting stale multi-day timers and mass-planting
+      const elapsed = (Date.now() - serverStart) / 1000;
+      if (elapsed < 0 || elapsed > 12 * 3600) {
+        return;
+      }
+
+      openStartTime = serverStart;
+      if (typeof startOpen === 'function') {
+        startOpen(true);
       }
     }
 
@@ -252,42 +265,69 @@
 
 var calendarStats = {};
 
+function getDayHoursFromStats(dateObj) {
+  const y = dateObj.getFullYear();
+  const m = (dateObj.getMonth() + 1).toString().padStart(2, '0');
+  const d = dateObj.getDate().toString().padStart(2, '0');
+  const fullKey = `${y}-${m}-${d}`;
+  const legacyKey = dateObj.toLocaleDateString('en-US', { month: 'short', day: '2-digit' });
+  if (calendarStats[fullKey] !== undefined) return calendarStats[fullKey];
+  if (calendarStats[legacyKey] !== undefined) return calendarStats[legacyKey];
+  return 0;
+}
+
 async function loadCalendarData() {
   try {
     const allData = await fetch(`${WEB_APP_URL}?view=Daily`).then(res => res.json());
     if (!allData || !Array.isArray(allData) || allData.length <= 1) return;
 
     calendarStats = {};
+    const now = new Date();
+    const currentYear = now.getFullYear();
+    const years = new Set([currentYear]);
+
     for (let i = 1; i < allData.length; i++) {
       const row = allData[i];
-      const dateStr = row[0];
+      const rawDateStr = row[0];
+      if (!rawDateStr) continue;
+
+      const parsedDate = (typeof parseSessionDate === 'function')
+        ? parseSessionDate(rawDateStr)
+        : (/\b\d{4}\b/.test(rawDateStr) ? new Date(rawDateStr) : new Date(rawDateStr + ' ' + currentYear));
+
+      const parsedYear = parsedDate.getFullYear();
+      if (!isNaN(parsedYear)) years.add(parsedYear);
+
       let dailyTotal = 0;
       for (let j = 1; j < row.length; j += 3) {
         if (typeof row[j] === 'number') dailyTotal += row[j];
       }
-      calendarStats[dateStr] = dailyTotal;
+
+      const y = parsedDate.getFullYear();
+      const m = (parsedDate.getMonth() + 1).toString().padStart(2, '0');
+      const d = parsedDate.getDate().toString().padStart(2, '0');
+      const fullKey = `${y}-${m}-${d}`;
+      calendarStats[fullKey] = dailyTotal;
+      calendarStats[rawDateStr] = dailyTotal;
     }
 
-    // Populate year dropdown
-    const years = new Set();
-    Object.keys(calendarStats).forEach(dateStr => {
-      const year = new Date(dateStr + ' 2026').getFullYear();
-      years.add(year);
-    });
-
+    // Populate year dropdown dynamically with current and recorded years
     const yearSelect = document.getElementById('yearSelect');
-    yearSelect.innerHTML = '';
-    Array.from(years).sort().reverse().forEach(year => {
-      const option = document.createElement('option');
-      option.value = year;
-      option.textContent = year;
-      yearSelect.appendChild(option);
-    });
+    if (yearSelect) {
+      yearSelect.innerHTML = '';
+      Array.from(years).sort().reverse().forEach(year => {
+        const option = document.createElement('option');
+        option.value = year;
+        option.textContent = year;
+        yearSelect.appendChild(option);
+      });
+      yearSelect.value = currentYear;
+    }
 
-    // Set current month/year
-    const now = new Date();
-    document.getElementById('monthSelect').value = now.getMonth();
-    document.getElementById('yearSelect').value = now.getFullYear();
+    const monthSelect = document.getElementById('monthSelect');
+    if (monthSelect) {
+      monthSelect.value = now.getMonth();
+    }
 
     updateCalendar();
   } catch (error) {
@@ -296,10 +336,15 @@ async function loadCalendarData() {
 }
 
 function updateCalendar() {
-  const month = parseInt(document.getElementById('monthSelect').value);
-  const year = parseInt(document.getElementById('yearSelect').value);
+  const monthSelect = document.getElementById('monthSelect');
+  const yearSelect = document.getElementById('yearSelect');
+  if (!monthSelect || !yearSelect) return;
+
+  const month = parseInt(monthSelect.value, 10);
+  const year = parseInt(yearSelect.value, 10);
 
   const container = document.getElementById('calendarContainer');
+  if (!container) return;
   container.innerHTML = '';
 
   // Add day headers
@@ -323,13 +368,21 @@ function updateCalendar() {
   }
 
   // Add day cells
+  const now = new Date();
+  const isCurrentMonthAndYear = (now.getFullYear() === year && now.getMonth() === month);
+  const currentDayNum = now.getDate();
+
   let totalHours = 0, daysWithData = 0;
-  let longestStreak = 0, currentStreak = 0;
+  let longestStreak = 0, tempStreak = 0;
 
   for (let day = 1; day <= daysInMonth; day++) {
     const d = new Date(year, month, day);
-    const dateStr = d.toLocaleDateString('en-US', { month: 'short', day: '2-digit' });
-    const h = calendarStats[dateStr] || 0;
+    const yStr = year.toString();
+    const mStr = (month + 1).toString().padStart(2, '0');
+    const dStr = day.toString().padStart(2, '0');
+    const fullKey = `${yStr}-${mStr}-${dStr}`;
+    const legacyKey = d.toLocaleDateString('en-US', { month: 'short', day: '2-digit' });
+    const h = calendarStats[fullKey] !== undefined ? calendarStats[fullKey] : (calendarStats[legacyKey] || 0);
 
     let lvl = h > 5 ? 4 : h > 3 ? 3 : h > 1 ? 2 : h > 0 ? 1 : 0;
 
@@ -339,19 +392,50 @@ function updateCalendar() {
 
     const cell = document.createElement('div');
     cell.className = `calendar-day lvl-${lvl}`;
+    if (isCurrentMonthAndYear && day === currentDayNum) {
+      cell.classList.add('today');
+    }
     cell.innerHTML = `<div class="calendar-day-number">${day}</div><div class="calendar-day-hours">${timeStr}</div>`;
-    cell.title = `${dateStr}: ${h > 0 ? hours + 'h ' + minutes + 'm' : '0h'}`;
+    cell.title = `${legacyKey}: ${h > 0 ? hours + 'h ' + minutes + 'm' : '0h'}`;
 
     if (h > 0) {
       totalHours += h;
       daysWithData++;
-      currentStreak++;
-      if (currentStreak > longestStreak) longestStreak = currentStreak;
-    } else {
-      currentStreak = 0;
+    }
+
+    // Longest streak tracks all days that have already occurred
+    const hasDayOccurred = !isCurrentMonthAndYear || (day <= currentDayNum);
+    if (hasDayOccurred) {
+      if (h > 0) {
+        tempStreak++;
+        if (tempStreak > longestStreak) longestStreak = tempStreak;
+      } else {
+        tempStreak = 0;
+      }
     }
 
     container.appendChild(cell);
+  }
+
+  // Calculate current streak accurately backwards from today
+  let currentStreak = 0;
+  const walkDate = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+  const todayHours = getDayHoursFromStats(walkDate);
+
+  if (todayHours > 0) {
+    currentStreak = 1;
+    walkDate.setDate(walkDate.getDate() - 1);
+    while (getDayHoursFromStats(walkDate) > 0) {
+      currentStreak++;
+      walkDate.setDate(walkDate.getDate() - 1);
+    }
+  } else {
+    // If not studied yet today, check if yesterday was studied (streak is still alive today)
+    walkDate.setDate(walkDate.getDate() - 1);
+    while (getDayHoursFromStats(walkDate) > 0) {
+      currentStreak++;
+      walkDate.setDate(walkDate.getDate() - 1);
+    }
   }
 
   // Update stats
@@ -568,9 +652,13 @@ function loadHourlyDist() {
         const dailyGoal = (goalData && goalData.goal) || 4;
         let totalStudyH = 0, totalBreakM = 0, totalRestH = 0;
         const getArc = (sVal, dVal, tVal, outR, innR) => {
-          const sA = (sVal / tVal) * 360 - 90, eA = ((sVal + dVal) / tVal) * 360 - 90;
+          if (tVal <= 0 || dVal <= 0) return '';
+          // Avoid 360-degree SVG degenerate arc where start == end point produces 0 length
+          const clampedD = Math.min(dVal, tVal * 0.9999);
+          const sA = (sVal / tVal) * 360 - 90;
+          const eA = ((sVal + clampedD) / tVal) * 360 - 90;
           const sR = (sA * Math.PI) / 180, eR = (eA * Math.PI) / 180;
-          const large = (dVal / tVal) > 0.5 ? 1 : 0;
+          const large = (clampedD / tVal) > 0.5 ? 1 : 0;
           return `M ${150+outR*Math.cos(sR)} ${150+outR*Math.sin(sR)} A ${outR} ${outR} 0 ${large} 1 ${150+outR*Math.cos(eR)} ${150+outR*Math.sin(eR)} L ${150+innR*Math.cos(eR)} ${150+innR*Math.sin(eR)} A ${innR} ${innR} 0 ${large} 0 ${150+innR*Math.cos(sR)} ${150+innR*Math.sin(sR)} Z`;
         };
         if (Array.isArray(sessions) && sessions.length > 0) {
@@ -579,19 +667,50 @@ function loadHourlyDist() {
           sessions.forEach((sess, idx) => {
             totalStudyH += sess.hrs;
             const sessionColor = colors[idx % colors.length];
-            const tPath = document.createElementNS('http://www.w3.org/2000/svg', 'path');
-            tPath.setAttribute('d', getArc(sess.start, sess.hrs, 24, 140, 105.5));
-            tPath.setAttribute('fill', sessionColor);
-            tPath.setAttribute('stroke', 'white');
-            tPath.setAttribute('stroke-width', '0.5');
-            if (temporalRing) temporalRing.appendChild(tPath);
-            const gPath = document.createElementNS('http://www.w3.org/2000/svg', 'path');
-            gPath.setAttribute('d', getArc(cumulativeHrs, sess.hrs, dailyGoal, 104.5, 70));
-            gPath.setAttribute('fill', sessionColor);
-            gPath.setAttribute('stroke', 'white');
-            gPath.setAttribute('stroke-width', '0.5');
-            if (goalRing) goalRing.appendChild(gPath);
+
+            // 1. 24-Hour Temporal Ring (handle crossing midnight if start + hrs > 24)
+            if (sess.start + sess.hrs > 24) {
+              const beforeMidnight = 24 - sess.start;
+              const afterMidnight = (sess.start + sess.hrs) - 24;
+              if (beforeMidnight > 0) {
+                const tPath1 = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+                tPath1.setAttribute('d', getArc(sess.start, beforeMidnight, 24, 140, 105.5));
+                tPath1.setAttribute('fill', sessionColor);
+                tPath1.setAttribute('stroke', 'white');
+                tPath1.setAttribute('stroke-width', '0.5');
+                if (temporalRing) temporalRing.appendChild(tPath1);
+              }
+              if (afterMidnight > 0) {
+                const tPath2 = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+                tPath2.setAttribute('d', getArc(0, afterMidnight, 24, 140, 105.5));
+                tPath2.setAttribute('fill', sessionColor);
+                tPath2.setAttribute('stroke', 'white');
+                tPath2.setAttribute('stroke-width', '0.5');
+                if (temporalRing) temporalRing.appendChild(tPath2);
+              }
+            } else {
+              const tPath = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+              tPath.setAttribute('d', getArc(sess.start, sess.hrs, 24, 140, 105.5));
+              tPath.setAttribute('fill', sessionColor);
+              tPath.setAttribute('stroke', 'white');
+              tPath.setAttribute('stroke-width', '0.5');
+              if (temporalRing) temporalRing.appendChild(tPath);
+            }
+
+            // 2. Goal Ring: Draw arc portion up to dailyGoal without wrapping past 360 degrees
+            if (cumulativeHrs < dailyGoal) {
+              const sliceHrs = Math.min(sess.hrs, dailyGoal - cumulativeHrs);
+              if (sliceHrs > 0) {
+                const gPath = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+                gPath.setAttribute('d', getArc(cumulativeHrs, sliceHrs, dailyGoal, 104.5, 70));
+                gPath.setAttribute('fill', sessionColor);
+                gPath.setAttribute('stroke', 'white');
+                gPath.setAttribute('stroke-width', '0.5');
+                if (goalRing) goalRing.appendChild(gPath);
+              }
+            }
             cumulativeHrs += sess.hrs;
+
             if (idx < sessions.length - 1) {
               let gap = sessions[idx+1].start - (sess.start + sess.hrs);
               if (gap > 0) { if (gap >= 6) totalRestH += gap; else totalBreakM += (gap * 60); }
@@ -826,7 +945,10 @@ function loadHourlyDist() {
           const dayColors = ['#4285f4', '#34a853', '#fbbc05', '#ea4335', '#9b59b6', '#16a085', '#e74c3c'];
           const daySessionsData = last7Days.map((row, dayIdx) => {
             const dateStr = row[0];
-            const dayName = new Date(dateStr + ' 2026').toLocaleDateString('en-US', { weekday: 'short' });
+            const parsedDate = (typeof parseSessionDate === 'function')
+              ? parseSessionDate(dateStr)
+              : (/\b\d{4}\b/.test(dateStr) ? new Date(dateStr) : new Date(dateStr + ' ' + (new Date().getFullYear())));
+            const dayName = parsedDate.toLocaleDateString('en-US', { weekday: 'short' });
             const sessions = [];
             for (let j = 1; j < row.length; j += 3) {
               const hours = row[j];

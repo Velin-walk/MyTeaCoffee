@@ -4,6 +4,7 @@
   "description": "A comprehensive study and productivity tracking PWA with chronometer, analytics, and session planning.",
   "type": "module",
   "main": "server.js",
+  "engines": { "node": ">=18" },
   "scripts": {
     "dev": "node server.js",
     "start": "node server.js",

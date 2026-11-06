@@ -3,6 +3,13 @@ function formatHours(decimalHours) {
   const minutes = Math.round((decimalHours % 1) * 60);
   return hours > 0 ? `${hours}h ${minutes}m` : `${minutes}m`;
 }
+
+function parseSessionDate(dateStr) {
+  if (!dateStr) return new Date();
+  if (/\b\d{4}\b/.test(dateStr)) return new Date(dateStr);
+  return new Date(dateStr + ' ' + (new Date().getFullYear()));
+}
+window.parseSessionDate = parseSessionDate;
     // ============= INDEXEDDB SETUP =============
     var WEB_APP_URL = "https://script.google.com/macros/s/AKfycbwXOTn__dyqNI-8JvsTPEGtC4OPJYuC9-_jqIlq-lutQZDeQzlmM-46XwWAmWYQu8mT/exec";
     var db;
@@ -273,7 +280,7 @@ function formatHours(decimalHours) {
       const last7Days = data.slice(-7);
       const tableData = last7Days.map((row) => {
         const dateStr = row[0];
-        const dayOfWeek = new Date(dateStr + ' 2026').toLocaleDateString('en-US', { weekday: 'short' });
+        const dayOfWeek = parseSessionDate(dateStr).toLocaleDateString('en-US', { weekday: 'short' });
         let sessionCount = 0, totalStudyHours = 0;
         for (let j = 1; j < row.length; j += 3) { const hours = row[j]; if (typeof hours === 'number' && hours > 0) { sessionCount++; totalStudyHours += hours; } }
         return { dayOfWeek, dateStr, sessionCount, totalStudyHours };
