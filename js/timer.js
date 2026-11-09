@@ -74,6 +74,7 @@
 
       if (!isRestoring) {
         const now = Date.now();
+        localStartAt = now;
         openStartTime = now;
         forestSessionStartTime = now;
         forestOpenPlantedCount = 0;
@@ -282,9 +283,9 @@
       try {
         fetch(WEB_APP_URL, {
           method: "POST",
-          mode: "no-cors",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ action: "saveState", type, startTime, targetDuration })
+          headers: { "Content-Type": "text/plain;charset=utf-8" },
+          body: JSON.stringify({ action: "saveState", type, startTime, targetDuration }),
+          keepalive: true
         }).catch(() => {});
       } catch (e) {}
     }
@@ -308,98 +309,31 @@
       if (typeof loadActiveHoursChart === 'function') loadActiveHoursChart();
     }
 
-    // Resilient offline-first study session queue
-    var isFlushingLogs = false;
-    async function flushPendingStudyLogs() {
-      if (isFlushingLogs) return;
-      isFlushingLogs = true;
-      try {
-        let queue = [];
-        try {
-          queue = JSON.parse(localStorage.getItem('pendingStudyLogs')) || [];
-        } catch (e) { queue = []; }
-        if (!Array.isArray(queue) || queue.length === 0) {
-          isFlushingLogs = false;
-          return;
-        }
-
-        const remaining = [];
-        for (const item of queue) {
-          try {
-            await fetch(WEB_APP_URL, {
-              method: "POST",
-              mode: "no-cors",
-              headers: { "Content-Type": "application/json" },
-              body: JSON.stringify(item)
-            });
-          } catch (err) {
-            console.warn("[StudyQueue] Error sending log item, will retry:", err);
-            remaining.push(item);
+    let localStartAt = 0;           // set to Date.now() inside the start function
+    function checkRemoteState() {
+      fetch(`${WEB_APP_URL}?action=getState&_t=${Date.now()}`)
+        .then(r => r.json())
+        .then(props => {
+          const serverStart = parseInt(props && props.Open_startTime, 10) || 0;
+          if (serverStart > 0) return;
+          if (Date.now() - localStartAt < 30000) {          // still within grace period
+            saveState("Open", openStartTime || forestSessionStartTime);  // retry
+            return;
           }
-        }
-
-        try {
-          localStorage.setItem('pendingStudyLogs', JSON.stringify(remaining));
-        } catch (e) {}
-
-        // Schedule chart reloads with cold-start tolerance: initial at 2.5s and verification at 5.5s
-        setTimeout(refreshAllDashboardMetrics, 2500);
-        setTimeout(refreshAllDashboardMetrics, 5500);
-      } finally {
-        isFlushingLogs = false;
-      }
+          // genuinely stopped elsewhere
+          if (isForestRunning) finishAndPlantSharedSession(true); else stopOpen();
+        }).catch(() => {});
     }
-
-    function logData(type, duration, target) {
-      const payload = { type, duration, target, timestamp: Date.now() };
-      let queue = [];
-      try {
-        queue = JSON.parse(localStorage.getItem('pendingStudyLogs')) || [];
-      } catch (e) { queue = []; }
-      queue.push(payload);
-      try {
-        localStorage.setItem('pendingStudyLogs', JSON.stringify(queue));
-      } catch (e) {}
-
-      flushPendingStudyLogs();
-    }
-
-    window.addEventListener('online', flushPendingStudyLogs);
-    window.addEventListener('DOMContentLoaded', flushPendingStudyLogs);
 
     // Cross-Device Sync: Check server state every 10 seconds and on visibility change to detect if timer was stopped on phone/another device
     setInterval(() => {
       if ((typeof isForestRunning !== 'undefined' && isForestRunning) || (typeof openStartTime !== 'undefined' && openStartTime)) {
-        fetch(`${WEB_APP_URL}?action=getState&_t=${Date.now()}`)
-          .then(res => res.json())
-          .then(props => {
-            const serverStart = props && props.Open_startTime ? parseInt(props.Open_startTime, 10) : 0;
-            if (!serverStart || serverStart <= 0) {
-              if (typeof finishAndPlantSharedSession === 'function' && isForestRunning) {
-                finishAndPlantSharedSession(true);
-              } else if (typeof stopOpen === 'function') {
-                stopOpen();
-              }
-            }
-          })
-          .catch(() => {});
+        checkRemoteState();
       }
     }, 10000);
 
     document.addEventListener('visibilitychange', () => {
       if (!document.hidden && ((typeof isForestRunning !== 'undefined' && isForestRunning) || (typeof openStartTime !== 'undefined' && openStartTime))) {
-        fetch(`${WEB_APP_URL}?action=getState&_t=${Date.now()}`)
-          .then(res => res.json())
-          .then(props => {
-            const serverStart = props && props.Open_startTime ? parseInt(props.Open_startTime, 10) : 0;
-            if (!serverStart || serverStart <= 0) {
-              if (typeof finishAndPlantSharedSession === 'function' && isForestRunning) {
-                finishAndPlantSharedSession(true);
-              } else if (typeof stopOpen === 'function') {
-                stopOpen();
-              }
-            }
-          })
-          .catch(() => {});
+        checkRemoteState();
       }
     });

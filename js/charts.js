@@ -204,21 +204,58 @@
           new google.visualization.ColumnChart(document.getElementById(chartDivId)).draw(chartData, options);
         } 
         else if (view === 'Weekly') {
-          let data = rawData.length > 8 ? [rawData[0], ...rawData.slice(-7)] : rawData;
-          let totals = [];
-          for (let i = 1; i < data.length; i++) {
+          // Map logged rows by date string (e.g. "Nov 08")
+          const rowMap = new Map();
+          for (let i = 1; i < rawData.length; i++) {
+            if (rawData[i] && rawData[i][0]) rowMap.set(rawData[i][0], rawData[i]);
+          }
+
+          // Build last 7 calendar days ending today
+          const last7CalendarDates = [];
+          const now = new Date();
+          for (let d = 6; d >= 0; d--) {
+            const dt = new Date(now);
+            dt.setDate(now.getDate() - d);
+            last7CalendarDates.push(dt.toLocaleDateString('en-US', { month: 'short', day: '2-digit' }));
+          }
+
+          // Build header without mutating rawData[0]
+          const header = [rawData[0][0], "Base", { role: "style" }, { role: "tooltip" }, ...rawData[0].slice(1), { role: "annotation" }];
+          const data = [header];
+
+          last7CalendarDates.forEach(dateStr => {
+            const existingRow = rowMap.get(dateStr);
             let dailyTotal = 0;
-            for (let j = 1; j < data[i].length; j += 3) { if (typeof data[i][j] === 'number') dailyTotal += data[i][j]; }
-            totals.push(dailyTotal); if (dailyTotal > globalMax) globalMax = dailyTotal;
-          }
-          data[0].splice(1, 0, "Base", { role: "style" }, { role: "tooltip" });
-          data[0].push({ role: "annotation" });
-          for (let i = 1; i < data.length; i++) {
-            let row = data[i], dailyTotal = totals[i - 1];
-            row.splice(1, 0, 0.05, 'none', '');
-            let tm = Math.round(dailyTotal * 60);
-            row.push(dailyTotal > 0 ? (Math.floor(tm / 60) + "h " + (tm % 60) + "m") : "");
-          }
+            const sessionCols = [];
+
+            if (existingRow) {
+              for (let j = 1; j < existingRow.length; j += 3) {
+                const hrs = existingRow[j];
+                const style = existingRow[j + 1];
+                const tip = existingRow[j + 2];
+                if (typeof hrs === 'number') dailyTotal += hrs;
+                sessionCols.push(hrs !== undefined ? hrs : 0);
+                sessionCols.push(style || '');
+                sessionCols.push(tip || '');
+              }
+            } else {
+              for (let j = 1; j < rawData[0].length; j += 3) {
+                sessionCols.push(0, '', '');
+              }
+            }
+
+            if (dailyTotal > globalMax) globalMax = dailyTotal;
+            const tm = Math.round(dailyTotal * 60);
+            const annotation = dailyTotal > 0 ? (Math.floor(tm / 60) + "h " + (tm % 60) + "m") : "";
+
+            data.push([
+              dateStr,
+              0.05, 'none', '', // Base spacer
+              ...sessionCols,
+              annotation
+            ]);
+          });
+
           const chartData = google.visualization.arrayToDataTable(data);
           const options = {
             isStacked: true, legend: 'none', backgroundColor: 'transparent', chartArea: { width: '95%', height: '85%', top: 10, bottom: 25 },
@@ -787,15 +824,13 @@ function loadHourlyDist() {
     function loadDailyProgressChart() {
       const themeColors = getThemeColors();
       Promise.all([
-        fetch(`${WEB_APP_URL}?action=getWatchData`).then(res => res.json()),
-        fetch(`${WEB_APP_URL}?view=Daily`).then(res => res.json())
-      ]).then(([rawTodayWatch, allData]) => {
+        fetch(`${WEB_APP_URL}?action=getWatchData`).then(res => res.json()).catch(() => []),
+        fetch(`${WEB_APP_URL}?action=getProjectionData`).then(res => res.json()).catch(() => [])
+      ]).then(([rawTodayWatch, projectionData]) => {
         const todayWatch = (typeof mergeContinuousSessions === 'function')
           ? mergeContinuousSessions(rawTodayWatch)
           : (Array.isArray(rawTodayWatch) ? rawTodayWatch : []);
-        if (!allData || !Array.isArray(allData) || allData.length <= 1) return;
-        const today = new Date();
-        const todayKey = today.toLocaleDateString('en-US', { month: 'short', day: '2-digit' });
+
         let todayByHour = {}, todayStartHour = 24;
         if (Array.isArray(todayWatch) && todayWatch.length > 0) {
           todayWatch.sort((a, b) => a.start - b.start);
@@ -810,54 +845,26 @@ function loadHourlyDist() {
             }
           });
         }
+
         let pastByHour = {}, pastStartHour = 24;
-        const recentRows = allData.slice(-8).slice(0, -1);
-        if (recentRows.length > 0) {
-          let dailyCumulatives = [];
-          recentRows.forEach(row => {
-            let dayCumulative = {}, sessionsList = [];
-            for (let j = 1; j < row.length; j += 3) {
-              const hrs = row[j];
-              if (typeof hrs === 'number' && hrs > 0) sessionsList.push(hrs);
-            }
-            if (sessionsList.length > 0) {
-              let cumulativeHours = 0, currentHour = 9;
-              sessionsList.forEach(hrs => {
-                cumulativeHours += hrs;
-                const startHour = Math.floor(currentHour);
-                const endHour = Math.ceil(currentHour + hrs);
-                if (startHour < pastStartHour) pastStartHour = startHour;
-                for (let h = startHour; h < endHour && h < 24; h++) {
-                  if (!dayCumulative[h] || dayCumulative[h] < cumulativeHours) dayCumulative[h] = cumulativeHours;
-                }
-                currentHour = endHour;
-              });
-            }
-            dailyCumulatives.push(dayCumulative);
+        let pastRunningTotal = 0;
+        if (Array.isArray(projectionData) && projectionData.length === 24) {
+          projectionData.forEach((val, h) => {
+            const num = typeof val === 'number' ? val : parseFloat(val) || 0;
+            pastRunningTotal += num;
+            if (num > 0 && pastStartHour === 24) pastStartHour = h;
+            pastByHour[h] = pastRunningTotal;
           });
-          for (let h = pastStartHour; h < 24; h++) {
-            let sum = 0, count = 0;
-            dailyCumulatives.forEach(dayCum => {
-              if (dayCum[h] !== undefined) { sum += dayCum[h]; count++; }
-            });
-            if (count > 0) pastByHour[h] = sum / count;
-          }
-          let lastVal = 0;
-          for (let h = pastStartHour; h < 24; h++) {
-            if (pastByHour[h] !== undefined) {
-              if (pastByHour[h] < lastVal) pastByHour[h] = lastVal;
-              lastVal = pastByHour[h];
-            }
-          }
         }
-        const startHour = Math.min(todayStartHour, pastStartHour);
+
+        const startHour = Math.min(todayStartHour < 24 ? todayStartHour : 8, pastStartHour < 24 ? pastStartHour : 8);
         const endHour = 24;
         let chartData = [['Hour', 'Today', '7-Day Avg']];
         let lastTodayVal = null, lastAvgVal = null;
         for (let h = startHour; h < endHour; h++) {
           const hourLabel = h.toString().padStart(2, '0') + ':00';
           const todayVal = todayByHour[h] !== undefined ? todayByHour[h] : lastTodayVal;
-          const avgVal = pastByHour[h] ? parseFloat(pastByHour[h].toFixed(2)) : lastAvgVal;
+          const avgVal = pastByHour[h] !== undefined ? parseFloat(pastByHour[h].toFixed(2)) : lastAvgVal;
           if (todayVal !== null) lastTodayVal = todayVal;
           if (avgVal !== null) lastAvgVal = avgVal;
           chartData.push([hourLabel, todayVal, avgVal]);
@@ -874,7 +881,7 @@ function loadHourlyDist() {
           };
           new google.visualization.LineChart(el).draw(table, options);
         });
-      });
+      }).catch(err => console.error('Daily progress chart error:', err));
     }
 
     function initCardControls() {
@@ -940,19 +947,29 @@ function loadHourlyDist() {
             document.getElementById('weeklySessionsChart').innerHTML = '<div style="text-align: center; padding: 40px; color: var(--text-tertiary);">No session data available</div>';
             return;
           }
-          const last7Days = data.slice(-7);
+          const rowMap = new Map();
+          for (let i = 1; i < data.length; i++) {
+            if (data[i] && data[i][0]) rowMap.set(data[i][0], data[i]);
+          }
+          const now = new Date();
+          const last7CalendarDays = [];
+          for (let d = 6; d >= 0; d--) {
+            const dt = new Date(now);
+            dt.setDate(now.getDate() - d);
+            last7CalendarDays.push(dt);
+          }
           const themeColors = getThemeColors();
           const dayColors = ['#4285f4', '#34a853', '#fbbc05', '#ea4335', '#9b59b6', '#16a085', '#e74c3c'];
-          const daySessionsData = last7Days.map((row, dayIdx) => {
-            const dateStr = row[0];
-            const parsedDate = (typeof parseSessionDate === 'function')
-              ? parseSessionDate(dateStr)
-              : (/\b\d{4}\b/.test(dateStr) ? new Date(dateStr) : new Date(dateStr + ' ' + (new Date().getFullYear())));
-            const dayName = parsedDate.toLocaleDateString('en-US', { weekday: 'short' });
+          const daySessionsData = last7CalendarDays.map((dt, dayIdx) => {
+            const dateStr = dt.toLocaleDateString('en-US', { month: 'short', day: '2-digit' });
+            const dayName = dt.toLocaleDateString('en-US', { weekday: 'short' });
+            const row = rowMap.get(dateStr);
             const sessions = [];
-            for (let j = 1; j < row.length; j += 3) {
-              const hours = row[j];
-              if (typeof hours === 'number' && hours > 0) sessions.push(parseFloat(hours.toFixed(2)));
+            if (row) {
+              for (let j = 1; j < row.length; j += 3) {
+                const hours = row[j];
+                if (typeof hours === 'number' && hours > 0) sessions.push(parseFloat(hours.toFixed(2)));
+              }
             }
             return { dayName, dateStr, dayIdx, sessions };
           });

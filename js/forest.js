@@ -3,17 +3,11 @@
     const NEPAL_PLANTS = window.NEPAL_PLANTS || [];
 
     // ================= ORIGINAL SOURCE API & LOGGING =================
-    const WEB_APP_URL = "https://script.google.com/macros/s/AKfycbwXOTn__dyqNI-8JvsTPEGtC4OPJYuC9-_jqIlq-lutQZDeQzlmM-46XwWAmWYQu8mT/exec";
-
-    function logData(type, duration, target) {
-      fetch(WEB_APP_URL, {
-        method: "POST",
-        mode: "no-cors",
-        body: JSON.stringify({ type, duration, target })
-      }).catch(err => {
-        console.error("Error logging forest session to original source:", err);
-      });
-    }
+    var WEB_APP_URL = window.WEB_APP_URL || (function () {
+      const DEFAULT = "https://script.google.com/macros/s/AKfycbwXOTn__dyqNI-8JvsTPEGtC4OPJYuC9-_jqIlq-lutQZDeQzlmM-46XwWAmWYQu8mT/exec";
+      try { return localStorage.getItem('study_custom_gas_url') || DEFAULT; }
+      catch (e) { return DEFAULT; }
+    })();
 
     // ================= STATE VARIABLES =================
     let selectedPlantId = parseInt(localStorage.getItem('selectedNepalPlantId'), 10);

@@ -11,7 +11,124 @@ function parseSessionDate(dateStr) {
 }
 window.parseSessionDate = parseSessionDate;
     // ============= INDEXEDDB SETUP =============
-    var WEB_APP_URL = "https://script.google.com/macros/s/AKfycbwXOTn__dyqNI-8JvsTPEGtC4OPJYuC9-_jqIlq-lutQZDeQzlmM-46XwWAmWYQu8mT/exec";
+    var DEFAULT_WEB_APP_URL = "https://script.google.com/macros/s/AKfycbwXOTn__dyqNI-8JvsTPEGtC4OPJYuC9-_jqIlq-lutQZDeQzlmM-46XwWAmWYQu8mT/exec";
+    var WEB_APP_URL = (function() {
+      try {
+        return localStorage.getItem('study_custom_gas_url') || DEFAULT_WEB_APP_URL;
+      } catch (e) {
+        return DEFAULT_WEB_APP_URL;
+      }
+    })();
+
+    function getGasWebAppUrl() {
+      try {
+        return localStorage.getItem('study_custom_gas_url') || DEFAULT_WEB_APP_URL;
+      } catch (e) {
+        return DEFAULT_WEB_APP_URL;
+      }
+    }
+
+    function setGasWebAppUrl(url) {
+      try {
+        if (url && url.trim()) {
+          localStorage.setItem('study_custom_gas_url', url.trim());
+          WEB_APP_URL = url.trim();
+        } else {
+          localStorage.removeItem('study_custom_gas_url');
+          WEB_APP_URL = DEFAULT_WEB_APP_URL;
+        }
+      } catch (e) {
+        console.error('Failed to save GAS URL:', e);
+      }
+    }
+    window.getGasWebAppUrl = getGasWebAppUrl;
+    window.setGasWebAppUrl = setGasWebAppUrl;
+
+    function openGasModal() {
+      const modal = document.getElementById('gasModal');
+      if (!modal) return;
+      modal.style.display = 'flex';
+      const urlInput = document.getElementById('customGasUrlInput');
+      if (urlInput) {
+        urlInput.value = getGasWebAppUrl();
+      }
+      const codeDisplay = document.getElementById('gasCodeDisplay');
+      if (codeDisplay && (!codeDisplay.textContent || codeDisplay.textContent.trim().length === 0)) {
+        fetch('/google-apps-script-backend.js')
+          .then(res => res.text())
+          .then(text => {
+            codeDisplay.textContent = text;
+          })
+          .catch(() => {
+            codeDisplay.textContent = '// See google-apps-script-backend.js in project root';
+          });
+      }
+    }
+
+    function closeGasModal(e) {
+      if (e && e.target && e.target !== document.getElementById('gasModal') && !e.target.classList.contains('pwa-modal-close-btn') && e.target.tagName !== 'BUTTON') {
+        return;
+      }
+      const modal = document.getElementById('gasModal');
+      if (modal) modal.style.display = 'none';
+    }
+
+    function saveCustomGasUrl() {
+      const input = document.getElementById('customGasUrlInput');
+      const status = document.getElementById('gasUrlSaveStatus');
+      if (!input) return;
+      const val = input.value.trim();
+      setGasWebAppUrl(val);
+      if (status) {
+        status.textContent = 'Saved! Web App URL updated.';
+        status.style.color = 'var(--success)';
+        setTimeout(() => { if (status) status.textContent = ''; }, 3000);
+      }
+      if (typeof alert === 'function') {
+        alert('Google Apps Script URL saved successfully.');
+      }
+    }
+
+    function resetCustomGasUrl() {
+      setGasWebAppUrl('');
+      const input = document.getElementById('customGasUrlInput');
+      if (input) input.value = DEFAULT_WEB_APP_URL;
+      const status = document.getElementById('gasUrlSaveStatus');
+      if (status) {
+        status.textContent = 'Reset to default Web App URL.';
+        status.style.color = 'var(--warning)';
+        setTimeout(() => { if (status) status.textContent = ''; }, 3000);
+      }
+    }
+
+    function copyGasScript() {
+      const codeDisplay = document.getElementById('gasCodeDisplay');
+      const btn = document.getElementById('copyGasBtn');
+      const textToCopy = (codeDisplay && codeDisplay.textContent) ? codeDisplay.textContent : '';
+      if (!textToCopy) {
+        fetch('/google-apps-script-backend.js')
+          .then(res => res.text())
+          .then(code => {
+            navigator.clipboard.writeText(code).then(() => {
+              if (btn) btn.textContent = 'Copied!';
+              setTimeout(() => { if (btn) btn.textContent = 'Copy Script'; }, 2000);
+            });
+          });
+        return;
+      }
+      navigator.clipboard.writeText(textToCopy).then(() => {
+        if (btn) btn.textContent = 'Copied!';
+        setTimeout(() => { if (btn) btn.textContent = 'Copy Script'; }, 2000);
+      }).catch(() => {
+        if (btn) btn.textContent = 'Selected - press Ctrl+C';
+      });
+    }
+
+    window.openGasModal = openGasModal;
+    window.closeGasModal = closeGasModal;
+    window.saveCustomGasUrl = saveCustomGasUrl;
+    window.resetCustomGasUrl = resetCustomGasUrl;
+    window.copyGasScript = copyGasScript;
     var db;
     var openInt = null, openSecs = 0, openStartTime = null;
     var forestTimerMode = 'open'; // 'open' or 'fixed'
@@ -132,10 +249,17 @@ window.parseSessionDate = parseSessionDate;
         const currentEnd = current.start + current.hrs;
         const gap = next.start - currentEnd;
 
-        // Merge contiguous slices if gap is <= 3 minutes (0.05 hr) or overlapping
-        if (gap <= 0.05) {
+        // If sessions share nearly identical start time (e.g. batched sync entries), accumulate duration
+        if (Math.abs(next.start - current.start) <= 0.05) {
+          current.hrs += next.hrs;
+        } else if (gap <= 0.05) {
+          // Merge contiguous sequential slices if gap is <= 3 minutes (0.05 hr) or overlapping
           const newEnd = Math.max(currentEnd, next.start + next.hrs);
-          current.hrs = newEnd - current.start;
+          if (newEnd > currentEnd) {
+            current.hrs = newEnd - current.start;
+          } else {
+            current.hrs += next.hrs;
+          }
         } else {
           merged.push(current);
           current = { ...next };
@@ -277,12 +401,28 @@ window.parseSessionDate = parseSessionDate;
         document.getElementById('gridWrapper').innerHTML = '<div style="text-align: center; padding: 20px; color: var(--text-tertiary); font-size: 11px;">No schedule data</div>';
         return;
       }
-      const last7Days = data.slice(-7);
-      const tableData = last7Days.map((row) => {
-        const dateStr = row[0];
-        const dayOfWeek = parseSessionDate(dateStr).toLocaleDateString('en-US', { weekday: 'short' });
+      const rowMap = new Map();
+      for (let i = 1; i < data.length; i++) {
+        if (data[i] && data[i][0]) rowMap.set(data[i][0], data[i]);
+      }
+      const now = new Date();
+      const last7CalendarDays = [];
+      for (let d = 6; d >= 0; d--) {
+        const dt = new Date(now);
+        dt.setDate(now.getDate() - d);
+        last7CalendarDays.push(dt);
+      }
+      const tableData = last7CalendarDays.map(dt => {
+        const dateStr = dt.toLocaleDateString('en-US', { month: 'short', day: '2-digit' });
+        const dayOfWeek = dt.toLocaleDateString('en-US', { weekday: 'short' });
+        const row = rowMap.get(dateStr);
         let sessionCount = 0, totalStudyHours = 0;
-        for (let j = 1; j < row.length; j += 3) { const hours = row[j]; if (typeof hours === 'number' && hours > 0) { sessionCount++; totalStudyHours += hours; } }
+        if (row) {
+          for (let j = 1; j < row.length; j += 3) {
+            const hours = row[j];
+            if (typeof hours === 'number' && hours > 0) { sessionCount++; totalStudyHours += hours; }
+          }
+        }
         return { dayOfWeek, dateStr, sessionCount, totalStudyHours };
       });
       const weeklyTotals = { totalSessions: tableData.reduce((sum, d) => sum + d.sessionCount, 0), totalStudyHours: tableData.reduce((sum, d) => sum + d.totalStudyHours, 0) };

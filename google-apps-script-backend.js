@@ -1,7 +1,18 @@
 /**
- * Google Apps Script (GAS) Backend for Study Flow / My Tea PWA
- * Handles logging study sessions, storing daily goals, active timer state,
- * and serving analytics data (watch data, projection data, goal data, hourly distribution, mountain chart, scatter plot, daily/weekly/monthly bar charts).
+ * Google Apps Script (GAS) Backend for Study Flow
+ * 
+ * Instructions for deployment:
+ * 1. Open Google Sheets (https://sheets.new)
+ * 2. In the menu, go to: Extensions > Apps Script
+ * 3. Replace any code in Code.gs with this entire script.
+ * 4. Click "Deploy" > "New deployment"
+ * 5. Select type: "Web app"
+ * 6. Configuration:
+ *    - Description: Study Flow Backend
+ *    - Execute as: "Me" (your Google account)
+ *    - Who has access: "Anyone"
+ * 7. Click "Deploy", authorize permissions when prompted, and copy the Web App URL.
+ * 8. Set your Web App URL in Study Flow (Settings / Custom Web App URL or in .env).
  */
 
 function doPost(e) {
@@ -9,7 +20,7 @@ function doPost(e) {
     const params = JSON.parse(e.postData.contents);
     const props = PropertiesService.getUserProperties();
     
-    // Save Goal
+    // ✅ NEW: Save Goal
     if (params.action === "setGoal") {
       props.setProperty("DAILY_GOAL", params.goal.toString());
       return ContentService.createTextOutput("Goal Saved").setMimeType(ContentService.MimeType.TEXT);
@@ -20,6 +31,10 @@ function doPost(e) {
       if (params.targetDuration) props.setProperty(params.type + "_targetDuration", params.targetDuration.toString());
       return ContentService.createTextOutput("State Saved").setMimeType(ContentService.MimeType.TEXT);
     }
+
+    const cache = CacheService.getUserCache();
+    const id = "log_" + params.timestamp;
+    if (params.timestamp && cache.get(id)) return ContentService.createTextOutput("Duplicate");
 
     const ss = SpreadsheetApp.getActiveSpreadsheet();
     const tz = ss.getSpreadsheetTimeZone();
@@ -35,11 +50,13 @@ function doPost(e) {
     else { m=parseInt(parts[0])||0; s=parseInt(parts[1])||0; }
     let decimalHours = h + (m/60) + (s/3600);
     
-    let now = new Date();
-    let timeDecimal = now.getHours() + (now.getMinutes()/60) + (now.getSeconds()/3600);
+    const [H, M, S] = Utilities.formatDate(new Date(), tz, "H:m:s").split(":").map(Number);
+    let timeDecimal = H + M / 60 + S / 3600;
     sheet.appendRow([new Date(), params.type, params.target || "N/A", params.duration, timeDecimal.toFixed(4), decimalHours.toFixed(4)]);
 
-    props.deleteProperty("CACHE_LASTDATE");
+    if (params.timestamp) cache.put(id, "1", 21600);
+
+    cache.remove("CACHE_DATA_" + getTodayStr(tz));
     
     props.deleteProperty(params.type + "_startTime");
     props.deleteProperty(params.type + "_targetDuration");
@@ -64,8 +81,9 @@ function buildCachedData(sheet, tz) {
   let hourlyBuckets = new Array(24).fill(0);
   let cumulativeTotal = 0;
 
-  const getDec = (val) => {
-    if (val instanceof Date) return val.getHours() + (val.getMinutes()/60);
+  const getDec = (val, tz) => {
+    if (typeof val === 'number') return val;
+    if (val instanceof Date) { const [h, m] = Utilities.formatDate(val, tz, "H:m").split(":").map(Number); return h + m/60; }
     let strVal = val.toString().trim();
     const nepaliToEnglish = (str) => {
       const nepaliDigits = ['०', '१', '२', '३', '४', '५', '६', '७', '८', '९'];
@@ -75,11 +93,16 @@ function buildCachedData(sheet, tz) {
       return result;
     };
     strVal = nepaliToEnglish(strVal);
+    if (!strVal.includes(':') && !isNaN(parseFloat(strVal))) {
+      return parseFloat(strVal);
+    }
     let isPM = strVal.includes('PM'), isAM = strVal.includes('AM');
     let p = strVal.split(':'), h = parseInt(p[0])||0;
     if (isPM && h !== 12) h += 12;
     else if (isAM && h === 12) h = 0;
-    return h + (parseInt(p[1])||0)/60;
+    let mins = (parseInt(p[1])||0)/60;
+    let secs = (parseInt(p[2])||0)/3600;
+    return h + mins + secs;
   };
 
   for (let i = 1; i < data.length; i++) {
@@ -90,17 +113,17 @@ function buildCachedData(sheet, tz) {
     
     if (dateStr === todayStr) continue;
     
-    const dateKey = Utilities.formatDate(dateObj, tz, "MMM dd");
+    const displayKey = Utilities.formatDate(dateObj, tz, "MMM dd");
     let decimalHours = parseFloat(data[i][5]) || 0;
     
-    if (!dailyGroups[dateKey]) dailyGroups[dateKey] = { total: 0, sessions: [] };
-    dailyGroups[dateKey].total += decimalHours;
-    dailyGroups[dateKey].sessions.push(decimalHours);
+    if (!dailyGroups[dateStr]) dailyGroups[dateStr] = { displayDate: displayKey, total: 0, sessions: [] };
+    dailyGroups[dateStr].total += decimalHours;
+    dailyGroups[dateStr].sessions.push(decimalHours);
     cumulativeTotal += decimalHours;
 
     if (data[i][3] && data[i][4]) {
-      let endTime = getDec(data[i][4]);
-      let duration = getDec(data[i][3]);
+      let endTime = getDec(data[i][4], tz);
+      let duration = getDec(data[i][3], tz);
       let startTime = endTime - duration;
       for (let h = 0; h < 24; h++) {
         let overlapStart = Math.max(h, startTime);
@@ -140,9 +163,13 @@ function doGet(e) {
           if (!data[i][0]) continue;
           let rDate = (data[i][0] instanceof Date) ? data[i][0] : new Date(data[i][0]);
           if (Utilities.formatDate(rDate, tz, "yyyy-MM-dd") === targetStr) {
+            let hrs = parseFloat(data[i][5]) || 0;
+            let timeVal = parseFloat(data[i][4]) || 0;
+            // Column 4 is completion time; compute actual start time
+            let start = timeVal >= hrs ? (timeVal - hrs) : timeVal;
             sessions.push({
-              hrs: parseFloat(data[i][5]) || 0,
-              start: parseFloat(data[i][4]) || 0
+              hrs: hrs,
+              start: parseFloat(start.toFixed(4))
             });
           }
         }
@@ -160,6 +187,7 @@ function doGet(e) {
           if (!data[i][0]) continue;
           let rDate = (data[i][0] instanceof Date) ? data[i][0] : new Date(data[i][0]);
           let diff = (now - rDate) / (1000 * 60 * 60 * 24);
+          // Look at the last 7 days of history to build the habit
           if (diff > 0 && diff <= 7) { 
             let hourIdx = Math.floor(data[i][4]);
             if (hourIdx >= 0 && hourIdx < 24) {
@@ -171,7 +199,7 @@ function doGet(e) {
       return JSON_RESPONSE(hourlyAgg);
     }
 
-    // 3. GOAL DATA (Gauges & Schedule)
+    // 2. GOAL DATA (Gauges & Schedule)
     if (action === "getGoalData") {
       let todayHours = 0;
       if (sheet && sheet.getLastRow() > 1) {
@@ -187,21 +215,24 @@ function doGet(e) {
       return JSON_RESPONSE({ current: todayHours, goal: goal });
     }
 
-    // 4. CACHED DATA LOAD (For Mountain, Hourly, and Bar Charts)
-    let cachedData = null;
-    const cacheKey = "CACHE_DATA_" + todayStr;
-    const lastCacheDate = props.getProperty("CACHE_LASTDATE");
-    if (lastCacheDate === todayStr) {
-      try { cachedData = JSON.parse(props.getProperty(cacheKey)); } catch(e) { cachedData = null; }
-    }
-    if (!cachedData) {
-      cachedData = buildCachedData(sheet, tz);
-      props.setProperty(cacheKey, JSON.stringify(cachedData));
-      props.setProperty("CACHE_LASTDATE", todayStr);
+    if (action === "getState") {
+      const all = props.getProperties(), out = {};
+      Object.keys(all).forEach(k => { if (/_(startTime|targetDuration)$/.test(k)) out[k] = all[k]; });
+      return JSON_RESPONSE(out);
     }
 
-    // 5. OTHER ANALYTICS ACTIONS
-    if (action === "getState") return JSON_RESPONSE(props.getProperties());
+    // cache block
+    const cache = CacheService.getUserCache();
+    const cacheKey = "CACHE_DATA_" + todayStr;
+    let cachedData = null;
+    const raw = cache.get(cacheKey);
+    if (raw) { try { cachedData = JSON.parse(raw); } catch (e) {} }
+    if (!cachedData) {
+      cachedData = buildCachedData(sheet, tz);
+      try { cache.put(cacheKey, JSON.stringify(cachedData), 21600); } catch (e) {}
+    }
+
+    // 4. OTHER ANALYTICS ACTIONS
     if (action === "getGoal") return JSON_RESPONSE({ goal: parseFloat(props.getProperty("DAILY_GOAL")) || 4 });
     
     if (action === "getHourlyDistribution") {
@@ -212,10 +243,13 @@ function doGet(e) {
 
     if (action === "getMountainData") {
       let mountain = [["Day", "Cumulative Hours"]];
-      let runningTotal = cachedData.cumulativeTotal || 0;
-      Object.keys(cachedData.dailyGroups).forEach(day => {
-        runningTotal += cachedData.dailyGroups[day].total;
-        mountain.push([day, parseFloat(runningTotal.toFixed(1))]);
+      let runningTotal = 0;
+      let sortedKeys = Object.keys(cachedData.dailyGroups).sort();
+      sortedKeys.forEach(dayKey => {
+        let group = cachedData.dailyGroups[dayKey];
+        runningTotal += group.total;
+        let label = group.displayDate || dayKey;
+        mountain.push([label, parseFloat(runningTotal.toFixed(1))]);
       });
       return JSON_RESPONSE(mountain);
     }
@@ -225,30 +259,40 @@ function doGet(e) {
       if (sheet && sheet.getLastRow() > 1) {
         const data = sheet.getDataRange().getValues();
         data.forEach(row => {
-          if (row[1] === "Target" && row[2] !== "N/A") points.push([parseInt(row[2]), (parseFloat(row[5]) * 60)]);
+          let targetVal = parseInt(row[2]);
+          let actualHours = parseFloat(row[5]) || 0;
+          if (!isNaN(targetVal) && targetVal > 0 && actualHours > 0) {
+            points.push([targetVal, parseFloat((actualHours * 60).toFixed(1))]);
+          }
         });
       }
       return JSON_RESPONSE(points);
     }
+    
+    if (action === "getPlannerData") {
+      // Returns 7-day schedule / planner data (falls through or returns standard daily groups)
+    }
 
-    // 6. DEFAULT ACTION: BAR CHARTS (Daily/Weekly/Monthly)
+    // 5. DEFAULT ACTION: BAR CHARTS (Daily/Weekly/Monthly)
     const view = e.parameter.view || 'Daily';
     const palette = ['#4285f4', '#34a853', '#fbbc05', '#ea4335', '#9b59b6', '#34495e', '#16a085', '#27ae60', '#2980b9', '#8e44ad'];
     let dailyGroups = JSON.parse(JSON.stringify(cachedData.dailyGroups)) || {};
     let maxSessions = 0;
 
+    // Add Today's Data into the chart groups
     if (sheet && sheet.getLastRow() > 1) {
       const data = sheet.getDataRange().getValues();
       data.forEach(row => {
         let rDate = (row[0] instanceof Date) ? row[0] : new Date(row[0]);
         if (Utilities.formatDate(rDate, tz, "yyyy-MM-dd") === todayStr) {
-          const dateKey = Utilities.formatDate(rDate, tz, "MMM dd");
-          if (!dailyGroups[dateKey]) dailyGroups[dateKey] = { total: 0, sessions: [] };
-          dailyGroups[dateKey].sessions.push(parseFloat(row[5]) || 0);
+          const displayKey = Utilities.formatDate(rDate, tz, "MMM dd");
+          if (!dailyGroups[todayStr]) dailyGroups[todayStr] = { displayDate: displayKey, total: 0, sessions: [] };
+          dailyGroups[todayStr].sessions.push(parseFloat(row[5]) || 0);
         }
       });
     }
 
+    // Determine how many session columns we need
     Object.keys(dailyGroups).forEach(date => {
       if (dailyGroups[date].sessions.length > maxSessions) maxSessions = dailyGroups[date].sessions.length;
     });
@@ -260,21 +304,13 @@ function doGet(e) {
 
     let result = [header];
     
-    const months = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
-    let sortedDates = Object.keys(dailyGroups).sort((a, b) => {
-      const [aMon, aDay] = a.split(' ');
-      const [bMon, bDay] = b.split(' ');
-      const aIdx = months.indexOf(aMon);
-      const bIdx = months.indexOf(bMon);
-      if (aIdx !== bIdx) return aIdx - bIdx;
-      return parseInt(aDay) - parseInt(bDay);
-    });
+    // Chronological sort by ISO date key (yyyy-MM-dd)
+    let sortedDates = Object.keys(dailyGroups).sort();
 
-    let finalDates = sortedDates;
-
-    finalDates.forEach(date => {
-      let row = [date];
-      let sessions = dailyGroups[date].sessions || [];
+    sortedDates.forEach(dateKey => {
+      let group = dailyGroups[dateKey];
+      let row = [group.displayDate || dateKey];
+      let sessions = group.sessions || [];
       for (let n = 0; n < maxSessions; n++) {
         if (sessions[n]) {
           row.push(sessions[n]);
@@ -295,3 +331,9 @@ function doGet(e) {
 function JSON_RESPONSE(obj) {
   return ContentService.createTextOutput(JSON.stringify(obj)).setMimeType(ContentService.MimeType.JSON);
 }
+
+function cleanupOldCache() {
+  const p = PropertiesService.getUserProperties();
+  Object.keys(p.getProperties()).filter(k => k.startsWith("CACHE_")).forEach(k => p.deleteProperty(k));
+}
+
