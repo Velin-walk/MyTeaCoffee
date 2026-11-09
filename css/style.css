@@ -1556,3 +1556,249 @@
       overflow: hidden;
       text-overflow: ellipsis;
     }
+
+    /* ============= MULTI-DAY SESSIONS TIMELINE (CHRONOLOGY) ============= */
+    #card-sessions-chronology,
+    .card-full-width {
+      grid-column: 1 / -1 !important;
+      width: 100% !important;
+      box-sizing: border-box;
+    }
+
+    .sessions-timeline-wrapper {
+      position: relative;
+      width: 100%;
+      margin-top: 10px;
+    }
+
+    .sessions-timeline-scroll {
+      max-height: 880px;
+      overflow-y: auto;
+      overflow-x: auto;
+      border-radius: 8px;
+      border: 1px solid var(--border-color);
+      background: var(--card-bg);
+      scroll-behavior: smooth;
+    }
+
+    .sessions-timeline-scroll::-webkit-scrollbar {
+      width: 6px;
+      height: 6px;
+    }
+    .sessions-timeline-scroll::-webkit-scrollbar-thumb {
+      background: rgba(0, 0, 0, 0.2);
+      border-radius: 3px;
+    }
+    body.theme-blackboard .sessions-timeline-scroll::-webkit-scrollbar-thumb,
+    body.theme-galaxy .sessions-timeline-scroll::-webkit-scrollbar-thumb,
+    body.theme-cyberpunk .sessions-timeline-scroll::-webkit-scrollbar-thumb {
+      background: rgba(255, 255, 255, 0.2);
+    }
+
+    .timeline-inner-table {
+      min-width: 680px;
+      width: 100%;
+    }
+
+    .timeline-header-row {
+      position: sticky;
+      top: 0;
+      z-index: 5;
+      background: var(--input-bg);
+      border-bottom: 2px solid var(--primary);
+      display: flex;
+      align-items: center;
+      padding: 8px 12px;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.04);
+    }
+
+    .timeline-header-date {
+      width: 110px;
+      flex-shrink: 0;
+      font-size: 10px;
+      font-weight: 700;
+      color: var(--text-secondary);
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+
+    .timeline-header-ticks {
+      flex: 1;
+      position: relative;
+      height: 16px;
+    }
+
+    .timeline-tick-label {
+      position: absolute;
+      top: 0;
+      transform: translateX(-50%);
+      font-size: 9px;
+      font-weight: 700;
+      color: var(--text-secondary);
+      font-family: monospace;
+    }
+
+    .timeline-day-row {
+      display: flex;
+      align-items: center;
+      padding: 8px 12px;
+      border-bottom: 1px solid var(--border-color);
+      transition: background 0.15s ease;
+    }
+
+    .timeline-day-row:hover {
+      background: rgba(0, 0, 0, 0.02);
+    }
+    body.theme-blackboard .timeline-day-row:hover,
+    body.theme-galaxy .timeline-day-row:hover,
+    body.theme-cyberpunk .timeline-day-row:hover {
+      background: rgba(255, 255, 255, 0.03);
+    }
+
+    .timeline-day-row.is-today {
+      background: rgba(66, 133, 244, 0.04);
+    }
+
+    .timeline-date-col {
+      width: 110px;
+      flex-shrink: 0;
+      display: flex;
+      flex-direction: column;
+      gap: 2px;
+      padding-right: 10px;
+    }
+
+    .timeline-date-title {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      font-size: 11px;
+      font-weight: 700;
+      color: var(--text);
+    }
+
+    .timeline-badge-today {
+      background: var(--primary);
+      color: #fff;
+      font-size: 8px;
+      font-weight: 800;
+      padding: 1px 4px;
+      border-radius: 3px;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+
+    .timeline-day-stats {
+      font-size: 9px;
+      color: var(--text-secondary);
+      font-weight: 600;
+    }
+
+    .timeline-track-col {
+      flex: 1;
+      position: relative;
+      height: 30px;
+      background: var(--input-bg);
+      border-radius: 6px;
+      overflow: hidden;
+      box-shadow: inset 0 1px 3px rgba(0,0,0,0.04);
+    }
+
+    .timeline-gridline {
+      position: absolute;
+      top: 0;
+      bottom: 0;
+      width: 1px;
+      background: rgba(0, 0, 0, 0.06);
+      pointer-events: none;
+    }
+    body.theme-blackboard .timeline-gridline,
+    body.theme-galaxy .timeline-gridline,
+    body.theme-cyberpunk .timeline-gridline {
+      background: rgba(255, 255, 255, 0.08);
+    }
+
+    .timeline-now-line {
+      position: absolute;
+      top: 0;
+      bottom: 0;
+      width: 2px;
+      background: #ea4335;
+      z-index: 3;
+      pointer-events: none;
+    }
+
+    .timeline-now-line::after {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: -2px;
+      width: 6px;
+      height: 6px;
+      border-radius: 50%;
+      background: #ea4335;
+    }
+
+    .timeline-session-bar {
+      position: absolute;
+      top: 3px;
+      bottom: 3px;
+      border-radius: 4px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: #ffffff;
+      font-size: 9px;
+      font-weight: 700;
+      cursor: pointer;
+      z-index: 2;
+      overflow: hidden;
+      white-space: nowrap;
+      box-shadow: 0 1px 4px rgba(0,0,0,0.15);
+      transition: transform 0.15s ease, box-shadow 0.15s ease, filter 0.15s ease;
+      user-select: none;
+    }
+
+    .timeline-session-bar:hover {
+      transform: translateY(-1px) scaleY(1.06);
+      box-shadow: 0 3px 8px rgba(0,0,0,0.25);
+      filter: brightness(1.1);
+      z-index: 4;
+    }
+
+    .timeline-session-label {
+      padding: 0 4px;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      text-shadow: 0 1px 2px rgba(0,0,0,0.3);
+    }
+
+    .timeline-empty-row {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      height: 100%;
+      font-size: 10px;
+      color: var(--text-tertiary);
+      font-style: italic;
+    }
+
+    .timeline-tooltip {
+      position: fixed;
+      z-index: 10000;
+      background: var(--card-bg);
+      color: var(--text);
+      border: 1px solid var(--border-color);
+      box-shadow: 0 8px 24px rgba(0,0,0,0.18);
+      border-radius: 8px;
+      padding: 8px 12px;
+      font-size: 11px;
+      pointer-events: none;
+      opacity: 0;
+      transition: opacity 0.15s ease;
+      min-width: 140px;
+    }
+    .timeline-tooltip.visible {
+      opacity: 1;
+    }
+

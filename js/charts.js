@@ -86,6 +86,7 @@
             loadChartDailyWithCache(); loadChartWeeklyWithCache(); loadChartMonthlyWithCache();
             loadHourlyDist(); loadMountain(); loadScatter();
             loadMasterChronometer(); loadDailyProgressChart();
+            loadMultiDaySessionsTimeline();
           }, 100);
         });
       }
@@ -124,12 +125,14 @@
         load24HourWatchWithCache(); loadMountain(); loadScatter(); loadMasterChronometer();
         loadActualStudySessions(); loadDailyProgressChart(); loadWeeklySessionsChart(); 
         loadActiveHoursChart();
+        loadMultiDaySessionsTimeline();
       });
       loadPlannerWithCache();
       setDefaultEndTime();
       updateRealTimeClock();
       initCardControls();
       loadActiveHoursChart(); // Add with other chart updates
+      loadMultiDaySessionsTimeline();
     };
 
     function restoreSessions(props) {
@@ -1080,4 +1083,409 @@ function loadActiveHoursChart() {
 
   }).catch(err => console.error('Active hours error:', err));
 }
+
+// ============= MULTI-DAY SESSIONS TIMELINE (CHRONOLOGY) =============
+
+function formatTimeAMPM(decHour) {
+  if (typeof decHour !== 'number' || isNaN(decHour)) return '';
+  const normalized = (decHour % 24 + 24) % 24;
+  const h = Math.floor(normalized);
+  const m = Math.round((normalized % 1) * 60);
+  const period = h >= 12 ? 'PM' : 'AM';
+  const displayH = h % 12 === 0 ? 12 : h % 12;
+  return `${displayH}:${String(m).padStart(2, '0')} ${period}`;
+}
+
+var timelineMonthsToLoad = 1;
+
+async function loadMultiDaySessionsTimeline(months = timelineMonthsToLoad) {
+  timelineMonthsToLoad = months;
+  const container = document.getElementById('sessionsTimelineChart');
+  if (!container) return;
+
+  const localMap = {};
+  const now = new Date();
+  const todayKey = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')}`;
+  let earliestActualMs = Infinity;
+
+  // 1. Fetch today's live sessions from the existing GAS endpoint
+  try {
+    const todayWatch = await fetch(`${WEB_APP_URL}?action=getWatchData&daysAgo=0&_t=${Date.now()}`).then(r => r.json());
+    if (Array.isArray(todayWatch) && todayWatch.length > 0) {
+      localMap[todayKey] = {
+        dateKey: todayKey,
+        displayDate: now.toLocaleDateString('en-US', { month: 'short', day: '2-digit' }),
+        dayOfWeek: now.toLocaleDateString('en-US', { weekday: 'short' }),
+        totalHours: 0,
+        sessions: []
+      };
+      todayWatch.forEach(s => {
+        if (typeof s.hrs === 'number' && s.hrs > 0) {
+          localMap[todayKey].totalHours += s.hrs;
+          localMap[todayKey].sessions.push({
+            start: s.start,
+            hrs: s.hrs,
+            target: 'Study'
+          });
+          earliestActualMs = Math.min(earliestActualMs, now.getTime());
+        }
+      });
+    }
+  } catch (e) {
+    console.warn("Could not fetch today's watch data from GAS:", e);
+  }
+
+  // 2. Read full historical logs from dailyData (Google Sheet backend logs)
+  try {
+    let dailyData = null;
+    if (typeof getFromIndexedDB === 'function') {
+      dailyData = await getFromIndexedDB('dailyData');
+    }
+    if (!dailyData || !Array.isArray(dailyData) || dailyData.length <= 1) {
+      dailyData = await fetch(`${WEB_APP_URL}?view=Daily`).then(r => r.json()).catch(() => null);
+      if (dailyData && typeof saveToIndexedDB === 'function') {
+        saveToIndexedDB('dailyData', dailyData);
+      }
+    }
+    if (Array.isArray(dailyData) && dailyData.length > 1) {
+      for (let i = 1; i < dailyData.length; i++) {
+        const row = dailyData[i];
+        if (!row || !row[0]) continue;
+        const rawDate = row[0];
+        let rowTotalHours = 0;
+        const rowSessions = [];
+        let simStart = 9.0;
+        for (let j = 1; j < row.length; j += 3) {
+          const hrs = row[j];
+          if (typeof hrs === 'number' && hrs > 0) {
+            rowTotalHours += hrs;
+            rowSessions.push({
+              start: parseFloat(simStart.toFixed(2)),
+              hrs: parseFloat(hrs.toFixed(4)),
+              target: 'Study'
+            });
+            simStart = (simStart + hrs + 0.25) % 24;
+          }
+        }
+        if (rowTotalHours > 0) {
+          const parsed = (typeof parseSessionDate === 'function')
+            ? parseSessionDate(rawDate)
+            : (/\b\d{4}\b/.test(rawDate) ? new Date(rawDate) : new Date(rawDate + ' ' + now.getFullYear()));
+          if (!isNaN(parsed.getTime())) {
+            const y = parsed.getFullYear();
+            const m = String(parsed.getMonth() + 1).padStart(2, '0');
+            const d = String(parsed.getDate()).padStart(2, '0');
+            const isoKey = `${y}-${m}-${d}`;
+            earliestActualMs = Math.min(earliestActualMs, parsed.getTime());
+            if (!localMap[isoKey]) {
+              localMap[isoKey] = {
+                dateKey: isoKey,
+                displayDate: parsed.toLocaleDateString('en-US', { month: 'short', day: '2-digit' }),
+                dayOfWeek: parsed.toLocaleDateString('en-US', { weekday: 'short' }),
+                totalHours: rowTotalHours,
+                sessions: rowSessions,
+                _fromDaily: true
+              };
+            }
+          }
+        }
+      }
+    }
+  } catch (err) {
+    console.warn("Could not read historical dailyData:", err);
+  }
+
+  // 3. Read Nepal Forest history which contains multi-day planted sessions
+  try {
+    const forestHistory = JSON.parse(localStorage.getItem('nepalForestHistory')) || [];
+    if (Array.isArray(forestHistory) && forestHistory.length > 0) {
+      forestHistory.forEach(item => {
+        if (!item || !item.timestamp) return;
+        const d = new Date(item.timestamp);
+        if (isNaN(d.getTime())) return;
+        earliestActualMs = Math.min(earliestActualMs, item.timestamp);
+        const dateKey = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+        const displayDate = d.toLocaleDateString('en-US', { month: 'short', day: '2-digit' });
+        const dayOfWeek = d.toLocaleDateString('en-US', { weekday: 'short' });
+        const mins = item.minutes || 25;
+        const hrs = parseFloat((mins / 60).toFixed(4));
+        const endHour = d.getHours() + (d.getMinutes() / 60) + (d.getSeconds() / 3600);
+        const startHour = Math.max(0, parseFloat((endHour - hrs).toFixed(4)));
+
+        if (!localMap[dateKey]) {
+          localMap[dateKey] = {
+            dateKey: dateKey,
+            displayDate: displayDate,
+            dayOfWeek: dayOfWeek,
+            totalHours: 0,
+            sessions: []
+          };
+        }
+        if (localMap[dateKey]._fromDaily) {
+          localMap[dateKey].sessions = [];
+          localMap[dateKey].totalHours = 0;
+          delete localMap[dateKey]._fromDaily;
+        }
+        localMap[dateKey].totalHours += hrs;
+        localMap[dateKey].sessions.push({
+          start: startHour,
+          hrs: hrs,
+          target: item.nepali ? `Nepal Forest: ${item.nepali}` : 'Study Session'
+        });
+      });
+    }
+  } catch (err) {
+    console.warn("Failed reading local forest history for timeline:", err);
+  }
+
+  // 4. Calculate cutoff based on timelineMonthsToLoad (1 month by default)
+  const todayStart = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+  const cutoffDate = new Date(todayStart);
+  cutoffDate.setMonth(todayStart.getMonth() - timelineMonthsToLoad);
+
+  // Trace every single day continuously from today back to cutoffDate
+  const diffDays = Math.max(0, Math.round((todayStart.getTime() - cutoffDate.getTime()) / (1000 * 60 * 60 * 24)));
+  for (let d = 0; d <= diffDays; d++) {
+    const dt = new Date(todayStart);
+    dt.setDate(todayStart.getDate() - d);
+    const key = `${dt.getFullYear()}-${String(dt.getMonth() + 1).padStart(2, '0')}-${String(dt.getDate()).padStart(2, '0')}`;
+    if (!localMap[key]) {
+      localMap[key] = {
+        dateKey: key,
+        displayDate: dt.toLocaleDateString('en-US', { month: 'short', day: '2-digit' }),
+        dayOfWeek: dt.toLocaleDateString('en-US', { weekday: 'short' }),
+        totalHours: 0,
+        sessions: []
+      };
+    }
+  }
+
+  const cutoffKey = `${cutoffDate.getFullYear()}-${String(cutoffDate.getMonth() + 1).padStart(2, '0')}-${String(cutoffDate.getDate()).padStart(2, '0')}`;
+  const allKeys = Object.keys(localMap).filter(k => k >= cutoffKey).sort().reverse();
+  const finalDays = allKeys.map(k => localMap[k]);
+
+  // Ensure Today is at top if not already
+  if (!finalDays.some(d => d.dateKey === todayKey)) {
+    finalDays.unshift({
+      dateKey: todayKey,
+      displayDate: now.toLocaleDateString('en-US', { month: 'short', day: '2-digit' }),
+      dayOfWeek: now.toLocaleDateString('en-US', { weekday: 'short' }),
+      totalHours: 0,
+      sessions: []
+    });
+  }
+
+  renderMultiDaySessionsTimeline(finalDays);
+}
+
+function loadMoreTimelineMonths() {
+  timelineMonthsToLoad += 1;
+  loadMultiDaySessionsTimeline(timelineMonthsToLoad);
+}
+
+function renderMultiDaySessionsTimeline(days) {
+  const container = document.getElementById('sessionsTimelineChart');
+  if (!container) return;
+
+  if (!Array.isArray(days) || days.length === 0) {
+    container.innerHTML = '<div style="text-align: center; padding: 30px; color: var(--text-tertiary); font-size: 12px;">No study session logs available</div>';
+    return;
+  }
+
+  // Ensure global tooltip exists
+  let tooltip = document.getElementById('timelineGlobalTooltip');
+  if (!tooltip) {
+    tooltip = document.createElement('div');
+    tooltip.id = 'timelineGlobalTooltip';
+    tooltip.className = 'timeline-tooltip';
+    document.body.appendChild(tooltip);
+  }
+
+  const now = new Date();
+  const todayKey = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')}`;
+  const nowDecimalHour = now.getHours() + (now.getMinutes() / 60) + (now.getSeconds() / 3600);
+  const nowPct = ((nowDecimalHour / 24) * 100).toFixed(2);
+
+  // Time ticks for header: every 3 hours from 00:00 to 24:00
+  const tickHours = [0, 3, 6, 9, 12, 15, 18, 21, 24];
+  let ticksHtml = '';
+  tickHours.forEach(h => {
+    const pct = ((h / 24) * 100);
+    const label = `${String(h).padStart(2, '0')}:00`;
+    ticksHtml += `<span class="timeline-tick-label" style="left: ${pct}%;">${label}</span>`;
+  });
+
+  const barPalettes = [
+    'linear-gradient(135deg, #4285f4, #2a75eb)',
+    'linear-gradient(135deg, #34a853, #2e9649)',
+    'linear-gradient(135deg, #fbbc05, #e0a300)',
+    'linear-gradient(135deg, #ea4335, #d93025)',
+    'linear-gradient(135deg, #9b59b6, #8e44ad)',
+    'linear-gradient(135deg, #00acc1, #0097a7)',
+    'linear-gradient(135deg, #ff7043, #f4511e)',
+    'linear-gradient(135deg, #16a085, #1abc9c)'
+  ];
+
+  let rowsHtml = '';
+  days.forEach(day => {
+    const isToday = (day.dateKey === todayKey);
+    const sessions = (typeof mergeContinuousSessions === 'function')
+      ? mergeContinuousSessions(day.sessions || [])
+      : (day.sessions || []);
+    sessions.sort((a, b) => a.start - b.start);
+
+    let dayTotalHours = 0;
+    sessions.forEach(s => { dayTotalHours += (s.hrs || 0); });
+
+    let barsHtml = '';
+    // Background vertical gridlines corresponding to the 3-hour ticks
+    for (let i = 1; i < 8; i++) {
+      const gridPct = (i / 8) * 100;
+      barsHtml += `<div class="timeline-gridline" style="left: ${gridPct}%;"></div>`;
+    }
+
+    // Now indicator line on today's row
+    if (isToday) {
+      barsHtml += `<div class="timeline-now-line" style="left: ${nowPct}%;" title="Current Time (${formatTimeAMPM(nowDecimalHour)})"></div>`;
+    }
+
+    if (sessions.length === 0) {
+      barsHtml += `<div class="timeline-empty-row">${isToday ? 'No sessions logged today yet' : 'No study sessions'}</div>`;
+    } else {
+      sessions.forEach((s, sIdx) => {
+        const leftPct = Math.max(0, Math.min(99.5, (s.start / 24) * 100));
+        const widthPct = Math.max(0.7, Math.min(100 - leftPct, (s.hrs / 24) * 100));
+        const bgGrad = barPalettes[sIdx % barPalettes.length];
+        const mins = Math.round(s.hrs * 60);
+        const durationStr = (typeof formatHours === 'function') ? formatHours(s.hrs) : `${mins}m`;
+        const timeSpanStr = `${formatTimeAMPM(s.start)} - ${formatTimeAMPM(s.start + s.hrs)}`;
+
+        // Only display text inside bar if width is sufficient
+        const showLabel = widthPct >= 3.5;
+        const barLabel = showLabel ? `S${sIdx + 1} (${durationStr})` : '';
+
+        const tooltipData = JSON.stringify({
+          day: `${day.displayDate} (${day.dayOfWeek})`,
+          session: `Session ${sIdx + 1}`,
+          timeSpan: timeSpanStr,
+          duration: `${durationStr} (${mins} mins)`,
+          target: s.target || 'Study'
+        }).replace(/"/g, '&quot;');
+
+        barsHtml += `
+          <div class="timeline-session-bar"
+               style="left: ${leftPct}%; width: ${widthPct}%; background: ${bgGrad};"
+               data-tooltip="${tooltipData}"
+               onmouseenter="showTimelineTooltip(event, this)"
+               onmousemove="moveTimelineTooltip(event)"
+               onmouseleave="hideTimelineTooltip()"
+               onclick="showTimelineTooltip(event, this)">
+            <span class="timeline-session-label">${barLabel}</span>
+          </div>`;
+      });
+    }
+
+    const badgeHtml = isToday
+      ? `<span class="timeline-badge-today">Today</span>`
+      : `<span style="font-size: 9px; font-weight: 700; color: var(--text-secondary); text-transform: uppercase;">${day.dayOfWeek}</span>`;
+
+    const statsStr = dayTotalHours > 0
+      ? `${(typeof formatHours === 'function' ? formatHours(dayTotalHours) : dayTotalHours.toFixed(1) + 'h')} • ${sessions.length} sess`
+      : `0h • 0 sess`;
+
+    rowsHtml += `
+      <div class="timeline-day-row ${isToday ? 'is-today' : ''}">
+        <div class="timeline-date-col">
+          <div class="timeline-date-title">
+            <span>${day.displayDate}</span>
+            ${badgeHtml}
+          </div>
+          <div class="timeline-day-stats">${statsStr}</div>
+        </div>
+        <div class="timeline-track-col">
+          ${barsHtml}
+        </div>
+      </div>`;
+  });
+
+  const fullHtml = `
+    <div class="sessions-timeline-scroll">
+      <div class="timeline-inner-table">
+        <div class="timeline-header-row">
+          <div class="timeline-header-date">Date / Stats</div>
+          <div class="timeline-header-ticks">
+            ${ticksHtml}
+          </div>
+        </div>
+        <div class="timeline-body">
+          ${rowsHtml}
+        </div>
+      </div>
+    </div>
+    <div style="display: flex; justify-content: space-between; align-items: center; padding: 10px 4px 0 4px; font-size: 10px; color: var(--text-tertiary); flex-wrap: wrap; gap: 8px;">
+      <div style="display: flex; align-items: center; gap: 10px;">
+        <span>Showing ${days.length} days (${timelineMonthsToLoad} ${timelineMonthsToLoad === 1 ? 'month' : 'months'})</span>
+        <button class="btn-view" onclick="loadMoreTimelineMonths()" style="font-size: 10px; padding: 4px 10px; border-radius: 6px; cursor: pointer; display: inline-flex; align-items: center; gap: 4px; font-weight: 600;">
+          <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+            <line x1="12" y1="5" x2="12" y2="19"/>
+            <line x1="5" y1="12" x2="19" y2="12"/>
+          </svg> Load +1 Month More
+        </button>
+      </div>
+      <span style="display: inline-flex; align-items: center; gap: 4px;">
+        <span style="width: 8px; height: 8px; border-radius: 2px; background: #4285f4; display: inline-block;"></span> Study Session
+        <span style="width: 8px; height: 8px; border-radius: 50%; background: #ea4335; display: inline-block; margin-left: 8px;"></span> Current Time
+      </span>
+    </div>`;
+
+  container.innerHTML = fullHtml;
+}
+
+function showTimelineTooltip(e, el) {
+  const tooltip = document.getElementById('timelineGlobalTooltip');
+  if (!tooltip || !el) return;
+  const raw = el.getAttribute('data-tooltip');
+  if (!raw) return;
+  try {
+    const data = JSON.parse(raw);
+    tooltip.innerHTML = `
+      <div style="font-weight: 800; color: var(--primary); font-size: 11px; margin-bottom: 3px; display:flex; justify-content:space-between; gap:10px;">
+        <span>${data.session}</span>
+        <span style="color: var(--text-secondary); font-size: 10px;">${data.day}</span>
+      </div>
+      <div style="font-size: 10px; color: var(--text); line-height: 1.4;">
+        <div><strong>Time:</strong> ${data.timeSpan}</div>
+        <div><strong>Duration:</strong> ${data.duration}</div>
+        <div><strong>Target:</strong> ${data.target}</div>
+      </div>`;
+    tooltip.classList.add('visible');
+    moveTimelineTooltip(e);
+  } catch (err) {}
+}
+
+function moveTimelineTooltip(e) {
+  const tooltip = document.getElementById('timelineGlobalTooltip');
+  if (!tooltip || !tooltip.classList.contains('visible')) return;
+  const x = e.clientX + 12;
+  const y = e.clientY + 12;
+  const tooltipWidth = 180;
+  const tooltipHeight = 70;
+  const posX = (x + tooltipWidth > window.innerWidth) ? (e.clientX - tooltipWidth - 10) : x;
+  const posY = (y + tooltipHeight > window.innerHeight) ? (e.clientY - tooltipHeight - 10) : y;
+  tooltip.style.left = posX + 'px';
+  tooltip.style.top = posY + 'px';
+}
+
+function hideTimelineTooltip() {
+  const tooltip = document.getElementById('timelineGlobalTooltip');
+  if (tooltip) tooltip.classList.remove('visible');
+}
+
+window.loadMultiDaySessionsTimeline = loadMultiDaySessionsTimeline;
+window.loadMoreTimelineMonths = loadMoreTimelineMonths;
+window.renderMultiDaySessionsTimeline = renderMultiDaySessionsTimeline;
+window.showTimelineTooltip = showTimelineTooltip;
+window.moveTimelineTooltip = moveTimelineTooltip;
+window.hideTimelineTooltip = hideTimelineTooltip;
+
 

@@ -282,6 +282,32 @@
       <h3 style="display:flex;align-items:center;gap:6px;"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display:inline-block; vertical-align:middle;"><circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="6"/><circle cx="12" cy="12" r="2"/></svg> Goal Accuracy</h3>
       <div id="scatter_chart" style="height: 150px; width: 100%;"></div>
     </div>
+
+    <div class="card card-full-width" id="card-sessions-chronology">
+      <div class="chart-header">
+        <h3 style="display:flex;align-items:center;gap:6px;">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display:inline-block; vertical-align:middle;">
+            <line x1="8" y1="6" x2="21" y2="6"/>
+            <line x1="8" y1="12" x2="21" y2="12"/>
+            <line x1="8" y1="18" x2="21" y2="18"/>
+            <line x1="3" y1="6" x2="3.01" y2="6"/>
+            <line x1="3" y1="12" x2="3.01" y2="12"/>
+            <line x1="3" y1="18" x2="3.01" y2="18"/>
+          </svg> Daily Sessions Chronology
+        </h3>
+        <div style="display:flex; align-items:center; gap:8px;">
+          <span style="font-size: 10px; color: var(--text-tertiary); font-weight: 600;">Scroll for past days &darr;</span>
+          <button class="btn-view" onclick="loadMultiDaySessionsTimeline()" style="font-size: 10px; display:inline-flex;align-items:center;gap:4px;">
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="display:inline-block; vertical-align:middle;">
+              <path d="M21.5 2v6h-6M21.34 15.57a10 10 0 1 1-.57-8.38l5.67-5.67"/>
+            </svg> Sync
+          </button>
+        </div>
+      </div>
+      <div id="sessionsTimelineChart" class="sessions-timeline-wrapper">
+        <div style="text-align: center; padding: 30px; color: var(--text-tertiary); font-size: 12px;">Loading sessions chronology...</div>
+      </div>
+    </div>
 </div>
 
   <!-- ================= IN-PAGE TAB SWITCHER AT BOTTOM OF CHARTS ================= -->
