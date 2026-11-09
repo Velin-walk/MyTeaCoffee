@@ -489,7 +489,7 @@ function updateCalendar() {
 }
 
 function loadHourlyDist() {
-      fetch(`${WEB_APP_URL}?action=getHourlyDistribution`).then(res => res.json()).then(data => {
+      fetch(`${WEB_APP_URL}?action=getHourlyDistribution`).then(res => res.ok ? res.json() : []).then(data => {
         if (!data || data.length <= 1) return;
         whenGoogleChartsLoaded(() => {
           const themeColors = getThemeColors();
@@ -501,11 +501,11 @@ function loadHourlyDist() {
             hAxis: { textStyle: { fontSize: 8, color: themeColors.warning }, showTextEvery: 6 }
           });
         });
-      });
+      }).catch(() => null);
     }
 
     function loadMountain() {
-      fetch(`${WEB_APP_URL}?action=getMountainData`).then(res => res.json()).then(data => {
+      fetch(`${WEB_APP_URL}?action=getMountainData`).then(res => res.ok ? res.json() : []).then(data => {
         if (!data || data.length <= 1) return;
         whenGoogleChartsLoaded(() => {
           const themeColors = getThemeColors();
@@ -516,11 +516,11 @@ function loadHourlyDist() {
             vAxis:{textPosition:'none', gridlines:{color:'transparent'}}, hAxis:{textPosition:'none'}
           });
         });
-      });
+      }).catch(() => null);
     }
 
     function loadScatter() {
-      fetch(`${WEB_APP_URL}?action=getScatterData`).then(res => res.json()).then(data => {
+      fetch(`${WEB_APP_URL}?action=getScatterData`).then(res => res.ok ? res.json() : []).then(data => {
         if (!data || data.length <= 1) return;
         whenGoogleChartsLoaded(() => {
           const themeColors = getThemeColors();
@@ -531,7 +531,7 @@ function loadHourlyDist() {
             hAxis:{title:'Planned', titleTextStyle:{fontSize:8}}, vAxis:{title:'Actual', titleTextStyle:{fontSize:8}}
           });
         });
-      });
+      }).catch(() => null);
     }
 
     function toggleButtons(group, isRunning) {
@@ -681,8 +681,8 @@ function loadHourlyDist() {
       const colors = [themeColors.primary, themeColors.success, themeColors.danger, themeColors.warning, '#8B4513', themeColors.calEvent];
       const timestamp = Date.now();
       Promise.all([
-        fetch(`${WEB_APP_URL}?action=getWatchData&_t=${timestamp}`).then(res => res.json()),
-        fetch(`${WEB_APP_URL}?action=getGoalData&_t=${timestamp}`).then(res => res.json())
+        fetch(`${WEB_APP_URL}?action=getWatchData&_t=${timestamp}`).then(res => res.ok ? res.json() : []).catch(() => []),
+        fetch(`${WEB_APP_URL}?action=getGoalData&_t=${timestamp}`).then(res => res.ok ? res.json() : { current: 0, goal: 4 }).catch(() => ({ current: 0, goal: 4 }))
       ]).then(([rawSessions, goalData]) => {
         const sessions = (typeof mergeContinuousSessions === 'function')
           ? mergeContinuousSessions(rawSessions)
@@ -771,7 +771,7 @@ function loadHourlyDist() {
         if (breakEl) breakEl.textContent = Math.round(totalBreakM) + 'm';
         const restEl = document.getElementById('masterRest');
         if (restEl) restEl.textContent = formatHours(totalRestH);
-      }).catch(e => console.error("Chronometer Update Error:", e));
+      }).catch(e => console.warn("Chronometer Update fallback:", e));
     }
 
     function loadActualStudySessions() {

@@ -11,31 +11,47 @@ function parseSessionDate(dateStr) {
 }
 window.parseSessionDate = parseSessionDate;
     // ============= INDEXEDDB SETUP =============
-    var DEFAULT_WEB_APP_URL = "https://script.google.com/macros/s/AKfycbwXOTn__dyqNI-8JvsTPEGtC4OPJYuC9-_jqIlq-lutQZDeQzlmM-46XwWAmWYQu8mT/exec";
-    var WEB_APP_URL = (function() {
+    var DIRECT_GAS_URL = "https://script.google.com/macros/s/AKfycbwXOTn__dyqNI-8JvsTPEGtC4OPJYuC9-_jqIlq-lutQZDeQzlmM-46XwWAmWYQu8mT/exec";
+    var DEFAULT_WEB_APP_URL = "/api/data";
+
+    function getEffectiveWebAppUrl() {
       try {
-        return localStorage.getItem('study_custom_gas_url') || DEFAULT_WEB_APP_URL;
-      } catch (e) {
+        const custom = localStorage.getItem('study_custom_gas_url');
+        if (custom && custom.trim()) {
+          const trimmed = custom.trim();
+          if (trimmed.startsWith('http')) return trimmed;
+        }
+      } catch (e) {}
+
+      // On Node preview environments (localhost / AI Studio), use local proxy /api/data.
+      // On Cloudflare Pages or static hosting, use direct Google Apps Script Web App URL.
+      const host = window.location.hostname;
+      const isNodeProxyAvailable = host === 'localhost' || host === '127.0.0.1' || host.includes('run.app') || host.includes('aistudio');
+      if (isNodeProxyAvailable) {
         return DEFAULT_WEB_APP_URL;
       }
-    })();
+      return DIRECT_GAS_URL;
+    }
+
+    var WEB_APP_URL = getEffectiveWebAppUrl();
 
     function getGasWebAppUrl() {
       try {
-        return localStorage.getItem('study_custom_gas_url') || DEFAULT_WEB_APP_URL;
+        return localStorage.getItem('study_custom_gas_url') || DIRECT_GAS_URL;
       } catch (e) {
-        return DEFAULT_WEB_APP_URL;
+        return DIRECT_GAS_URL;
       }
     }
 
     function setGasWebAppUrl(url) {
       try {
         if (url && url.trim()) {
-          localStorage.setItem('study_custom_gas_url', url.trim());
-          WEB_APP_URL = url.trim();
+          const trimmed = url.trim();
+          localStorage.setItem('study_custom_gas_url', trimmed);
+          WEB_APP_URL = trimmed;
         } else {
           localStorage.removeItem('study_custom_gas_url');
-          WEB_APP_URL = DEFAULT_WEB_APP_URL;
+          WEB_APP_URL = getEffectiveWebAppUrl();
         }
       } catch (e) {
         console.error('Failed to save GAS URL:', e);
@@ -43,6 +59,7 @@ window.parseSessionDate = parseSessionDate;
     }
     window.getGasWebAppUrl = getGasWebAppUrl;
     window.setGasWebAppUrl = setGasWebAppUrl;
+    window.DIRECT_GAS_URL = DIRECT_GAS_URL;
 
     function openGasModal() {
       const modal = document.getElementById('gasModal');
