@@ -1096,10 +1096,10 @@ function formatTimeAMPM(decHour) {
   return `${displayH}:${String(m).padStart(2, '0')} ${period}`;
 }
 
-var timelineMonthsToLoad = 1;
+var timelineDaysToLoad = 15;
 
-async function loadMultiDaySessionsTimeline(months = timelineMonthsToLoad) {
-  timelineMonthsToLoad = months;
+async function loadMultiDaySessionsTimeline(daysCount = timelineDaysToLoad) {
+  timelineDaysToLoad = daysCount;
   const container = document.getElementById('sessionsTimelineChart');
   if (!container) return;
 
@@ -1238,10 +1238,10 @@ async function loadMultiDaySessionsTimeline(months = timelineMonthsToLoad) {
     console.warn("Failed reading local forest history for timeline:", err);
   }
 
-  // 4. Calculate cutoff based on timelineMonthsToLoad (1 month by default)
+  // 4. Calculate cutoff based on timelineDaysToLoad (15 days by default)
   const todayStart = new Date(now.getFullYear(), now.getMonth(), now.getDate());
   const cutoffDate = new Date(todayStart);
-  cutoffDate.setMonth(todayStart.getMonth() - timelineMonthsToLoad);
+  cutoffDate.setDate(todayStart.getDate() - (timelineDaysToLoad - 1));
 
   // Trace every single day continuously from today back to cutoffDate
   const diffDays = Math.max(0, Math.round((todayStart.getTime() - cutoffDate.getTime()) / (1000 * 60 * 60 * 24)));
@@ -1279,8 +1279,8 @@ async function loadMultiDaySessionsTimeline(months = timelineMonthsToLoad) {
 }
 
 function loadMoreTimelineMonths() {
-  timelineMonthsToLoad += 1;
-  loadMultiDaySessionsTimeline(timelineMonthsToLoad);
+  timelineDaysToLoad += 15;
+  loadMultiDaySessionsTimeline(timelineDaysToLoad);
 }
 
 function renderMultiDaySessionsTimeline(days) {
@@ -1424,12 +1424,12 @@ function renderMultiDaySessionsTimeline(days) {
     </div>
     <div style="display: flex; justify-content: space-between; align-items: center; padding: 10px 4px 0 4px; font-size: 10px; color: var(--text-tertiary); flex-wrap: wrap; gap: 8px;">
       <div style="display: flex; align-items: center; gap: 10px;">
-        <span>Showing ${days.length} days (${timelineMonthsToLoad} ${timelineMonthsToLoad === 1 ? 'month' : 'months'})</span>
+        <span>Showing ${days.length} days</span>
         <button class="btn-view" onclick="loadMoreTimelineMonths()" style="font-size: 10px; padding: 4px 10px; border-radius: 6px; cursor: pointer; display: inline-flex; align-items: center; gap: 4px; font-weight: 600;">
           <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
             <line x1="12" y1="5" x2="12" y2="19"/>
             <line x1="5" y1="12" x2="19" y2="12"/>
-          </svg> Load +1 Month More
+          </svg> Load +15 Days More
         </button>
       </div>
       <span style="display: inline-flex; align-items: center; gap: 4px;">
