@@ -67,12 +67,32 @@
       --border-color: rgba(0, 217, 255, 0.15); --input-border: #0077BE; --input-bg: #0D2440;
       --button-bg: #1565A0; --button-text: #00D9FF; --text-secondary: #90CAF9; --text-tertiary: #64B5F6;
     }
+    html {
+      overflow-x: hidden;
+      max-width: 100vw;
+      touch-action: manipulation;
+      -webkit-text-size-adjust: 100%;
+      overscroll-behavior-x: none;
+    }
 
     body { 
       font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; 
       padding: 0; margin: 0; background: var(--bg); color: var(--text);
       transition: background 0.3s ease, color 0.3s ease;
       overflow-x: hidden;
+      max-width: 100vw;
+      touch-action: manipulation;
+      -webkit-tap-highlight-color: transparent;
+      overscroll-behavior-x: none;
+    }
+
+    /* Mobile scroll & container containment */
+    .sessions-timeline-scroll,
+    .card,
+    #gridWrapper,
+    #calendarContainer {
+      -webkit-overflow-scrolling: touch;
+      overscroll-behavior-x: contain;
     }
 
     .theme-selector {
