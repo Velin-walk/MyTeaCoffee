@@ -266,16 +266,14 @@ window.parseSessionDate = parseSessionDate;
         const currentEnd = current.start + current.hrs;
         const gap = next.start - currentEnd;
 
-        // If sessions share nearly identical start time (e.g. batched sync entries), accumulate duration
+        // If sessions share nearly identical start time (duplicate sync entries), deduplicate duration
         if (Math.abs(next.start - current.start) <= 0.05) {
-          current.hrs += next.hrs;
+          current.hrs = Math.max(current.hrs, next.hrs);
         } else if (gap <= 0.05) {
           // Merge contiguous sequential slices if gap is <= 3 minutes (0.05 hr) or overlapping
           const newEnd = Math.max(currentEnd, next.start + next.hrs);
           if (newEnd > currentEnd) {
             current.hrs = newEnd - current.start;
-          } else {
-            current.hrs += next.hrs;
           }
         } else {
           merged.push(current);
