@@ -1,0 +1,340 @@
+/* Global 1-Minute Top Quote Bar & Quote Loader Section */
+.global-quote-host {
+  max-width: 1240px;
+  width: 100%;
+  margin: 74px auto 0;
+  padding: 0 16px;
+  box-sizing: border-box;
+}
+
+.forest-main-container .global-quote-host {
+  max-width: 100%;
+  margin: 0 0 14px 0;
+  padding: 0;
+}
+
+@media (max-width: 650px) {
+  .global-quote-host {
+    margin: 4px auto 4px;
+    padding: 0 10px;
+  }
+}
+
+.quote-shell-box {
+  background: var(--card-bg);
+  border: 1px solid var(--input-border);
+  border-radius: 8px;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.04);
+  overflow: hidden;
+}
+
+.quote-top-bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 9px 14px;
+  min-height: 40px;
+}
+
+.quote-active-wrap {
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+  min-width: 0;
+  flex: 1;
+}
+
+.quote-mark-icon {
+  color: var(--text-tertiary);
+  flex-shrink: 0;
+  align-self: center;
+  display: inline-flex;
+}
+
+.quote-active-text {
+  font-family: Georgia, 'Times New Roman', serif;
+  font-style: italic;
+  font-size: 13.5px;
+  line-height: 1.4;
+  color: var(--text);
+  margin: 0;
+  word-break: break-word;
+}
+
+.quote-active-author {
+  font-family: inherit;
+  font-style: normal;
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--text-secondary);
+  white-space: nowrap;
+}
+
+.quote-empty-hint {
+  font-size: 12.5px;
+  color: var(--text-secondary);
+}
+
+.quote-bar-controls {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  flex-shrink: 0;
+}
+
+.quote-meta-pill {
+  font-size: 11px;
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+  color: var(--text-secondary);
+  background: var(--input-bg);
+  border: 1px solid var(--input-border);
+  border-radius: 4px;
+  padding: 3px 7px;
+  white-space: nowrap;
+}
+
+.quote-nav-btn {
+  width: 26px;
+  height: 26px;
+  padding: 0;
+  border-radius: 4px;
+  border: 1px solid var(--input-border);
+  background: var(--input-bg);
+  color: var(--text);
+  font-size: 13px;
+  font-weight: 700;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  transition: border-color 0.15s ease, background 0.15s ease;
+}
+
+.quote-nav-btn:hover {
+  border-color: var(--text-secondary);
+  background: var(--card-bg);
+}
+
+.quote-loader-toggle-btn {
+  padding: 4px 10px;
+  height: 26px;
+  border-radius: 4px;
+  border: 1px solid var(--input-border);
+  background: var(--input-bg);
+  color: var(--text);
+  font-size: 11.5px;
+  font-weight: 600;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  white-space: nowrap;
+  transition: border-color 0.15s ease, background 0.15s ease;
+}
+
+.quote-loader-toggle-btn:hover {
+  border-color: var(--text-secondary);
+}
+
+.quote-loader-toggle-btn.is-open {
+  background: var(--text);
+  color: var(--card-bg);
+  border-color: var(--text);
+}
+
+/* Expandable Quote Loader Section */
+.quote-loader-panel {
+  border-top: 1px solid var(--input-border);
+  background: rgba(128, 128, 128, 0.025);
+  padding: 12px 14px;
+}
+
+.quote-loader-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-bottom: 8px;
+}
+
+.quote-loader-title {
+  margin: 0;
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--text);
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.quote-loader-sub {
+  font-size: 11px;
+  color: var(--text-secondary);
+}
+
+.quote-loader-form {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-bottom: 10px;
+}
+
+.quote-loader-textarea {
+  width: 100%;
+  box-sizing: border-box;
+  padding: 8px 10px;
+  border-radius: 5px;
+  border: 1px solid var(--input-border);
+  background: var(--input-bg);
+  color: var(--text);
+  font-family: inherit;
+  font-size: 12.5px;
+  line-height: 1.45;
+  resize: vertical;
+  min-height: 54px;
+}
+
+.quote-loader-textarea:focus {
+  outline: none;
+  border-color: var(--text-secondary);
+}
+
+.quote-loader-actions {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.quote-loader-btn-group {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.quote-btn-primary {
+  padding: 6px 12px;
+  border-radius: 5px;
+  border: 1px solid #235334;
+  background: #2c6b43;
+  color: #ffffff;
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.quote-btn-primary:hover {
+  background: #235334;
+}
+
+.quote-btn-secondary {
+  padding: 6px 10px;
+  border-radius: 5px;
+  border: 1px solid var(--input-border);
+  background: var(--input-bg);
+  color: var(--text-secondary);
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.quote-btn-secondary:hover {
+  color: var(--text);
+  border-color: var(--text-secondary);
+}
+
+.quote-loader-status {
+  font-size: 11.5px;
+  font-weight: 600;
+  color: #2c6b43;
+}
+
+.quote-list-container {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  max-height: 170px;
+  overflow-y: auto;
+  border-top: 1px solid var(--input-border);
+  padding-top: 8px;
+}
+
+.quote-list-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  padding: 6px 8px;
+  border-radius: 5px;
+  border: 1px solid transparent;
+  background: var(--input-bg);
+  cursor: pointer;
+  transition: border-color 0.15s ease;
+}
+
+.quote-list-item:hover {
+  border-color: var(--input-border);
+}
+
+.quote-list-item.is-active {
+  border-color: var(--text-secondary);
+  background: var(--card-bg);
+}
+
+.quote-list-text {
+  font-size: 12px;
+  color: var(--text);
+  line-height: 1.35;
+  flex: 1;
+  min-width: 0;
+  word-break: break-word;
+}
+
+.quote-list-badge {
+  font-size: 10px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: #2c6b43;
+  flex-shrink: 0;
+}
+
+.quote-list-del {
+  width: 22px;
+  height: 22px;
+  border: 1px solid transparent;
+  border-radius: 4px;
+  background: transparent;
+  color: var(--text-tertiary);
+  font-size: 15px;
+  line-height: 1;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.quote-list-del:hover {
+  color: var(--danger);
+  border-color: rgba(234, 67, 53, 0.25);
+}
+
+@media (max-width: 650px) {
+  .quote-top-bar {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 8px;
+    padding: 9px 11px;
+  }
+  .quote-bar-controls {
+    justify-content: flex-end;
+  }
+  .quote-active-text {
+    font-size: 12.5px;
+  }
+}

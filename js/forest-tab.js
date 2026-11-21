@@ -492,49 +492,13 @@ function renderMyForest() {
   const canvas = document.getElementById('forestGridCanvas');
   if (!canvas) return;
 
-  // Mini grassland terrain with rich soil: NO PLANTS when ready for plantation, simple & elegant
-  let surfaceContent = '';
-  if (filtered.length === 0) {
-    surfaceContent = `
-      <div class="grassland-empty-view">
-        <button class="btn-empty-grassland-cue" onclick="scrollToForestTimer()">
-          Ready for plantation • Start focus timer to plant a tree
-        </button>
-      </div>
-    `;
-  } else {
-    const plantedPlots = filtered.slice().reverse().map(item => {
-      const timeDate = new Date(item.timestamp);
-      const formatted = timeDate.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
-      const isWith = !item.isHealthy;
-      const stageInfo = (typeof getPlantStageInfo === 'function') ? getPlantStageInfo(item) : { stage: item.stage || 'mature' };
-      const iconContent = getBotanicalPlotIconSvg(item, isWith);
-      return `
-        <div class="planted-tree-item ${isWith ? 'withered' : ''} stage-${stageInfo.stage}" title="${item.nepali} (${item.english}) - ${item.minutes}m • ${formatted}">
-          <div class="planted-tree-icon">${iconContent}</div>
-          <div class="planted-tree-meta">${item.minutes}m • ${formatted}</div>
-        </div>
-      `;
-    }).join('');
-
-    surfaceContent = `
-      <div class="grassland-trees-grid">
-        ${plantedPlots}
-      </div>
-    `;
+  if (typeof renderForestDiorama === 'function') {
+    renderForestDiorama(canvas, filtered);
+    return;
   }
 
-  canvas.innerHTML = `
-    <div class="mini-grassland-terrain">
-      <div class="grassland-surface">
-        ${surfaceContent}
-      </div>
-      <div class="grassland-fringe"></div>
-      <div class="grassland-soil">
-        <span class="soil-caption">FERTILE SOIL • READY FOR PLANTATION</span>
-      </div>
-    </div>
-  `;
+  // Fallback if diorama helper is unavailable
+  canvas.innerHTML = '';
 }
 
 function scrollToForestTimer() {
@@ -557,13 +521,18 @@ function filterForestGrid(type) {
 window.filterForestGrid = filterForestGrid;
 window.filterForest = filterForestGrid;
 
-var forestZoomLevel = 1.0;
 function zoomForest(delta) {
-  forestZoomLevel = Math.max(0.5, Math.min(2.5, forestZoomLevel + delta));
-  const terrain = document.querySelector('.mini-grassland-terrain');
-  if (terrain) {
-    terrain.style.transform = `perspective(1400px) rotateX(10deg) scale(${forestZoomLevel})`;
-    terrain.style.transformOrigin = 'center top';
+  const canvas = document.getElementById('forestGridCanvas');
+  if (canvas && typeof adjustDioramaZoom === 'function') {
+    let history = [];
+    try { history = JSON.parse(localStorage.getItem('nepalForestHistory')) || []; } catch (e) {}
+    const now = new Date();
+    const startOfDay = new Date(now.getFullYear(), now.getMonth(), now.getDate()).getTime();
+    const startOfWeek = startOfDay - (now.getDay() * 24 * 60 * 60 * 1000);
+    let filtered = history;
+    if (forestActiveFilter === 'today') filtered = history.filter(i => i.timestamp >= startOfDay);
+    else if (forestActiveFilter === 'week') filtered = history.filter(i => i.timestamp >= startOfWeek);
+    adjustDioramaZoom(canvas, delta, filtered);
   }
 }
 window.zoomForest = zoomForest;

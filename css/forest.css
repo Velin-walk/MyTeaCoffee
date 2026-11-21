@@ -66,6 +66,14 @@
       padding: 0;
     }
 
+    html {
+      overflow-x: hidden;
+      max-width: 100%;
+      touch-action: manipulation;
+      -webkit-text-size-adjust: 100%;
+      overscroll-behavior-x: none;
+    }
+
     body {
       font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
       background: var(--bg);
@@ -75,6 +83,10 @@
       flex-direction: column;
       transition: background 0.3s ease, color 0.3s ease;
       overflow-x: hidden;
+      max-width: 100%;
+      touch-action: manipulation;
+      -webkit-tap-highlight-color: transparent;
+      overscroll-behavior-x: none;
     }
 
     /* Top Navigation Bar */
@@ -550,6 +562,48 @@
       box-sizing: border-box;
     }
 
+    @media (max-width: 900px) {
+      .my-forest-card {
+        width: 100%;
+        left: auto;
+        right: auto;
+        margin-left: 0;
+        margin-right: 0;
+        border: 1px solid var(--border-color);
+        border-radius: 18px;
+        padding: 18px 12px;
+      }
+    }
+
+    @media (max-width: 650px) {
+      header.top-header {
+        padding: 10px 12px;
+        gap: 8px;
+      }
+      main.forest-main-container {
+        padding: 14px 10px 48px;
+      }
+      .forest-hero-card,
+      .plant-info-card,
+      .timer-focus-card {
+        padding: 18px 14px;
+        min-width: 0;
+        max-width: 100%;
+      }
+      .timer-digits {
+        font-size: 42px;
+      }
+      .growth-ring-container {
+        width: min(240px, 100%);
+        height: min(240px, 72vw);
+      }
+      .forest-stats-grid {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 10px;
+        margin-bottom: 18px;
+      }
+    }
+
     .stat-box {
       background: var(--input-bg);
       border: 1px solid var(--border-color);
@@ -590,292 +644,265 @@
     .forest-grid-plots {
       width: 100%;
       box-sizing: border-box;
-      background: radial-gradient(ellipse at 50% 45%, rgba(130, 205, 57, 0.09) 0%, rgba(68, 108, 40, 0.03) 50%, transparent 75%);
-      border: 1px solid rgba(255, 255, 255, 0.06);
+      background: linear-gradient(165deg, #245746 0%, #193e31 55%, #112b22 100%);
+      border: 1px solid rgba(255, 255, 255, 0.12);
       border-radius: 20px;
-      padding: 30px 16px 44px;
+      padding: 0;
       margin: 8px 0;
       position: relative;
-      box-shadow: inset 0 1px 1px rgba(255, 255, 255, 0.1), inset 0 -20px 40px rgba(0, 0, 0, 0.04);
-      overflow: visible;
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      perspective: 1500px;
-      perspective-origin: 50% 38%;
-      transform-style: preserve-3d;
-    }
-
-    /* Ambient Depth Occlusion / Ground Cast Shadow beneath floating island */
-    .forest-grid-canvas::after,
-    .forest-grid-plots::after {
-      content: '';
-      position: absolute;
-      bottom: 8px;
-      left: 50%;
-      transform: translateX(-50%) rotateX(65deg);
-      width: min(85%, 520px);
-      height: 110px;
-      border-radius: 50%;
-      background: radial-gradient(ellipse at center, rgba(16, 26, 12, 0.42) 0%, rgba(16, 26, 12, 0.22) 40%, rgba(16, 26, 12, 0.08) 60%, transparent 75%);
-      filter: blur(14px);
-      pointer-events: none;
-      z-index: 0;
-    }
-
-    /* Isometric 3D Garden Platform Terrain */
-    .mini-grassland-terrain {
-      width: fit-content;
-      max-width: 100%;
-      margin: 0 auto;
-      box-sizing: border-box;
-      position: relative;
-      z-index: 1;
-      border-radius: 18px;
+      box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.12), 0 12px 30px rgba(0, 0, 0, 0.18);
       overflow: hidden;
-      box-shadow: 0 16px 40px rgba(0, 0, 0, 0.22), 0 4px 12px rgba(0, 0, 0, 0.1);
-      border: 2px solid rgba(255, 255, 255, 0.45);
+      touch-action: pan-y;
+    }
+
+    .iso-forest-stage {
       display: flex;
       flex-direction: column;
-      background: #3e261a;
-      transform: perspective(1400px) rotateX(10deg);
-      transform-style: preserve-3d;
-    }
-
-    /* Vibrant Isometric Grassland Surface - tightly bounded to plant edges */
-    .grassland-surface {
-      position: relative;
-      width: fit-content;
-      max-width: 100%;
-      min-height: auto;
-      background: linear-gradient(135deg, #a3d957 0%, #82cd39 50%, #6bc025 100%);
-      box-shadow: inset 0 2px 6px rgba(255, 255, 255, 0.5), inset 0 -4px 12px rgba(0, 0, 0, 0.2);
-      padding: 4px 6px;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      justify-content: center;
-      box-sizing: border-box;
-    }
-
-    .grassland-surface::before {
-      content: '';
-      position: absolute;
-      inset: 0;
-      opacity: 0.35;
-      background-image: 
-        linear-gradient(45deg, rgba(255, 255, 255, 0.15) 25%, transparent 25%), 
-        linear-gradient(-45deg, rgba(255, 255, 255, 0.15) 25%, transparent 25%), 
-        linear-gradient(45deg, transparent 75%, rgba(255, 255, 255, 0.15) 75%), 
-        linear-gradient(-45deg, transparent 75%, rgba(255, 255, 255, 0.15) 75%);
-      background-size: 40px 40px;
-      background-position: 0 0, 0 20px, 20px -20px, -20px 0px;
-      pointer-events: none;
-    }
-
-    /* Soil-edge fringe transition into the soil layer */
-    .grassland-fringe {
-      position: relative;
       width: 100%;
-      height: 14px;
-      background: #442a1b;
-      background-image: radial-gradient(circle at 10px 0, #543422 10px, #321c11 11px);
-      background-size: 20px 14px;
-      border-bottom: 2px solid #201109;
+      color: #f0fdf4;
     }
 
-    /* 2. Rich Soil Earth Layer (Bottom Cross-Section) */
-    .grassland-soil {
-      position: relative;
-      width: 100%;
-      height: 54px;
-      background: linear-gradient(180deg, #4d3326 0%, #3d251a 55%, #27160d 100%);
-      box-shadow: inset 0 4px 8px rgba(0, 0, 0, 0.5);
-      border-top: 1px solid #5a3c2e;
-      overflow: hidden;
+    .iso-stage-toolbar {
       display: flex;
       align-items: center;
-      justify-content: center;
-      box-sizing: border-box;
+      justify-content: space-between;
+      gap: 12px;
+      padding: 12px 16px;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+      background: rgba(10, 26, 20, 0.25);
     }
 
-    .grassland-soil::before {
-      content: '';
-      position: absolute;
-      inset: 0;
-      opacity: 0.35;
-      background-image: 
-        radial-gradient(#d7ccc8 1px, transparent 1px),
-        radial-gradient(#a1887f 1.5px, transparent 1.5px),
-        radial-gradient(#5d4037 2px, transparent 2px);
-      background-size: 28px 28px, 44px 44px, 18px 18px;
-      background-position: 0 0, 14px 14px, 7px 7px;
-      pointer-events: none;
+    .iso-stage-summary {
+      font-size: 13px;
+      font-weight: 600;
+      color: rgba(240, 253, 244, 0.88);
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      flex-wrap: wrap;
     }
 
-    .grassland-soil::after {
-      content: '';
-      position: absolute;
-      top: 22px;
-      left: 0;
-      right: 0;
-      height: 1.5px;
-      background: rgba(255, 255, 255, 0.07);
-      box-shadow: 0 16px 0 rgba(0, 0, 0, 0.25);
-      pointer-events: none;
+    .iso-summary-count {
+      font-weight: 800;
+      color: #ffffff;
+      font-variant-numeric: tabular-nums;
     }
 
-    .soil-caption {
-      position: relative;
-      z-index: 1;
-      font-size: 11px;
+    .iso-zoom-controls {
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      background: rgba(0, 0, 0, 0.22);
+      border: 1px solid rgba(255, 255, 255, 0.14);
+      border-radius: 10px;
+      padding: 2px;
+      flex-shrink: 0;
+    }
+
+    .iso-zoom-btn {
+      min-width: 34px;
+      height: 32px;
+      padding: 0 8px;
+      border: none;
+      border-radius: 8px;
+      background: transparent;
+      color: #ecfdf5;
+      font-size: 14px;
       font-weight: 700;
-      letter-spacing: 0.8px;
-      color: rgba(230, 210, 190, 0.65);
-      text-transform: uppercase;
+      font-variant-numeric: tabular-nums;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      transition: background 0.15s ease;
+    }
+
+    .iso-zoom-btn:hover {
+      background: rgba(255, 255, 255, 0.14);
+    }
+
+    .iso-zoom-reset {
+      font-size: 12px;
+      min-width: 46px;
+    }
+
+    .iso-stage-viewport {
+      width: 100%;
+      overflow-x: auto;
+      overflow-y: hidden;
+      -webkit-overflow-scrolling: touch;
+      padding: 12px 12px 8px;
+      box-sizing: border-box;
+      display: flex;
+    }
+
+    .iso-island-scaler {
+      position: relative;
+      margin: 0 auto;
+      flex-shrink: 0;
+      max-width: none;
+    }
+
+    .iso-island-svg {
+      display: block;
+      width: 100%;
+      height: auto;
       user-select: none;
     }
 
-    /* Empty Grassland: Zero plants, peaceful and simple */
-    .grassland-empty-view {
-      position: relative;
-      z-index: 2;
+    .iso-plants-overlay {
+      position: absolute;
+      inset: 0;
+      pointer-events: none;
+    }
+
+    .iso-plant-pin {
+      position: absolute;
+      aspect-ratio: 1 / 1;
+      transform: translate(-50%, -88%);
+      pointer-events: auto;
+      cursor: pointer;
+      outline: none;
       display: flex;
-      flex-direction: column;
+      align-items: flex-end;
+      justify-content: center;
+      transition: transform 0.16s ease, filter 0.16s ease;
+    }
+
+    .iso-plant-pin:hover,
+    .iso-plant-pin.is-selected {
+      transform: translate(-50%, -92%) scale(1.06);
+      filter: drop-shadow(0 4px 8px rgba(0, 0, 0, 0.35));
+    }
+
+    .iso-plant-pin:focus-visible {
+      filter: drop-shadow(0 0 6px #fff59d);
+    }
+
+    .iso-plant-pin.withered {
+      filter: grayscale(0.7);
+      opacity: 0.78;
+    }
+
+    .iso-plant-pin .planted-tree-icon {
+      width: 100%;
+      height: 100%;
+      display: flex;
       align-items: center;
       justify-content: center;
-      text-align: center;
-      padding: 24px 16px;
+      filter: drop-shadow(0 3px 5px rgba(0, 0, 0, 0.24));
+    }
+
+    .iso-plant-pin .planted-tree-icon svg {
+      width: 100% !important;
+      height: 100% !important;
+    }
+
+    .iso-inspector-bar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      flex-wrap: wrap;
+      gap: 8px 16px;
+      padding: 12px 16px;
+      border-top: 1px solid rgba(255, 255, 255, 0.1);
+      background: rgba(10, 26, 20, 0.34);
+      font-size: 13px;
+    }
+
+    .iso-inspector-empty {
+      justify-content: center;
+      padding: 14px 16px;
+    }
+
+    .iso-inspector-primary {
+      display: flex;
+      align-items: baseline;
+      gap: 6px;
+      flex-wrap: wrap;
+    }
+
+    .iso-inspector-nepali {
+      font-weight: 800;
+      font-size: 14px;
+      color: #ffffff;
+    }
+
+    .iso-inspector-english {
+      font-weight: 600;
+      color: rgba(236, 253, 245, 0.82);
+    }
+
+    .iso-inspector-meta {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      flex-wrap: wrap;
+      font-size: 12px;
+      font-weight: 600;
+      color: rgba(236, 253, 245, 0.8);
+      font-variant-numeric: tabular-nums;
+    }
+
+    .iso-inspector-nums {
+      color: #ffffff;
+      font-weight: 700;
+    }
+
+    .iso-inspector-sep {
+      opacity: 0.45;
+    }
+
+    .iso-status-healthy {
+      color: #a7f3d0;
+      font-weight: 700;
+    }
+
+    .iso-status-withered {
+      color: #fca5a5;
+      font-weight: 700;
     }
 
     .btn-empty-grassland-cue {
-      background: rgba(255, 255, 255, 0.25);
-      backdrop-filter: blur(8px);
-      -webkit-backdrop-filter: blur(8px);
-      border: 1px solid rgba(255, 255, 255, 0.45);
+      background: rgba(168, 222, 84, 0.22);
+      border: 1px solid rgba(190, 242, 100, 0.55);
       color: #ffffff;
       font-size: 13px;
       font-weight: 700;
-      padding: 10px 22px;
-      border-radius: 24px;
-      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+      padding: 10px 20px;
+      min-height: 42px;
+      border-radius: 12px;
       cursor: pointer;
-      transition: all 0.2s ease;
-      letter-spacing: 0.3px;
+      transition: background 0.18s ease, transform 0.18s ease;
       display: inline-flex;
       align-items: center;
       gap: 8px;
     }
 
     .btn-empty-grassland-cue:hover {
-      background: rgba(255, 255, 255, 0.38);
-      transform: translateY(-2px);
-      box-shadow: 0 6px 16px rgba(0, 0, 0, 0.15);
+      background: rgba(168, 222, 84, 0.34);
+      transform: translateY(-1px);
     }
 
-    /* Planted trees on the grassland */
-    .grassland-trees-grid {
-      position: relative;
-      z-index: 2;
-      display: grid;
-      grid-template-columns: repeat(auto-fill, minmax(100px, 1fr));
-      gap: 2px 4px;
-      justify-items: center;
-      align-items: end;
-      width: 100%;
-      box-sizing: border-box;
-      max-width: 1200px;
-      padding: 8px 0;
+    @media (max-width: 640px) {
+      .iso-stage-toolbar {
+        padding: 10px 12px;
+      }
+      .iso-zoom-btn {
+        min-width: 40px;
+        height: 38px;
+      }
+      .iso-inspector-bar {
+        padding: 12px;
+      }
     }
 
-    .planted-tree-item {
-      background: transparent;
-      backdrop-filter: none;
-      -webkit-backdrop-filter: none;
-      border: none;
-      border-radius: 0;
-      padding: 0;
-      margin: -8px -6px;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      justify-content: flex-end;
-      text-align: center;
-      transition: transform 0.2s ease, z-index 0.2s ease;
-      cursor: pointer;
-      position: relative;
-    }
-
-    .planted-tree-item:hover {
-      transform: translateY(-6px) scale(1.05);
-      background: transparent;
-      box-shadow: none;
-      z-index: 10;
-    }
-
-    .planted-tree-item.withered {
-      filter: grayscale(0.7);
-      opacity: 0.75;
-    }
-
-    .planted-tree-icon {
-      width: 174px;
-      height: 174px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      margin-bottom: 2px;
-      filter: drop-shadow(0 5px 10px rgba(0, 0, 0, 0.25));
-    }
-
-    .planted-tree-icon svg {
-      width: 100% !important;
-      height: 100% !important;
-    }
-
-    .planted-tree-item.stage-sprout .planted-tree-icon svg {
-      transform: scale(0.58) !important;
-      transform-origin: 50% 90% !important;
-    }
-
-    .planted-tree-item.stage-growing .planted-tree-icon svg {
-      transform: scale(0.78) !important;
-      transform-origin: 50% 90% !important;
-    }
-
-    .planted-tree-item.stage-budding .planted-tree-icon svg {
-      transform: scale(0.88) !important;
-      transform-origin: 50% 90% !important;
-    }
-
-    .planted-tree-item.stage-maturing .planted-tree-icon svg {
-      transform: scale(0.94) !important;
-      transform-origin: 50% 90% !important;
-    }
-
-    .planted-tree-item.stage-mature .planted-tree-icon svg,
-    .planted-tree-item.stage-planted .planted-tree-icon svg {
-      transform: scale(1) !important;
-      transform-origin: 50% 90% !important;
-    }
-
-    .planted-tree-name {
-      font-size: 12px;
-      font-weight: 800;
-      color: #ffffff;
-      text-shadow: 0 1px 3px rgba(0, 0, 0, 0.4);
-      margin-bottom: 2px;
-      white-space: nowrap;
-      overflow: hidden;
-      text-overflow: ellipsis;
-      max-width: 100%;
-    }
-
-    .planted-tree-meta {
-      font-size: 10px;
-      font-weight: 700;
-      color: rgba(255, 255, 255, 0.85);
-      text-shadow: 0 1px 2px rgba(0, 0, 0, 0.4);
+    @media (prefers-reduced-motion: reduce) {
+      .iso-plant-pin,
+      .btn-empty-grassland-cue,
+      .iso-zoom-btn {
+        transition: none;
+      }
     }
 
     /* Modal */

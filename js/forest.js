@@ -640,50 +640,12 @@
       const container = document.getElementById('forestPlotsContainer');
       if (!container) return;
 
-      // Mini grassland terrain with rich soil: NO PLANTS when ready for plantation, simple & elegant
-      let surfaceContent = '';
-      if (filtered.length === 0) {
-        surfaceContent = `
-          <div class="grassland-empty-view">
-            <button class="btn-empty-grassland-cue" onclick="scrollToForestTimer()">
-              Ready for plantation • Start focus timer to plant a tree
-            </button>
-          </div>
-        `;
-      } else {
-        const plantedPlots = filtered.slice().reverse().map(item => {
-          const timeDate = new Date(item.timestamp);
-          const formatted = timeDate.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
-          const isWith = !item.isHealthy;
-          const stageInfo = (typeof getPlantStageInfo === 'function') ? getPlantStageInfo(item) : { stage: item.stage || 'mature' };
-          const iconContent = getBotanicalPlotIconSvg(item, isWith);
-          return `
-            <div class="planted-tree-item ${isWith ? 'withered' : ''} stage-${stageInfo.stage}" title="${item.nepali} (${item.english}) - ${item.minutes}m • ${formatted}">
-              <div class="planted-tree-icon">${iconContent}</div>
-              <div class="planted-tree-meta">${item.minutes}m • ${formatted}</div>
-            </div>
-          `;
-        }).join('');
-
-        surfaceContent = `
-          <div class="grassland-trees-grid">
-            ${plantedPlots}
-          </div>
-        `;
+      if (typeof renderForestDiorama === 'function') {
+        renderForestDiorama(container, filtered);
+        return;
       }
 
-      container.innerHTML = `
-        <div class="mini-grassland-terrain">
-          <div class="grassland-surface">
-            ${surfaceContent}
-          </div>
-          <div class="grassland-fringe"></div>
-          <div class="grassland-soil">
-            <span class="soil-caption">FERTILE SOIL • READY FOR PLANTATION</span>
-          </div>
-        </div>
-      `;
-      setTimeout(initForestZoom, 50);
+      container.innerHTML = '';
     }
 
     function scrollToForestTimer() {
@@ -706,52 +668,8 @@
     window.filterForest = filterForest;
     window.filterForestGrid = filterForest;
 
-    var forestZoomLevel = 1.0;
     function initForestZoom() {
-      const terrain = document.querySelector('.mini-grassland-terrain');
-      if (!terrain || terrain.dataset.zoomInitialized) return;
-      terrain.dataset.zoomInitialized = 'true';
-
-      // Mouse wheel zoom
-      terrain.addEventListener('wheel', (e) => {
-        e.preventDefault();
-        const delta = e.deltaY < 0 ? 0.12 : -0.12;
-        forestZoomLevel = Math.max(0.5, Math.min(3.0, forestZoomLevel + delta));
-        terrain.style.transform = `perspective(1400px) rotateX(10deg) scale(${forestZoomLevel})`;
-        terrain.style.transformOrigin = 'center top';
-      }, { passive: false });
-
-      // Mobile touch pinch zoom
-      let initialPinchDistance = null;
-      terrain.addEventListener('touchstart', (e) => {
-        if (e.touches.length === 2) {
-          initialPinchDistance = Math.hypot(
-            e.touches[0].clientX - e.touches[1].clientX,
-            e.touches[0].clientY - e.touches[1].clientY
-          );
-        }
-      }, { passive: true });
-
-      terrain.addEventListener('touchmove', (e) => {
-        if (e.touches.length === 2 && initialPinchDistance !== null) {
-          e.preventDefault();
-          const currentDistance = Math.hypot(
-            e.touches[0].clientX - e.touches[1].clientX,
-            e.touches[0].clientY - e.touches[1].clientY
-          );
-          const scaleFactor = currentDistance / initialPinchDistance;
-          initialPinchDistance = currentDistance;
-          forestZoomLevel = Math.max(0.5, Math.min(3.0, forestZoomLevel * scaleFactor));
-          terrain.style.transform = `perspective(1400px) rotateX(10deg) scale(${forestZoomLevel})`;
-          terrain.style.transformOrigin = 'center top';
-        }
-      }, { passive: false });
-
-      terrain.addEventListener('touchend', (e) => {
-        if (e.touches.length < 2) {
-          initialPinchDistance = null;
-        }
-      });
+      // Zoom controls are handled cleanly inside renderForestDiorama toolbar buttons
     }
     window.initForestZoom = initForestZoom;
 

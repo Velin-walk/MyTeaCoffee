@@ -50,6 +50,7 @@
   <script src="/plants/jacaranda.js"></script>
   <script src="/plants/registry.js"></script>
   <link rel="stylesheet" href="/css/style.css">
+  <link rel="stylesheet" href="/css/quotes.css">
   <base target="_blank">
 </head>
 <body>
@@ -88,6 +89,8 @@
       <span>Nepal Forest</span>
     </button>
   </div>
+
+  <div id="globalQuoteHost" class="global-quote-host"></div>
 
   <div class="dashboard-container">
     
@@ -302,121 +305,90 @@
     </div>
 </div>
 
-  <!-- ================= IN-PAGE TAB SWITCHER AT BOTTOM OF CHARTS ================= -->
-  <div class="bottom-tab-switcher-card" id="mainTabBar">
-    <div class="tab-switcher-header">
-      <div class="tab-switcher-title-group">
-        <span class="tab-switcher-badge" style="display:inline-flex;align-items:center;gap:4px;"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display:inline-block; vertical-align:middle;"><polygon points="12 2 2 7 12 12 22 7 12 2"/><polyline points="2 17 12 22 22 17"/><polyline points="2 12 12 17 22 12"/></svg> VIEW SWITCHER</span>
-        <h3 class="tab-switcher-title">Choose Active View</h3>
-        <p class="tab-switcher-desc">Instantly switch between Study Charts and Nepal Forest Study.</p>
-      </div>
-      <button class="fullscreen-shortcut-btn" onclick="toggleForestFullscreen()" title="Open Nepal Forest in Fullscreen">
-        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display:inline-block; vertical-align:middle;"><path d="M8 3H5a2 2 0 0 0-2 2v3m18 0V5a2 2 0 0 0-2-2h-3m0 18h3a2 2 0 0 0 2-2v-3M3 16v3a2 2 0 0 0 2 2h3"/></svg> Fullscreen Mode
-      </button>
-    </div>
-
-    <div class="tab-switcher-buttons-row">
-      <button id="tabBtnCharts" class="bottom-tab-card-btn active" onclick="switchMainTab('charts')">
-        <div class="tab-btn-icon-box"><svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg></div>
-        <div class="tab-btn-content">
-          <div class="tab-btn-label-row">
-            <span class="tab-btn-nepali">Study Charts & Analytics</span>
-            <span class="tab-btn-badge active-badge" id="tabBadgeCharts">Active View</span>
-          </div>
-          <div class="tab-btn-english">Study Charts, Master Chronometer & Analytics</div>
-          <div class="tab-btn-features">
-            <span><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display:inline-block; vertical-align:middle;"><circle cx="12" cy="13" r="8"/><path d="M12 9v4l2 2"/><path d="M5 3L2 6"/><path d="M22 6l-3-3"/><path d="M12 2v3"/></svg> Chronometer</span> • <span><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display:inline-block; vertical-align:middle;"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg> Timeline</span> • <span><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display:inline-block; vertical-align:middle;"><polyline points="23 6 13.5 15.5 8.5 10.5 1 18"/><polyline points="17 6 23 6 23 12"/></svg> Daily Progress</span> • <span><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display:inline-block; vertical-align:middle;"><path d="M2 20h20"/><path d="M6 20l6-11 6 11"/><path d="M9 14.5l3-5.5 3 5.5"/></svg> Analytics</span>
-          </div>
-        </div>
-      </button>
-
-      <button id="tabBtnForest" class="bottom-tab-card-btn" onclick="switchMainTab('forest')">
-        <div class="tab-btn-icon-box forest-icon-box"><svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2L6 10h3l-4 7h14l-4-7h3L12 2z"/><path d="M12 17v5"/></svg></div>
-        <div class="tab-btn-content">
-          <div class="tab-btn-label-row">
-            <span class="tab-btn-nepali">Nepal Forest Study</span>
-            <span class="tab-btn-badge forest-badge" id="tabBadgeForest">50 Native Plants</span>
-          </div>
-          <div class="tab-btn-english">Nepal Forest Study Focus (Botanical Pomodoro)</div>
-          <div class="tab-btn-features">
-            <span><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display:inline-block; vertical-align:middle;"><path d="M12 22V12M12 12C9 12 6 9.5 6 6c3.5 0 6 2.5 6 6zM12 14c3 0 6-2 6-5-3 0-6 2-6 5z"/></svg> Pomodoro Timer</span> • <span><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display:inline-block; vertical-align:middle;"><circle cx="12" cy="12" r="3"/><path d="M12 5a3 3 0 0 0-3 3c0 2 3 4 3 4s3-2 3-4a3 3 0 0 0-3-3zM12 19a3 3 0 0 0 3-3c0-2-3-4-3-4s-3 2-3 4a3 3 0 0 0 3 3z"/><path d="M5 12a3 3 0 0 0 3 3c2 0 4-3 4-3s-2-3-4-3a3 3 0 0 0-3 3zM19 12a3 3 0 0 0-3-3c-2 0-4 3-4 3s2 3 4 3a3 3 0 0 0 3-3z"/></svg> 50 Native Plants</span> • <span><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display:inline-block; vertical-align:middle;"><path d="M12 14v7M8 14c-2.5 0-4-2-4-4.5 0-2 1.5-4 3.5-4.5.5-2.5 2.5-4 4.5-4s4 1.5 4.5 4c2 .5 3.5 2.5 3.5 4.5 0 2.5-1.5 4.5-4 4.5H8z"/></svg> My Forest</span> • <span><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display:inline-block; vertical-align:middle;"><path d="M8 3H5a2 2 0 0 0-2 2v3m18 0V5a2 2 0 0 0-2-2h-3m0 18h3a2 2 0 0 0 2-2v-3M3 16v3a2 2 0 0 0 2 2h3"/></svg> Fullscreen</span>
-          </div>
-        </div>
-      </button>
-    </div>
-  </div>
-
   <!-- ================= NEPAL FOREST STUDY FULL-SCREEN TAB ================= -->
   <section id="nepalForestTab" class="nepal-forest-tab">
-    <div class="forest-header-card">
-      <div class="forest-header-info">
-        <h2 style="display:flex;align-items:center;gap:8px;"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2L6 10h3l-4 7h14l-4-7h3L12 2z"/><path d="M12 17v5"/></svg> Nepal Forest Study <span style="font-size: 13px; font-weight: 700; color: var(--success); background: rgba(52, 168, 83, 0.12); padding: 4px 10px; border-radius: 20px;">Nepal Forest Focus</span></h2>
-        <p>Focus on your studies with calm dedication and cultivate Nepal's 50 native plants.</p>
-      </div>
-      <div class="forest-header-actions">
-        <button class="forest-action-btn" onclick="openPlantsCatalogModal()">
-          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display:inline-block; vertical-align:middle;"><path d="M11 20A7 7 0 0 1 4 13c0-4.5 4-8 10-10 1 6-2.5 13-3 17z"/><path d="M11 20c1.5-3 4-6 9-7-2 3-5 5.5-9 7z"/></svg> 50 Plants Catalog
-        </button>
-        <button id="btnForestFullscreen" class="forest-action-btn btn-primary" onclick="toggleForestFullscreen()">
-          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display:inline-block; vertical-align:middle;"><path d="M8 3H5a2 2 0 0 0-2 2v3m18 0V5a2 2 0 0 0-2-2h-3m0 18h3a2 2 0 0 0 2-2v-3M3 16v3a2 2 0 0 0 2 2h3"/></svg> Fullscreen Focus
-        </button>
-      </div>
-    </div>
-
-    <!-- Main Forest Focus Grid -->
-    <div class="forest-main-grid">
-      <!-- Active Plant Profile -->
-      <div class="forest-plant-card">
-        <div class="plant-avatar-emblem" id="activePlantEmblem"><svg width="46" height="46" viewBox="0 0 24 24" fill="none" stroke="#2e7d32" stroke-width="1.8"><circle cx="12" cy="12" r="3"/><path d="M12 5a3 3 0 0 0-3 3c0 2 3 4 3 4s3-2 3-4a3 3 0 0 0-3-3zM12 19a3 3 0 0 0 3-3c0-2-3-4-3-4s-3 2-3 4a3 3 0 0 0 3 3z"/><path d="M5 12a3 3 0 0 0 3 3c2 0 4-3 4-3s-2-3-4-3a3 3 0 0 0-3 3zM19 12a3 3 0 0 0-3-3c-2 0-4 3-4 3s2 3 4 3a3 3 0 0 0 3-3z"/></svg></div>
-        <h3 class="plant-nepali-title" id="activePlantNepali">लालीगुराँस</h3>
-        <div class="plant-english-sub" id="activePlantEnglish">Rhododendron</div>
-        <div class="plant-scientific-name" id="activePlantScientific">Rhododendron arboreum</div>
-        <div class="plant-category-badge" id="activePlantCategory">National Flower / Tree</div>
-        <button class="forest-action-btn" onclick="openPlantsCatalogModal()" style="width: 100%; justify-content: center; margin-top: auto;">
-          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="display:inline-block; vertical-align:middle;"><path d="M21.5 2v6h-6M21.34 15.57a10 10 0 1 1-.57-8.38l5.67-5.67"/></svg> Change Plant
-        </button>
+    <div class="forest-study-box">
+      <div class="forest-study-topbar">
+        <div class="forest-study-heading">
+          <h2>
+            <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2L6 10h3l-4 7h14l-4-7h3L12 2z"/><path d="M12 17v5"/></svg>
+            Nepal Forest Study
+          </h2>
+          <p>Cultivate Nepal's 50 native plants across focused study sessions.</p>
+        </div>
+        <div class="forest-header-actions">
+          <button class="forest-action-btn" onclick="openPlantsCatalogModal()">
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 20A7 7 0 0 1 4 13c0-4.5 4-8 10-10 1 6-2.5 13-3 17z"/><path d="M11 20c1.5-3 4-6 9-7-2 3-5 5.5-9 7z"/></svg> 50 Plants Catalog
+          </button>
+          <button id="btnForestFullscreen" class="forest-action-btn btn-primary" onclick="toggleForestFullscreen()">
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M8 3H5a2 2 0 0 0-2 2v3m18 0V5a2 2 0 0 0-2-2h-3m0 18h3a2 2 0 0 0 2-2v-3M3 16v3a2 2 0 0 0 2 2h3"/></svg> Fullscreen Focus
+          </button>
+        </div>
       </div>
 
-      <!-- Growing Plant Visual & Focus Timer -->
-      <div class="forest-focus-card">
-        <div class="growth-stage-wrapper">
-          <svg class="growth-ring-svg" viewBox="0 0 250 250">
-            <circle class="growth-ring-bg" cx="125" cy="125" r="105"></circle>
-            <circle id="growthRingProgress" class="growth-ring-progress" cx="125" cy="125" r="105" stroke-dasharray="660" stroke-dashoffset="660"></circle>
-          </svg>
-          <div id="growthSvgStage" class="growth-svg-container"></div>
+      <div class="forest-study-body">
+        <!-- Specimen Column -->
+        <div class="forest-specimen-pane">
+          <div class="forest-specimen-head">
+            <div class="plant-avatar-emblem" id="activePlantEmblem"><svg width="42" height="42" viewBox="0 0 24 24" fill="none" stroke="#2e7d32" stroke-width="1.8"><circle cx="12" cy="12" r="3"/><path d="M12 5a3 3 0 0 0-3 3c0 2 3 4 3 4s3-2 3-4a3 3 0 0 0-3-3zM12 19a3 3 0 0 0 3-3c0-2-3-4-3-4s-3 2-3 4a3 3 0 0 0 3 3z"/><path d="M5 12a3 3 0 0 0 3 3c2 0 4-3 4-3s-2-3-4-3a3 3 0 0 0-3 3zM19 12a3 3 0 0 0-3-3c-2 0-4 3-4 3s2 3 4 3a3 3 0 0 0 3-3z"/></svg></div>
+            <div class="forest-specimen-meta">
+              <div class="plant-category-badge" id="activePlantCategory">National Flower / Tree</div>
+              <h3 class="plant-nepali-title" id="activePlantNepali">लालीगुराँस</h3>
+              <div class="plant-english-sub" id="activePlantEnglish">Rhododendron</div>
+              <div class="plant-scientific-name" id="activePlantScientific">Rhododendron arboreum</div>
+            </div>
+          </div>
+          <button class="forest-action-btn forest-change-plant-btn" onclick="openPlantsCatalogModal()">
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M21.5 2v6h-6M21.34 15.57a10 10 0 1 1-.57-8.38l5.67-5.67"/></svg> Change Plant
+          </button>
         </div>
 
-        <div id="forestTimerDisplay" class="forest-timer-digits">25:00</div>
-        <div id="forestStageLabel" class="forest-stage-label">Ready to Plant</div>
-        <div id="forestQuoteText" class="forest-quote-text">"A focused mind is the seed of true mastery."</div>
+        <!-- Study Timer Column -->
+        <div class="forest-focus-pane">
+          <div class="forest-focus-readout">
+            <div class="growth-stage-wrapper">
+              <svg class="growth-ring-svg" viewBox="0 0 250 250">
+                <circle class="growth-ring-bg" cx="125" cy="125" r="105"></circle>
+                <circle id="growthRingProgress" class="growth-ring-progress" cx="125" cy="125" r="105" stroke-dasharray="660" stroke-dashoffset="660"></circle>
+              </svg>
+              <div id="growthSvgStage" class="growth-svg-container"></div>
+            </div>
+            <div class="forest-readout-info">
+              <div id="forestTimerDisplay" class="forest-timer-digits">25:00</div>
+              <div id="forestStageLabel" class="forest-stage-label">Ready to Plant</div>
+              <div id="forestQuoteText" class="forest-quote-text">"A focused mind is the seed of true mastery."</div>
+            </div>
+          </div>
 
-        <!-- Timer Mode Toggle -->
-        <div class="timer-mode-switcher" style="display: flex; justify-content: center; gap: 8px; margin-bottom: 14px;">
-          <button id="btnForestModeFixed" class="duration-pill active" onclick="setForestTimerMode('fixed')" style="display:inline-flex;align-items:center;gap:5px;"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display:inline-block; vertical-align:middle;"><circle cx="12" cy="13" r="8"/><path d="M12 9v4l2 2"/><path d="M5 3L2 6"/><path d="M22 6l-3-3"/><path d="M12 2v3"/></svg> Fixed Timer</button>
-          <button id="btnForestModeOpen" class="duration-pill" onclick="setForestTimerMode('open')" style="display:inline-flex;align-items:center;gap:5px;"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display:inline-block; vertical-align:middle;"><path d="M18.178 8c5.096 0 5.096 8 0 8-2.695 0-4.743-2.18-6.178-4-1.435 1.82-3.483 4-6.178 4-5.096 0-5.096-8 0-8 2.695 0 4.743 2.18 6.178 4 1.435-1.82 3.483-4 6.178-4z"/></svg> Open Timer</button>
-        </div>
+          <div class="forest-timer-controls-wrap">
+            <!-- Timer Mode Toggle -->
+            <div class="timer-mode-switcher">
+              <button id="btnForestModeFixed" class="duration-pill active" onclick="setForestTimerMode('fixed')"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="13" r="8"/><path d="M12 9v4l2 2"/><path d="M5 3L2 6"/><path d="M22 6l-3-3"/><path d="M12 2v3"/></svg> Fixed Timer</button>
+              <button id="btnForestModeOpen" class="duration-pill" onclick="setForestTimerMode('open')"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18.178 8c5.096 0 5.096 8 0 8-2.695 0-4.743-2.18-6.178-4-1.435 1.82-3.483 4-6.178 4-5.096 0-5.096-8 0-8 2.695 0 4.743 2.18 6.178 4 1.435-1.82 3.483-4 6.178-4z"/></svg> Open Timer</button>
+            </div>
 
-        <!-- Duration Selectors -->
-        <div class="duration-pills-row" id="forestDurationPills">
-          <button class="duration-pill" onclick="selectForestDuration(15, this)">15 min</button>
-          <button class="duration-pill active" onclick="selectForestDuration(25, this)">25 min (Pomodoro)</button>
-          <button class="duration-pill" onclick="selectForestDuration(45, this)">45 min</button>
-          <button class="duration-pill" onclick="selectForestDuration(60, this)">60 min</button>
-          <button class="duration-pill" onclick="selectForestDuration(90, this)">90 min</button>
-          <button class="duration-pill" onclick="selectForestDuration(120, this)">120 min</button>
-        </div>
+            <!-- Duration Selectors -->
+            <div class="duration-pills-row" id="forestDurationPills">
+              <button class="duration-pill" onclick="selectForestDuration(15, this)">15 min</button>
+              <button class="duration-pill active" onclick="selectForestDuration(25, this)">25 min (Pomodoro)</button>
+              <button class="duration-pill" onclick="selectForestDuration(45, this)">45 min</button>
+              <button class="duration-pill" onclick="selectForestDuration(60, this)">60 min</button>
+              <button class="duration-pill" onclick="selectForestDuration(90, this)">90 min</button>
+              <button class="duration-pill" onclick="selectForestDuration(120, this)">120 min</button>
+            </div>
 
-        <div class="forest-controls-row">
-          <button id="btnForestStart" class="btn-plant-start" onclick="toggleForestSession()">
-            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display:inline-block; vertical-align:middle;"><path d="M12 22V12M12 12C9 12 6 9.5 6 6c3.5 0 6 2.5 6 6zM12 14c3 0 6-2 6-5-3 0-6 2-6 5z"/></svg> Plant & Focus
-          </button>
-          <button id="btnForestCompleteOpen" class="btn-plant-start" onclick="completeForestOpenSession()" style="display: none; background: #2e7d32;">
-            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display:inline-block; vertical-align:middle;"><path d="M11 20A7 7 0 0 1 4 13c0-4.5 4-8 10-10 1 6-2.5 13-3 17z"/><path d="M11 20c1.5-3 4-6 9-7-2 3-5 5.5-9 7z"/></svg> Finish & Plant
-          </button>
-          <button id="btnForestGiveUp" class="btn-plant-giveup" onclick="giveUpForestSession()" style="display: none;">
-            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display:inline-block; vertical-align:middle;"><circle cx="12" cy="12" r="10"/><line x1="15" y1="9" x2="9" y2="15"/><line x1="9" y1="9" x2="15" y2="15"/></svg> Give Up
-          </button>
+            <div class="forest-controls-row">
+              <button id="btnForestStart" class="btn-plant-start" onclick="toggleForestSession()">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22V12M12 12C9 12 6 9.5 6 6c3.5 0 6 2.5 6 6zM12 14c3 0 6-2 6-5-3 0-6 2-6 5z"/></svg> Plant & Focus
+              </button>
+              <button id="btnForestCompleteOpen" class="btn-plant-start" onclick="completeForestOpenSession()" style="display: none;">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 20A7 7 0 0 1 4 13c0-4.5 4-8 10-10 1 6-2.5 13-3 17z"/><path d="M11 20c1.5-3 4-6 9-7-2 3-5 5.5-9 7z"/></svg> Finish & Plant
+              </button>
+              <button id="btnForestGiveUp" class="btn-plant-giveup" onclick="giveUpForestSession()" style="display: none;">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="15" y1="9" x2="9" y2="15"/><line x1="9" y1="9" x2="15" y2="15"/></svg> Give Up
+              </button>
+            </div>
+          </div>
         </div>
       </div>
     </div>
@@ -426,27 +398,28 @@
       <div class="forest-stats-banner">
         <div class="forest-stat-box">
           <div id="statForestTotalTrees" class="forest-stat-val">0</div>
-          <div class="forest-stat-lbl" style="display:flex;align-items:center;justify-content:center;gap:4px;"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display:inline-block; vertical-align:middle;"><path d="M12 14v7M8 14c-2.5 0-4-2-4-4.5 0-2 1.5-4 3.5-4.5.5-2.5 2.5-4 4.5-4s4 1.5 4.5 4c2 .5 3.5 2.5 3.5 4.5 0 2.5-1.5 4.5-4 4.5H8z"/></svg> Total Planted</div>
+          <div class="forest-stat-lbl"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 14v7M8 14c-2.5 0-4-2-4-4.5 0-2 1.5-4 3.5-4.5.5-2.5 2.5-4 4.5-4s4 1.5 4.5 4c2 .5 3.5 2.5 3.5 4.5 0 2.5-1.5 4.5-4 4.5H8z"/></svg> Total Planted</div>
         </div>
         <div class="forest-stat-box">
           <div id="statForestTotalTime" class="forest-stat-val">0m</div>
-          <div class="forest-stat-lbl" style="display:flex;align-items:center;justify-content:center;gap:4px;"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display:inline-block; vertical-align:middle;"><circle cx="12" cy="13" r="8"/><path d="M12 9v4l2 2"/><path d="M5 3L2 6"/><path d="M22 6l-3-3"/><path d="M12 2v3"/></svg> Total Focus Time</div>
+          <div class="forest-stat-lbl"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="13" r="8"/><path d="M12 9v4l2 2"/><path d="M5 3L2 6"/><path d="M22 6l-3-3"/><path d="M12 2v3"/></svg> Total Focus Time</div>
         </div>
         <div class="forest-stat-box">
-          <div id="statForestHealthy" class="forest-stat-val" style="color: var(--success);">0</div>
-          <div class="forest-stat-lbl" style="display:flex;align-items:center;justify-content:center;gap:4px;"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display:inline-block; vertical-align:middle;"><path d="M11 20A7 7 0 0 1 4 13c0-4.5 4-8 10-10 1 6-2.5 13-3 17z"/><path d="M11 20c1.5-3 4-6 9-7-2 3-5 5.5-9 7z"/></svg> Thriving Plants</div>
+          <div id="statForestHealthy" class="forest-stat-val stat-healthy">0</div>
+          <div class="forest-stat-lbl"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 20A7 7 0 0 1 4 13c0-4.5 4-8 10-10 1 6-2.5 13-3 17z"/><path d="M11 20c1.5-3 4-6 9-7-2 3-5 5.5-9 7z"/></svg> Thriving Plants</div>
         </div>
         <div class="forest-stat-box">
-          <div id="statForestWithered" class="forest-stat-val" style="color: var(--danger);">0</div>
-          <div class="forest-stat-lbl" style="display:flex;align-items:center;justify-content:center;gap:4px;"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display:inline-block; vertical-align:middle;"><path d="M12 22V13"/><path d="M12 13c-2-2-4-3-7-3 1 4 4 6 7 3z"/><path d="M12 10c2-1 4-1 6 1-1-3-4-4-6-1z"/></svg> Withered Plants</div>
+          <div id="statForestWithered" class="forest-stat-val stat-withered">0</div>
+          <div class="forest-stat-lbl"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22V13"/><path d="M12 13c-2-2-4-3-7-3 1 4 4 6 7 3z"/><path d="M12 10c2-1 4-1 6 1-1-3-4-4-6-1z"/></svg> Withered Plants</div>
         </div>
       </div>
 
       <div class="forest-filter-bar">
-        <div style="font-weight: 800; font-size: 16px; color: var(--text);">
-          <span style="display:inline-flex;align-items:center;gap:6px;"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display:inline-block; vertical-align:middle;"><path d="M11 20A7 7 0 0 1 4 13c0-4.5 4-8 10-10 1 6-2.5 13-3 17z"/><path d="M11 20c1.5-3 4-6 9-7-2 3-5 5.5-9 7z"/></svg> My Planted Forest</span>
+        <div class="forest-filter-title">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 20A7 7 0 0 1 4 13c0-4.5 4-8 10-10 1 6-2.5 13-3 17z"/><path d="M11 20c1.5-3 4-6 9-7-2 3-5 5.5-9 7z"/></svg>
+          <span>My Planted Forest</span>
         </div>
-        <div style="display: flex; gap: 6px;">
+        <div class="forest-filter-tabs">
           <button class="duration-pill active" id="filterTodayBtn" onclick="filterForestGrid('today')">Today</button>
           <button class="duration-pill" id="filterWeekBtn" onclick="filterForestGrid('week')">This Week</button>
           <button class="duration-pill" id="filterAllBtn" onclick="filterForestGrid('all')">All Time</button>
@@ -591,7 +564,9 @@
   <script src="/js/log-queue.js"></script>
   <script src="/js/charts.js"></script>
   <script src="/js/timer.js"></script>
+  <script src="/js/forest-diorama.js"></script>
   <script src="/js/forest-tab.js"></script>
+  <script src="/js/quotes.js"></script>
   <script src="/js/pwa.js"></script>
 </body>
 </html>
