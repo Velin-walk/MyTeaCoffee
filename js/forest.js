@@ -602,6 +602,9 @@
 
     // ================= MY FOREST PLOTS =================
     function renderForestPlots() {
+      if (typeof applySelectedPlantToForestHistory === 'function') {
+        applySelectedPlantToForestHistory(getCurrentPlant());
+      }
       let history = [];
       try {
         history = JSON.parse(localStorage.getItem('nepalForestHistory')) || [];
@@ -725,8 +728,9 @@
         return matchesCategory && matchesQuery;
       });
 
+      const activePlantId = (typeof getCurrentPlant === 'function' && getCurrentPlant()?.id) || selectedPlantId;
       container.innerHTML = list.map(plant => {
-        const isSel = plant.id === selectedPlantId;
+        const isSel = plant.id === activePlantId;
         return `
           <div class="catalog-card-item ${isSel ? 'selected' : ''}" onclick="pickPlant(${plant.id})">
             <div class="catalog-icon">${getBotanicalIconSvg(plant)}</div>
@@ -749,10 +753,15 @@
         return;
       }
       selectedPlantId = id;
-      try {
-        localStorage.setItem('selectedNepalPlantId', id);
-      } catch (e) {}
+      if (typeof saveSelectedNepalPlant === 'function') {
+        saveSelectedNepalPlant(id);
+      } else {
+        try {
+          localStorage.setItem('selectedNepalPlantId', id);
+        } catch (e) {}
+      }
       renderActivePlant();
+      renderForestPlots();
       closePlantsModal();
     }
 
@@ -870,6 +879,16 @@
         }
       } catch (e) {}
 
+      // Sync selected plant from backend state
+      fetch(`${WEB_APP_URL}?action=getState&_t=${Date.now()}`).then(res => res.json()).then(props => {
+        if (typeof syncSelectedNepalPlantFromState === 'function') {
+          const syncedPlant = syncSelectedNepalPlantFromState(props);
+          if (syncedPlant) {
+            selectedPlantId = syncedPlant.id;
+          }
+        }
+      }).catch(() => null);
+
       // Sync past 7 days of sessions from study charts / Google Sheets backend
       fetchPastWeekWatchSessionsToForest();
     });
@@ -966,7 +985,11 @@
         const newId = parseInt(e.newValue, 10);
         if (!isNaN(newId) && newId > 0) {
           selectedPlantId = newId;
+          if (typeof applySelectedPlantToForestHistory === 'function') {
+            applySelectedPlantToForestHistory(getCurrentPlant());
+          }
           renderActivePlant();
+          renderForestPlots();
         }
       } else if (e.key === 'activeFocusSession') {
         if (!e.newValue && isSessionActive) {

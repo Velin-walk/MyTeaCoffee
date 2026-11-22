@@ -118,7 +118,18 @@
         document.getElementById('goalInput').value = data.goal;
       }).catch(() => null);
       
-      fetch(`${WEB_APP_URL}?action=getState`).then(res => res.json()).then(props => restoreSessions(props)).catch(() => null);
+      fetch(`${WEB_APP_URL}?action=getState&_t=${Date.now()}`).then(res => res.json()).then(props => {
+        if (typeof syncSelectedNepalPlantFromState === 'function') {
+          const syncedPlant = syncSelectedNepalPlantFromState(props);
+          if (syncedPlant && typeof selectedForestPlantId !== 'undefined') {
+            selectedForestPlantId = syncedPlant.id;
+          }
+          if (syncedPlant && typeof loadMultiDaySessionsTimeline === 'function') {
+            loadMultiDaySessionsTimeline();
+          }
+        }
+        restoreSessions(props);
+      }).catch(() => null);
       
       whenGoogleChartsLoaded(async () => {
         loadChartDailyWithCache(); loadChartWeeklyWithCache(); loadChartMonthlyWithCache(); loadCalendarData(); loadHourlyDist();

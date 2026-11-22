@@ -42,15 +42,11 @@
 
   function buildTileSlots(gridSize) {
     const slots = [];
-    const center = (gridSize - 1) / 2;
     for (let r = 0; r < gridSize; r++) {
       for (let c = 0; c < gridSize; c++) {
-        const dist = Math.hypot(r - center, c - center);
-        const jitter = seededRand(r * 131 + c * 313 + gridSize * 17) * 1.35;
-        slots.push({ r, c, score: dist * 0.45 + jitter });
+        slots.push({ r, c });
       }
     }
-    slots.sort((a, b) => a.score - b.score);
     return slots;
   }
 
@@ -184,10 +180,54 @@
   function getContainerState(container) {
     let st = containerStates.get(container);
     if (!st) {
-      st = { zoom: 1.0, selectedIdx: null };
+      st = {
+        zoom: 1.0,
+        selectedIdx: null,
+        scrollZoomActive: false,
+        scrollZoomBound: false,
+        lastWheelZoomAt: 0,
+        latestItems: [],
+        latestOpts: {}
+      };
       containerStates.set(container, st);
     }
     return st;
+  }
+
+  function bindContainerScrollZoom(container, state) {
+    if (state.scrollZoomBound) return;
+    state.scrollZoomBound = true;
+
+    container.addEventListener('mousedown', () => {
+      state.scrollZoomActive = true;
+    });
+
+    container.addEventListener('click', () => {
+      state.scrollZoomActive = true;
+    });
+
+    if (typeof document !== 'undefined') {
+      document.addEventListener('mousedown', (e) => {
+        if (!container.contains(e.target)) {
+          state.scrollZoomActive = false;
+        }
+      });
+    }
+
+    container.addEventListener('wheel', (e) => {
+      if (!state.scrollZoomActive) return;
+      if (e.deltaY === 0 || Math.abs(e.deltaY) <= Math.abs(e.deltaX)) return;
+      e.preventDefault();
+      const now = Date.now();
+      if (now - state.lastWheelZoomAt < 60) return;
+      state.lastWheelZoomAt = now;
+      const delta = e.deltaY < 0 ? 0.2 : -0.2;
+      const nextZoom = Math.max(0.6, Math.min(2.2, Number((state.zoom + delta).toFixed(2))));
+      if (nextZoom !== state.zoom) {
+        state.zoom = nextZoom;
+        renderForestDiorama(container, state.latestItems, state.latestOpts);
+      }
+    }, { passive: false });
   }
 
   function renderForestDiorama(container, filteredItems, options) {
@@ -195,6 +235,9 @@
     const opts = options || {};
     const state = getContainerState(container);
     const items = Array.isArray(filteredItems) ? filteredItems : [];
+    state.latestItems = items;
+    state.latestOpts = opts;
+    bindContainerScrollZoom(container, state);
     const N = computeGridSize(items.length);
 
     const diamondW = N * TILE_W;
