@@ -1015,3 +1015,20 @@
         syncForestTimer();
       }
     });
+
+    // Real-time clock update matching Study Charts Session Controls card
+    function updateForestRealTimeClock() {
+      const now = new Date();
+      const hours = String(now.getHours()).padStart(2, '0');
+      const minutes = String(now.getMinutes()).padStart(2, '0');
+      const seconds = String(now.getSeconds()).padStart(2, '0');
+      const dateStr = now.toLocaleDateString('en-US', { month: 'short', day: '2-digit' });
+
+      const watchEl = document.getElementById('forestRealTimeWatch');
+      const dateEl = document.getElementById('forestRealTimeDate');
+      if (watchEl) watchEl.innerText = `${hours}:${minutes}:${seconds}`;
+      if (dateEl) dateEl.innerText = dateStr;
+    }
+
+    setInterval(updateForestRealTimeClock, 1000);
+    updateForestRealTimeClock();

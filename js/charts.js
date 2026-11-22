@@ -1128,9 +1128,17 @@ function updateRealTimeClock() {
   const minutes = String(now.getMinutes()).padStart(2, '0');
   const seconds = String(now.getSeconds()).padStart(2, '0');
   const dateStr = now.toLocaleDateString('en-US', { month: 'short', day: '2-digit' });
-  
-  document.getElementById('realTimeWatch').innerText = `${hours}:${minutes}:${seconds}`;
-  document.getElementById('realTimeDate').innerText = dateStr;
+  const timeStr = `${hours}:${minutes}:${seconds}`;
+
+  const watchEl = document.getElementById('realTimeWatch');
+  const dateEl = document.getElementById('realTimeDate');
+  if (watchEl) watchEl.innerText = timeStr;
+  if (dateEl) dateEl.innerText = dateStr;
+
+  const forestWatchEl = document.getElementById('forestRealTimeWatch');
+  const forestDateEl = document.getElementById('forestRealTimeDate');
+  if (forestWatchEl) forestWatchEl.innerText = timeStr;
+  if (forestDateEl) forestDateEl.innerText = dateStr;
 }
 
 setInterval(updateRealTimeClock, 1000);
