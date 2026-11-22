@@ -453,9 +453,6 @@ function renderActivePlantProfile() {
 }
 
 function renderMyForest() {
-  if (typeof applySelectedPlantToForestHistory === 'function') {
-    applySelectedPlantToForestHistory(getSelectedPlant());
-  }
   let history = [];
   try {
     history = JSON.parse(localStorage.getItem('nepalForestHistory')) || [];
@@ -660,7 +657,9 @@ document.addEventListener('keydown', (e) => {
 window.addEventListener('load', () => {
   renderActivePlantProfile();
   renderMyForest();
-  fetchPastWeekWatchSessionsToForest();
+  if (typeof window.load24HourWatchWithCache !== 'function') {
+    fetchPastWeekWatchSessionsToForest();
+  }
   const savedTab = localStorage.getItem('studyFlowActiveTab') || 'charts';
   switchMainTab(savedTab);
 
@@ -773,9 +772,6 @@ window.addEventListener('storage', (e) => {
     const newId = parseInt(e.newValue, 10);
     if (!isNaN(newId) && newId > 0) {
       selectedForestPlantId = newId;
-      if (typeof applySelectedPlantToForestHistory === 'function') {
-        applySelectedPlantToForestHistory(getSelectedPlant());
-      }
       renderActivePlantProfile();
       renderMyForest();
     }

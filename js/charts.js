@@ -129,7 +129,11 @@
           }
         }
         restoreSessions(props);
-      }).catch(() => null);
+      }).catch(() => null).finally(() => {
+        if (typeof fetchPastWeekWatchSessionsToForest === 'function') {
+          fetchPastWeekWatchSessionsToForest();
+        }
+      });
       
       whenGoogleChartsLoaded(async () => {
         loadChartDailyWithCache(); loadChartWeeklyWithCache(); loadChartMonthlyWithCache(); loadCalendarData(); loadHourlyDist();

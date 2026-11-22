@@ -190,47 +190,6 @@
     return chosen;
   }
 
-  function applySelectedPlantToForestHistory(plant) {
-    const active = plant || getSelectedNepalPlant();
-    if (!active) return false;
-    try {
-      const raw = localStorage.getItem('nepalForestHistory');
-      if (!raw) return false;
-      const history = JSON.parse(raw);
-      if (!Array.isArray(history) || history.length === 0) return false;
-
-      let changed = false;
-      for (let i = 0; i < history.length; i++) {
-        const item = history[i];
-        if (!item || typeof item !== 'object') continue;
-        if (
-          item.id !== active.id ||
-          item.slug !== active.slug ||
-          item.nepali !== active.nepali ||
-          item.english !== active.english ||
-          item.scientific !== active.scientific ||
-          item.category !== active.category
-        ) {
-          item.id = active.id;
-          item.slug = active.slug;
-          item.nepali = active.nepali;
-          item.english = active.english;
-          item.scientific = active.scientific;
-          item.category = active.category;
-          if (active.icon) item.icon = active.icon;
-          changed = true;
-        }
-      }
-
-      if (changed) {
-        localStorage.setItem('nepalForestHistory', JSON.stringify(history));
-      }
-      return changed;
-    } catch (e) {
-      return false;
-    }
-  }
-
   function saveSelectedNepalPlant(id, webAppUrl) {
     const plants = root.NEPAL_PLANTS || NEPAL_PLANTS || [];
     const parsedId = parseInt(id, 10);
@@ -240,8 +199,6 @@
     try {
       localStorage.setItem('selectedNepalPlantId', plant.id);
     } catch (e) {}
-
-    applySelectedPlantToForestHistory(plant);
 
     const url = webAppUrl || root.WEB_APP_URL;
     if (url && typeof fetch === 'function') {
@@ -274,8 +231,6 @@
       root.selectedForestPlantId = match.id;
     }
 
-    applySelectedPlantToForestHistory(match);
-
     if (typeof root.renderActivePlantProfile === 'function') root.renderActivePlantProfile();
     if (typeof root.renderActivePlant === 'function') root.renderActivePlant();
     if (typeof root.renderMyForest === 'function') root.renderMyForest();
@@ -291,7 +246,6 @@
   root.getSelectedNepalPlant = getSelectedNepalPlant;
   root.getSelectedPlant = getSelectedNepalPlant;
   root.getCurrentPlant = getSelectedNepalPlant;
-  root.applySelectedPlantToForestHistory = applySelectedPlantToForestHistory;
   root.saveSelectedNepalPlant = saveSelectedNepalPlant;
   root.syncSelectedNepalPlantFromState = syncSelectedNepalPlantFromState;
   root.getPlantSlug = getPlantSlug;

@@ -602,9 +602,6 @@
 
     // ================= MY FOREST PLOTS =================
     function renderForestPlots() {
-      if (typeof applySelectedPlantToForestHistory === 'function') {
-        applySelectedPlantToForestHistory(getCurrentPlant());
-      }
       let history = [];
       try {
         history = JSON.parse(localStorage.getItem('nepalForestHistory')) || [];
@@ -879,7 +876,7 @@
         }
       } catch (e) {}
 
-      // Sync selected plant from backend state
+      // Sync selected plant from backend state before syncing watch sessions
       fetch(`${WEB_APP_URL}?action=getState&_t=${Date.now()}`).then(res => res.json()).then(props => {
         if (typeof syncSelectedNepalPlantFromState === 'function') {
           const syncedPlant = syncSelectedNepalPlantFromState(props);
@@ -887,10 +884,9 @@
             selectedPlantId = syncedPlant.id;
           }
         }
-      }).catch(() => null);
-
-      // Sync past 7 days of sessions from study charts / Google Sheets backend
-      fetchPastWeekWatchSessionsToForest();
+      }).catch(() => null).finally(() => {
+        fetchPastWeekWatchSessionsToForest();
+      });
     });
 
     async function fetchPastWeekWatchSessionsToForest() {
@@ -985,9 +981,6 @@
         const newId = parseInt(e.newValue, 10);
         if (!isNaN(newId) && newId > 0) {
           selectedPlantId = newId;
-          if (typeof applySelectedPlantToForestHistory === 'function') {
-            applySelectedPlantToForestHistory(getCurrentPlant());
-          }
           renderActivePlant();
           renderForestPlots();
         }
