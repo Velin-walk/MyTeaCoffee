@@ -897,11 +897,24 @@
       }
     }
 
+    .iso-pond-ripple {
+      animation: isoPondShimmer 3.6s ease-in-out infinite;
+    }
+
+    @keyframes isoPondShimmer {
+      0%, 100% { stroke-opacity: 0.35; }
+      50% { stroke-opacity: 0.72; }
+    }
+
     @media (prefers-reduced-motion: reduce) {
       .iso-plant-pin,
       .btn-empty-grassland-cue,
       .iso-zoom-btn {
         transition: none;
+      }
+      .iso-pond-ripple {
+        animation: none;
+        stroke-opacity: 0.5;
       }
     }
 
