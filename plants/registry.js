@@ -42,13 +42,19 @@
     };
   }).filter(Boolean);
 
-  function getPlantSlug(plant) {
-    if (!plant) return 'rhododendron';
+  function matchPlantSlugOrNull(plant) {
+    if (!plant) return null;
     if (typeof plant === 'object' && plant.slug && root.NEPAL_PLANTS_REGISTRY[plant.slug]) {
       return plant.slug;
     }
-    const id = typeof plant === 'object' ? plant.id : plant;
-    const name = typeof plant === 'object' ? `${plant.english || ''} ${plant.nepali || ''}`.toLowerCase() : String(plant).toLowerCase();
+    const rawStr = typeof plant === 'object' ? '' : String(plant).trim();
+    const id = typeof plant === 'object'
+      ? plant.id
+      : (/^\d+$/.test(rawStr) ? parseInt(rawStr, 10) : NaN);
+    const name = typeof plant === 'object'
+      ? `${plant.english || ''} ${plant.nepali || ''}`.toLowerCase()
+      : rawStr.toLowerCase();
+    if (!name && (isNaN(id) || id <= 0)) return null;
 
     if (id === 39 || name.includes('jacaranda') || name.includes('ज्याकारान्दा') || name.includes('mimosifolia')) return 'jacaranda';
     if (id === 38 || name.includes('suntala') || name.includes('सुन्तला') || name.includes('citrus') || name.includes('orange')) return 'suntala';
@@ -64,7 +70,23 @@
     if (id === 22 || name.includes('nettle') || name.includes('सिस्नु')) return 'nettle';
     if (id === 35 || name.includes('lotus') || name.includes('कमल')) return 'lotus';
     if (id === 33 || name.includes('marigold') || name.includes('सयपत्री')) return 'marigold';
-    return 'rhododendron';
+    return null;
+  }
+
+  function getPlantSlug(plant) {
+    return matchPlantSlugOrNull(plant) || 'rhododendron';
+  }
+
+  function resolvePlantFromSource(plantName, fallbackPlant) {
+    const plants = root.NEPAL_PLANTS || NEPAL_PLANTS || [];
+    if (plantName) {
+      const slug = matchPlantSlugOrNull(plantName);
+      if (slug) {
+        const match = plants.find(p => p.slug === slug);
+        if (match) return match;
+      }
+    }
+    return fallbackPlant || null;
   }
 
   function getBotanicalSvgContent(slug, stage, isWithered) {
@@ -248,6 +270,7 @@
   root.getCurrentPlant = getSelectedNepalPlant;
   root.saveSelectedNepalPlant = saveSelectedNepalPlant;
   root.syncSelectedNepalPlantFromState = syncSelectedNepalPlantFromState;
+  root.resolvePlantFromSource = resolvePlantFromSource;
   root.getPlantSlug = getPlantSlug;
   root.getBotanicalSvgContent = getBotanicalSvgContent;
   root.getPlantGrowthSvg = getPlantGrowthSvg;

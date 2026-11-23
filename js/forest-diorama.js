@@ -484,7 +484,7 @@
         if (viewport) viewport.style.cursor = 'grabbing';
       }
       if (state.isDragging) {
-        state.yaw = startYaw + dx * 0.009;
+        state.yaw = startYaw - dx * 0.009;
         state.pitch = Math.max(0.34, Math.min(0.66, startPitch + dy * 0.0025));
         scheduleRotationFrame(container, state);
       }

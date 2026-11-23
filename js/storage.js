@@ -269,12 +269,14 @@ window.parseSessionDate = parseSessionDate;
         // If sessions share nearly identical start time (duplicate sync entries), deduplicate duration
         if (Math.abs(next.start - current.start) <= 0.05) {
           current.hrs = Math.max(current.hrs, next.hrs);
+          if (!current.plant && next.plant) current.plant = next.plant;
         } else if (gap <= 0.05) {
           // Merge contiguous sequential slices if gap is <= 3 minutes (0.05 hr) or overlapping
           const newEnd = Math.max(currentEnd, next.start + next.hrs);
           if (newEnd > currentEnd) {
             current.hrs = newEnd - current.start;
           }
+          if (!current.plant && next.plant) current.plant = next.plant;
         } else {
           merged.push(current);
           current = { ...next };
@@ -325,7 +327,7 @@ window.parseSessionDate = parseSessionDate;
       const dateKey = now.toISOString().slice(0, 10);
       let updated = false;
 
-      // Always use the plant chosen in Nepal Forest; never use a default plant fallback
+      // Fallback plant only when source session has no plant recorded
       const activePlant = (typeof getSelectedNepalPlant === 'function')
         ? getSelectedNepalPlant()
         : ((typeof getSelectedPlant === 'function') ? getSelectedPlant() : (function() {
@@ -343,10 +345,14 @@ window.parseSessionDate = parseSessionDate;
             return null;
           })());
 
-      if (!activePlant) return;
-
       sessions.forEach(sess => {
         if (typeof sess.hrs !== 'number' || sess.hrs <= 0) return;
+        const sourcePlant = (typeof resolvePlantFromSource === 'function' && sess.plant)
+          ? resolvePlantFromSource(sess.plant, null)
+          : null;
+        const sessionPlant = sourcePlant || activePlant;
+        if (!sessionPlant) return;
+
         const totalMins = Math.max(1, Math.round(sess.hrs * 60));
         const startHour = Math.floor(sess.start);
         const startMin = Math.round((sess.start % 1) * 60);
@@ -372,7 +378,7 @@ window.parseSessionDate = parseSessionDate;
           const chunkSessTime = baseStartTime + ((chunk.offsetMins + chunk.mins) * 60 * 1000);
           const chunkSessionKey = `${dateKey}_${sess.start.toFixed(2)}_${sess.hrs.toFixed(2)}_c${chunk.cycleIdx}`;
 
-          const alreadyPlanted = history.some(item => {
+          const existingItem = history.find(item => {
             if (item.sessionKey === chunkSessionKey) return true;
             if (item.timestamp >= startOfDay) {
               const timeDiff = Math.abs(item.timestamp - chunkSessTime);
@@ -382,20 +388,34 @@ window.parseSessionDate = parseSessionDate;
             return false;
           });
 
-          if (!alreadyPlanted) {
+          if (!existingItem) {
             history.push({
-              id: activePlant.id,
-              nepali: activePlant.nepali,
-              english: activePlant.english,
-              scientific: activePlant.scientific,
-              category: activePlant.category,
-              icon: activePlant.icon,
+              id: sessionPlant.id,
+              slug: sessionPlant.slug,
+              nepali: sessionPlant.nepali,
+              english: sessionPlant.english,
+              scientific: sessionPlant.scientific,
+              category: sessionPlant.category,
+              icon: sessionPlant.icon,
               minutes: chunk.mins,
               isHealthy: true,
               timestamp: chunkSessTime,
               sessionKey: chunkSessionKey,
               source: 'charts'
             });
+            updated = true;
+          } else if (
+            sourcePlant &&
+            (existingItem.source === 'charts' || existingItem.source === 'charts-sync') &&
+            existingItem.id !== sourcePlant.id
+          ) {
+            existingItem.id = sourcePlant.id;
+            existingItem.slug = sourcePlant.slug;
+            existingItem.nepali = sourcePlant.nepali;
+            existingItem.english = sourcePlant.english;
+            existingItem.scientific = sourcePlant.scientific;
+            existingItem.category = sourcePlant.category;
+            existingItem.icon = sourcePlant.icon;
             updated = true;
           }
         });

@@ -890,8 +890,7 @@
     });
 
     async function fetchPastWeekWatchSessionsToForest() {
-      const plant = getCurrentPlant();
-      if (!plant) return;
+      const fallbackPlant = getCurrentPlant();
       let history = [];
       try {
         history = JSON.parse(localStorage.getItem('nepalForestHistory')) || [];
@@ -911,6 +910,12 @@
 
           sessions.forEach(sess => {
             if (typeof sess.hrs !== 'number' || sess.hrs <= 0) return;
+            const sourcePlant = (typeof resolvePlantFromSource === 'function' && sess.plant)
+              ? resolvePlantFromSource(sess.plant, null)
+              : null;
+            const sessionPlant = sourcePlant || fallbackPlant;
+            if (!sessionPlant) return;
+
             const totalMins = Math.max(1, Math.round(sess.hrs * 60));
             const startHour = Math.floor(sess.start);
             const startMin = Math.round((sess.start % 1) * 60);
@@ -935,7 +940,7 @@
               const chunkSessTime = baseStartTime + ((chunk.offsetMins + chunk.mins) * 60 * 1000);
               const chunkSessionKey = `${dateKey}_${sess.start.toFixed(2)}_${sess.hrs.toFixed(2)}_c${chunk.cycleIdx}`;
 
-              const alreadyPlanted = history.some(item => {
+              const existingItem = history.find(item => {
                 if (item.sessionKey === chunkSessionKey) return true;
                 const timeDiff = Math.abs(item.timestamp - chunkSessTime);
                 const minDiff = Math.abs((item.minutes || 0) - chunk.mins);
@@ -943,14 +948,15 @@
                 return false;
               });
 
-              if (!alreadyPlanted) {
+              if (!existingItem) {
                 history.push({
-                  id: plant.id,
-                  slug: plant.slug,
-                  nepali: plant.nepali,
-                  english: plant.english,
-                  scientific: plant.scientific,
-                  category: plant.category,
+                  id: sessionPlant.id,
+                  slug: sessionPlant.slug,
+                  nepali: sessionPlant.nepali,
+                  english: sessionPlant.english,
+                  scientific: sessionPlant.scientific,
+                  category: sessionPlant.category,
+                  icon: sessionPlant.icon,
                   minutes: chunk.mins,
                   isHealthy: true,
                   stage: chunk.mins >= 25 ? 'mature' : 'growing',
@@ -959,6 +965,19 @@
                   sessionKey: chunkSessionKey,
                   source: 'charts-sync'
                 });
+                updated = true;
+              } else if (
+                sourcePlant &&
+                (existingItem.source === 'charts' || existingItem.source === 'charts-sync') &&
+                existingItem.id !== sourcePlant.id
+              ) {
+                existingItem.id = sourcePlant.id;
+                existingItem.slug = sourcePlant.slug;
+                existingItem.nepali = sourcePlant.nepali;
+                existingItem.english = sourcePlant.english;
+                existingItem.scientific = sourcePlant.scientific;
+                existingItem.category = sourcePlant.category;
+                existingItem.icon = sourcePlant.icon;
                 updated = true;
               }
             });
