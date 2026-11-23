@@ -469,6 +469,7 @@ function renderMyForest() {
   } else if (forestActiveFilter === 'week') {
     filtered = history.filter(item => item.timestamp >= startOfWeek);
   }
+  filtered = filtered.slice().sort((a, b) => (a.timestamp || 0) - (b.timestamp || 0));
 
   const totalTrees = filtered.length;
   const healthyCount = filtered.filter(item => item.isHealthy).length;
@@ -532,6 +533,7 @@ function zoomForest(delta) {
     let filtered = history;
     if (forestActiveFilter === 'today') filtered = history.filter(i => i.timestamp >= startOfDay);
     else if (forestActiveFilter === 'week') filtered = history.filter(i => i.timestamp >= startOfWeek);
+    filtered = filtered.slice().sort((a, b) => (a.timestamp || 0) - (b.timestamp || 0));
     adjustDioramaZoom(canvas, delta, filtered);
   }
 }
@@ -681,107 +683,11 @@ window.addEventListener('load', () => {
 });
 
 async function fetchPastWeekWatchSessionsToForest() {
-  const fallbackPlant = getSelectedPlant();
-  let history = [];
-  try {
-    history = JSON.parse(localStorage.getItem('nepalForestHistory')) || [];
-  } catch (e) { history = []; }
-
-  let updated = false;
-  const now = new Date();
-
-  for (let d = 0; d < 7; d++) {
-    try {
-      const res = await fetch(`${WEB_APP_URL}?action=getWatchData&daysAgo=${d}&_t=${Date.now()}`);
-      const sessions = await res.json();
-      if (!Array.isArray(sessions) || sessions.length === 0) continue;
-
-      const targetDate = new Date(now.getFullYear(), now.getMonth(), now.getDate() - d);
-      const dateKey = targetDate.toISOString().slice(0, 10);
-
-      sessions.forEach(sess => {
-        if (typeof sess.hrs !== 'number' || sess.hrs <= 0) return;
-        const sourcePlant = (typeof resolvePlantFromSource === 'function' && sess.plant)
-          ? resolvePlantFromSource(sess.plant, null)
-          : null;
-        const sessionPlant = sourcePlant || fallbackPlant;
-        if (!sessionPlant) return;
-
-        const totalMins = Math.max(1, Math.round(sess.hrs * 60));
-        const startHour = Math.floor(sess.start);
-        const startMin = Math.round((sess.start % 1) * 60);
-        const baseStartTime = new Date(targetDate.getFullYear(), targetDate.getMonth(), targetDate.getDate(), startHour, startMin).getTime();
-
-        const fullCycles = Math.floor(totalMins / 25);
-        const remMins = totalMins % 25;
-        const chunks = [];
-
-        if (totalMins <= 25) {
-          chunks.push({ mins: totalMins, offsetMins: 0, cycleIdx: 0 });
-        } else {
-          for (let c = 0; c < fullCycles; c++) {
-            chunks.push({ mins: 25, offsetMins: c * 25, cycleIdx: c });
-          }
-          if (remMins >= 1) {
-            chunks.push({ mins: remMins, offsetMins: fullCycles * 25, cycleIdx: fullCycles });
-          }
-        }
-
-        chunks.forEach(chunk => {
-          const chunkSessTime = baseStartTime + ((chunk.offsetMins + chunk.mins) * 60 * 1000);
-          const chunkSessionKey = `${dateKey}_${sess.start.toFixed(2)}_${sess.hrs.toFixed(2)}_c${chunk.cycleIdx}`;
-
-          const existingItem = history.find(item => {
-            if (item.sessionKey === chunkSessionKey) return true;
-            const timeDiff = Math.abs(item.timestamp - chunkSessTime);
-            const minDiff = Math.abs((item.minutes || 0) - chunk.mins);
-            if (timeDiff <= 30 * 60 * 1000 && minDiff <= 3) return true;
-            return false;
-          });
-
-          if (!existingItem) {
-            history.push({
-              id: sessionPlant.id,
-              slug: sessionPlant.slug,
-              nepali: sessionPlant.nepali,
-              english: sessionPlant.english,
-              scientific: sessionPlant.scientific,
-              category: sessionPlant.category,
-              icon: sessionPlant.icon,
-              minutes: chunk.mins,
-              isHealthy: true,
-              stage: chunk.mins >= 25 ? 'mature' : 'growing',
-              growthPercent: chunk.mins >= 25 ? 100 : Math.round((chunk.mins / 25) * 100),
-              timestamp: chunkSessTime,
-              sessionKey: chunkSessionKey,
-              source: 'charts-sync'
-            });
-            updated = true;
-          } else if (
-            sourcePlant &&
-            (existingItem.source === 'charts' || existingItem.source === 'charts-sync') &&
-            existingItem.id !== sourcePlant.id
-          ) {
-            existingItem.id = sourcePlant.id;
-            existingItem.slug = sourcePlant.slug;
-            existingItem.nepali = sourcePlant.nepali;
-            existingItem.english = sourcePlant.english;
-            existingItem.scientific = sourcePlant.scientific;
-            existingItem.category = sourcePlant.category;
-            existingItem.icon = sourcePlant.icon;
-            updated = true;
-          }
-        });
-      });
-    } catch (e) {}
-  }
-
-  if (updated) {
-    try {
-      localStorage.setItem('nepalForestHistory', JSON.stringify(history));
-    } catch (e) {}
-    if (typeof renderMyForest === 'function') renderMyForest();
-    if (typeof renderForestPlots === 'function') renderForestPlots();
+  if (typeof fetchAndSyncForestHistory === 'function') {
+    await fetchAndSyncForestHistory(WEB_APP_URL, getSelectedPlant(), () => {
+      if (typeof renderMyForest === 'function') renderMyForest();
+      if (typeof renderForestPlots === 'function') renderForestPlots();
+    });
   }
 }
 

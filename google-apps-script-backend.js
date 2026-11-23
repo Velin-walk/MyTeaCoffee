@@ -319,7 +319,7 @@ function doGet(e) {
 
     const action = e.parameter.action;
     if (action === "version") {
-      return JSON_RESPONSE({ ok: true, schema: LOGS_HEADERS, version: "2.1-plant-column-fix" });
+      return JSON_RESPONSE({ ok: true, schema: LOGS_HEADERS, version: "2.2-forest-history-sync" });
     }
     const ss = SpreadsheetApp.getActiveSpreadsheet();
     const sheet = ss.getSheetByName('Logs');
@@ -358,6 +358,36 @@ function doGet(e) {
             if (plantName) item.plant = plantName;
             sessions.push(item);
           }
+        }
+      }
+      return JSON_RESPONSE(sessions);
+    }
+
+    // 1b. FULL FOREST HISTORY DATA (All rows with Date, Start, Duration, Plant)
+    if (action === "getForestData") {
+      const sessions = [];
+      if (sheet && sheet.getLastRow() > 1) {
+        const data = sheet.getDataRange().getValues();
+        const col = getColMap(data[0]);
+        for (let i = 1; i < data.length; i++) {
+          const row = data[i];
+          const rDate = parseDateCell(row[col.date]);
+          if (!rDate) continue;
+
+          let hrs = parseFloat(row[col.decimalHours]);
+          if (isNaN(hrs) || hrs <= 0) hrs = getDec(row[col.duration], tz);
+          if (hrs <= 0) continue;
+
+          const timeVal = getDec(row[col.endHour], tz);
+          const start = Math.max(0, timeVal - hrs);
+          const plantName = extractPlantFromRow(row, col);
+          const item = {
+            date: Utilities.formatDate(rDate, tz, "yyyy-MM-dd"),
+            hrs: parseFloat(hrs.toFixed(4)),
+            start: parseFloat(start.toFixed(4))
+          };
+          if (plantName) item.plant = plantName;
+          sessions.push(item);
         }
       }
       return JSON_RESPONSE(sessions);

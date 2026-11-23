@@ -8,12 +8,16 @@
   var STORAGE_QUOTES_KEY = 'studyFlow_quotes_v1';
   var STORAGE_STATE_KEY = 'studyFlow_quoteState_v1';
   var STORAGE_INIT_KEY = 'studyFlow_quotes_initialized_v1';
+  var STORAGE_SEED_V2_KEY = 'studyFlow_quotes_seed_v2';
   var ROTATION_MS = 60 * 1000; // 1 minute per quote
 
   var DEFAULT_QUOTES = [
     { id: 'q-init-1', text: 'Discipline is the bridge between goals and accomplishment.', author: 'Jim Rohn' },
     { id: 'q-init-2', text: 'A focused mind is the seed of true mastery.', author: '' },
-    { id: 'q-init-3', text: 'Small daily improvements over time lead to stunning results.', author: 'Robin Sharma' }
+    { id: 'q-init-3', text: 'Small daily improvements over time lead to stunning results.', author: 'Robin Sharma' },
+    { id: 'q-init-4', text: 'Pain is temporary. Quitting lasts forever.', author: 'Lance Armstrong' },
+    { id: 'q-init-5', text: 'Pain is the price you pay for success.', author: '' },
+    { id: 'q-init-6', text: 'We struggle with the complexities and avoid the simplicities.', author: 'Norman Vincent Peale' }
   ];
 
   var isLoaderOpen = false;
@@ -34,12 +38,28 @@
       var raw = localStorage.getItem(STORAGE_QUOTES_KEY);
       if (!initialized && !raw) {
         localStorage.setItem(STORAGE_INIT_KEY, '1');
+        localStorage.setItem(STORAGE_SEED_V2_KEY, '1');
         localStorage.setItem(STORAGE_QUOTES_KEY, JSON.stringify(DEFAULT_QUOTES));
         return DEFAULT_QUOTES.slice();
       }
       var parsed = raw ? JSON.parse(raw) : [];
       if (!Array.isArray(parsed)) return [];
-      return parsed.filter(function (q) { return q && typeof q.text === 'string' && q.text.trim().length > 0; });
+      var list = parsed.filter(function (q) { return q && typeof q.text === 'string' && q.text.trim().length > 0; });
+      if (!localStorage.getItem(STORAGE_SEED_V2_KEY)) {
+        var added = false;
+        DEFAULT_QUOTES.slice(3).forEach(function (dq) {
+          var exists = list.some(function (q) { return q.id === dq.id || q.text.trim() === dq.text; });
+          if (!exists) {
+            list.push(dq);
+            added = true;
+          }
+        });
+        localStorage.setItem(STORAGE_SEED_V2_KEY, '1');
+        if (added) {
+          localStorage.setItem(STORAGE_QUOTES_KEY, JSON.stringify(list));
+        }
+      }
+      return list;
     } catch (e) {
       return DEFAULT_QUOTES.slice();
     }

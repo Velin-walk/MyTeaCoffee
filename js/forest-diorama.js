@@ -40,7 +40,7 @@
     if (count <= 86) return 10;
     if (count <= 128) return 12;
     if (count <= 176) return 14;
-    return Math.min(20, Math.ceil(Math.sqrt(count * 1.15)));
+    return Math.ceil(Math.sqrt(count * 1.15));
   }
 
   function buildTileSlots(gridSize) {
@@ -445,7 +445,7 @@
       if (now - state.lastWheelZoomAt < 60) return;
       state.lastWheelZoomAt = now;
       const delta = e.deltaY < 0 ? 0.2 : -0.2;
-      const nextZoom = Math.max(0.6, Math.min(2.2, Number((state.zoom + delta).toFixed(2))));
+      const nextZoom = Math.max(0.4, Math.min(4.0, Number((state.zoom + delta).toFixed(2))));
       if (nextZoom !== state.zoom) {
         state.zoom = nextZoom;
         renderForestDiorama(container, state.latestItems, state.latestOpts);
@@ -592,7 +592,7 @@
       `;
     }
 
-    const baseWidth = Math.max(460, Math.min(920, geom.svgW * 0.92));
+    const baseWidth = Math.max(540, Math.round(geom.svgW));
     const zoomedWidth = Math.round(baseWidth * state.zoom);
     const zoomPct = Math.round(state.zoom * 100);
     const scalerStyle = state.zoom <= 1.0
@@ -650,7 +650,7 @@
           state.zoom = 1.0;
         } else {
           const delta = parseFloat(btn.dataset.zoomDelta || '0');
-          state.zoom = Math.max(0.6, Math.min(2.2, Number((state.zoom + delta).toFixed(2))));
+          state.zoom = Math.max(0.4, Math.min(4.0, Number((state.zoom + delta).toFixed(2))));
         }
         renderForestDiorama(container, items, opts);
       });
@@ -679,7 +679,7 @@
   function adjustDioramaZoom(container, delta, items) {
     if (!container) return;
     const state = getContainerState(container);
-    state.zoom = Math.max(0.6, Math.min(2.2, Number((state.zoom + delta).toFixed(2))));
+    state.zoom = Math.max(0.4, Math.min(4.0, Number((state.zoom + delta).toFixed(2))));
     if (Array.isArray(items)) {
       renderForestDiorama(container, items);
     }

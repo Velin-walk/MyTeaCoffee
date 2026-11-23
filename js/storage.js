@@ -309,23 +309,12 @@ window.parseSessionDate = parseSessionDate;
       if (masterBreak) masterBreak.innerText = Math.round(totalBreakM) + 'm';
       if (masterRest) masterRest.innerText = formatHours(totalRestH);
 
-      // 2-Way Sync: Auto-plant study chart sessions into Nepal Forest
-      syncWatchSessionsToForest(sessions);
+      // 2-Way Sync: Auto-plant unmerged study chart sessions into Nepal Forest
+      syncWatchSessionsToForest(rawSessions);
     }
 
     function syncWatchSessionsToForest(sessions) {
       if (!Array.isArray(sessions) || sessions.length === 0) return;
-      let history = [];
-      try {
-        history = JSON.parse(localStorage.getItem('nepalForestHistory')) || [];
-      } catch (e) {
-        history = [];
-      }
-
-      const now = new Date();
-      const startOfDay = new Date(now.getFullYear(), now.getMonth(), now.getDate()).getTime();
-      const dateKey = now.toISOString().slice(0, 10);
-      let updated = false;
 
       // Fallback plant only when source session has no plant recorded
       const activePlant = (typeof getSelectedNepalPlant === 'function')
@@ -345,89 +334,22 @@ window.parseSessionDate = parseSessionDate;
             return null;
           })());
 
-      sessions.forEach(sess => {
-        if (typeof sess.hrs !== 'number' || sess.hrs <= 0) return;
-        const sourcePlant = (typeof resolvePlantFromSource === 'function' && sess.plant)
-          ? resolvePlantFromSource(sess.plant, null)
-          : null;
-        const sessionPlant = sourcePlant || activePlant;
-        if (!sessionPlant) return;
-
-        const totalMins = Math.max(1, Math.round(sess.hrs * 60));
-        const startHour = Math.floor(sess.start);
-        const startMin = Math.round((sess.start % 1) * 60);
-        const baseStartTime = new Date(now.getFullYear(), now.getMonth(), now.getDate(), startHour, startMin).getTime();
-
-        // Nepal Forest plants trees within 25-minute cycles
-        const fullCycles = Math.floor(totalMins / 25);
-        const remMins = totalMins % 25;
-        const chunks = [];
-
-        if (totalMins <= 25) {
-          chunks.push({ mins: totalMins, offsetMins: 0, cycleIdx: 0 });
-        } else {
-          for (let c = 0; c < fullCycles; c++) {
-            chunks.push({ mins: 25, offsetMins: c * 25, cycleIdx: c });
-          }
-          if (remMins >= 1) {
-            chunks.push({ mins: remMins, offsetMins: fullCycles * 25, cycleIdx: fullCycles });
-          }
-        }
-
-        chunks.forEach(chunk => {
-          const chunkSessTime = baseStartTime + ((chunk.offsetMins + chunk.mins) * 60 * 1000);
-          const chunkSessionKey = `${dateKey}_${sess.start.toFixed(2)}_${sess.hrs.toFixed(2)}_c${chunk.cycleIdx}`;
-
-          const existingItem = history.find(item => {
-            if (item.sessionKey === chunkSessionKey) return true;
-            if (item.timestamp >= startOfDay) {
-              const timeDiff = Math.abs(item.timestamp - chunkSessTime);
-              const minDiff = Math.abs((item.minutes || 0) - chunk.mins);
-              if (timeDiff <= 15 * 60 * 1000 && minDiff <= 3) return true;
-            }
-            return false;
-          });
-
-          if (!existingItem) {
-            history.push({
-              id: sessionPlant.id,
-              slug: sessionPlant.slug,
-              nepali: sessionPlant.nepali,
-              english: sessionPlant.english,
-              scientific: sessionPlant.scientific,
-              category: sessionPlant.category,
-              icon: sessionPlant.icon,
-              minutes: chunk.mins,
-              isHealthy: true,
-              timestamp: chunkSessTime,
-              sessionKey: chunkSessionKey,
-              source: 'charts'
-            });
-            updated = true;
-          } else if (
-            sourcePlant &&
-            (existingItem.source === 'charts' || existingItem.source === 'charts-sync') &&
-            existingItem.id !== sourcePlant.id
-          ) {
-            existingItem.id = sourcePlant.id;
-            existingItem.slug = sourcePlant.slug;
-            existingItem.nepali = sourcePlant.nepali;
-            existingItem.english = sourcePlant.english;
-            existingItem.scientific = sourcePlant.scientific;
-            existingItem.category = sourcePlant.category;
-            existingItem.icon = sourcePlant.icon;
-            updated = true;
-          }
-        });
-      });
-
-      if (updated) {
-        try {
-          localStorage.setItem('nepalForestHistory', JSON.stringify(history));
-        } catch (e) {}
-        if (typeof renderMyForest === 'function') {
+      const now = new Date();
+      if (typeof syncSheetSessionsToForestHistory === 'function' && typeof formatLocalDateKey === 'function') {
+        const updated = syncSheetSessionsToForestHistory(
+          [{
+            dateKey: formatLocalDateKey(now),
+            targetDate: new Date(now.getFullYear(), now.getMonth(), now.getDate()),
+            daysAgo: 0,
+            sessions
+          }],
+          activePlant,
+          { reconcileAllSheetDates: false }
+        );
+        if (updated && typeof renderMyForest === 'function') {
           renderMyForest();
         }
+        return;
       }
     }
 

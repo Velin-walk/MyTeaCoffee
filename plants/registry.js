@@ -263,6 +263,239 @@
     return match;
   }
 
+  function formatLocalDateKey(dateObj) {
+    const d = dateObj instanceof Date ? dateObj : new Date(dateObj);
+    const y = d.getFullYear();
+    const m = String(d.getMonth() + 1).padStart(2, '0');
+    const day = String(d.getDate()).padStart(2, '0');
+    return `${y}-${m}-${day}`;
+  }
+
+  function parseLocalDateKey(dateKey) {
+    const m = String(dateKey || '').match(/^(\d{4})-(\d{2})-(\d{2})$/);
+    if (!m) return null;
+    return new Date(parseInt(m[1], 10), parseInt(m[2], 10) - 1, parseInt(m[3], 10));
+  }
+
+  function syncSheetSessionsToForestHistory(dayGroups, fallbackPlant, options) {
+    if (!Array.isArray(dayGroups)) return false;
+    const opts = options || {};
+    const reconcileAll = Boolean(opts.reconcileAllSheetDates);
+
+    let history = [];
+    try {
+      history = JSON.parse(localStorage.getItem('nepalForestHistory')) || [];
+    } catch (e) {
+      history = [];
+    }
+    if (!Array.isArray(history)) history = [];
+
+    const reconciledDateKeys = new Set(dayGroups.map(g => g.dateKey).filter(Boolean));
+    const localItems = [];
+    const preservedSyncedItems = [];
+
+    history.forEach(item => {
+      if (!item || typeof item !== 'object') return;
+      const isSynced = item.source === 'charts' || item.source === 'charts-sync';
+      if (!isSynced) {
+        localItems.push(item);
+        return;
+      }
+      if (!reconcileAll) {
+        const itemDateKey = item.timestamp ? formatLocalDateKey(new Date(item.timestamp)) : '';
+        if (!reconciledDateKeys.has(itemDateKey)) {
+          // Repair previously mis-labeled '< 25m -> growing' stage on older synced items
+          if (typeof item.minutes === 'number' && item.minutes < 25) {
+            const repaired = getPlantStageInfo({ minutes: item.minutes });
+            if (item.stage !== repaired.stage || item.growthPercent !== Math.round(repaired.pct)) {
+              preservedSyncedItems.push({
+                ...item,
+                stage: repaired.stage,
+                growthPercent: Math.round(repaired.pct)
+              });
+              return;
+            }
+          }
+          preservedSyncedItems.push(item);
+        }
+      }
+    });
+
+    const newSyncedItems = [];
+    const sortedGroups = dayGroups.slice().sort((a, b) => String(a.dateKey).localeCompare(String(b.dateKey)));
+
+    sortedGroups.forEach(group => {
+      const targetDate = group.targetDate || parseLocalDateKey(group.dateKey);
+      if (!targetDate || !Array.isArray(group.sessions)) return;
+      const dateKey = group.dateKey || formatLocalDateKey(targetDate);
+      const daysAgo = typeof group.daysAgo === 'number' ? group.daysAgo : 0;
+
+      group.sessions.forEach(sess => {
+        if (!sess || typeof sess.hrs !== 'number' || sess.hrs <= 0 || typeof sess.start !== 'number') return;
+
+        const sourcePlant = sess.plant ? resolvePlantFromSource(sess.plant, null) : null;
+        if (!sourcePlant && daysAgo >= 7) return;
+        const sessionPlant = sourcePlant || fallbackPlant;
+        if (!sessionPlant) return;
+
+        const totalMins = Math.max(1, Math.round(sess.hrs * 60));
+        const startHour = Math.floor(sess.start);
+        const startMin = Math.round((sess.start % 1) * 60);
+        const baseStartTime = new Date(
+          targetDate.getFullYear(),
+          targetDate.getMonth(),
+          targetDate.getDate(),
+          startHour,
+          startMin
+        ).getTime();
+
+        const fullCycles = Math.floor(totalMins / 25);
+        const remMins = totalMins % 25;
+        const chunks = [];
+
+        if (totalMins <= 25) {
+          chunks.push({ mins: totalMins, offsetMins: 0, cycleIdx: 0 });
+        } else {
+          for (let c = 0; c < fullCycles; c++) {
+            chunks.push({ mins: 25, offsetMins: c * 25, cycleIdx: c });
+          }
+          if (remMins >= 1) {
+            chunks.push({ mins: remMins, offsetMins: fullCycles * 25, cycleIdx: fullCycles });
+          }
+        }
+
+        chunks.forEach(chunk => {
+          const chunkSessTime = baseStartTime + ((chunk.offsetMins + chunk.mins) * 60 * 1000);
+          const chunkSessionKey = `${dateKey}_${sess.start.toFixed(2)}_${sess.hrs.toFixed(2)}_c${chunk.cycleIdx}`;
+
+          // Do not duplicate a session already planted locally in this browser
+          const matchesLocal = localItems.some(item => {
+            if (item.sessionKey && item.sessionKey === chunkSessionKey) return true;
+            const timeDiff = Math.abs((item.timestamp || 0) - chunkSessTime);
+            const minDiff = Math.abs((item.minutes || 0) - chunk.mins);
+            return timeDiff <= 10 * 60 * 1000 && minDiff <= 3;
+          });
+          if (matchesLocal) return;
+
+          // Deduplicate duplicate sheet log rows within 3 minutes & ±3 min duration
+          const matchesSynced = newSyncedItems.some(item => {
+            if (item.sessionKey === chunkSessionKey) return true;
+            const timeDiff = Math.abs((item.timestamp || 0) - chunkSessTime);
+            const minDiff = Math.abs((item.minutes || 0) - chunk.mins);
+            return timeDiff <= 3 * 60 * 1000 && minDiff <= 3;
+          });
+          if (matchesSynced) return;
+
+          const stageInfo = getPlantStageInfo({ minutes: chunk.mins });
+          newSyncedItems.push({
+            id: sessionPlant.id,
+            slug: sessionPlant.slug,
+            nepali: sessionPlant.nepali,
+            english: sessionPlant.english,
+            scientific: sessionPlant.scientific,
+            category: sessionPlant.category,
+            icon: sessionPlant.icon,
+            minutes: chunk.mins,
+            isHealthy: true,
+            stage: stageInfo.stage,
+            growthPercent: Math.round(stageInfo.pct),
+            timestamp: chunkSessTime,
+            sessionKey: chunkSessionKey,
+            source: 'charts-sync'
+          });
+        });
+      });
+    });
+
+    const nextHistory = localItems
+      .concat(preservedSyncedItems, newSyncedItems)
+      .sort((a, b) => (a.timestamp || 0) - (b.timestamp || 0));
+
+    let prevSerialized = '';
+    let nextSerialized = '';
+    try {
+      prevSerialized = JSON.stringify(history);
+      nextSerialized = JSON.stringify(nextHistory);
+    } catch (e) {}
+
+    if (prevSerialized === nextSerialized) return false;
+
+    try {
+      localStorage.setItem('nepalForestHistory', nextSerialized || JSON.stringify(nextHistory));
+    } catch (e) {
+      try {
+        localStorage.setItem('nepalForestHistory', JSON.stringify(nextHistory.slice(-500)));
+      } catch (err) {}
+    }
+    return true;
+  }
+
+  async function fetchAndSyncForestHistory(webAppUrl, fallbackPlant, onUpdated) {
+    if (!webAppUrl || typeof fetch !== 'function') return false;
+
+    const now = new Date();
+    const todayStart = new Date(now.getFullYear(), now.getMonth(), now.getDate()).getTime();
+    let changed = false;
+
+    try {
+      const res = await fetch(`${webAppUrl}?action=getForestData&_t=${Date.now()}`);
+      const rows = await res.json();
+      const isValidForestResponse = Array.isArray(rows) && (
+        rows.length === 0 ||
+        (rows[0] && typeof rows[0] === 'object' && !Array.isArray(rows[0]) && typeof rows[0].date === 'string')
+      );
+
+      if (isValidForestResponse) {
+        const groupsByDate = new Map();
+        rows.forEach(sess => {
+          if (!sess || !sess.date) return;
+          const targetDate = parseLocalDateKey(sess.date);
+          if (!targetDate) return;
+          if (!groupsByDate.has(sess.date)) {
+            const daysAgo = Math.round((todayStart - targetDate.getTime()) / (24 * 60 * 60 * 1000));
+            groupsByDate.set(sess.date, {
+              dateKey: sess.date,
+              targetDate,
+              daysAgo,
+              sessions: []
+            });
+          }
+          groupsByDate.get(sess.date).sessions.push(sess);
+        });
+        changed = syncSheetSessionsToForestHistory(
+          Array.from(groupsByDate.values()),
+          fallbackPlant,
+          { reconcileAllSheetDates: true }
+        );
+        if (changed && typeof onUpdated === 'function') onUpdated();
+        return changed;
+      }
+    } catch (e) {}
+
+    // Fallback when deployed GAS does not yet include action=getForestData
+    const dayGroups = [];
+    for (let d = 0; d < 7; d++) {
+      try {
+        const res = await fetch(`${webAppUrl}?action=getWatchData&daysAgo=${d}&_t=${Date.now()}`);
+        const sessions = await res.json();
+        if (!Array.isArray(sessions) || sessions.length === 0) continue;
+        const targetDate = new Date(now.getFullYear(), now.getMonth(), now.getDate() - d);
+        dayGroups.push({
+          dateKey: formatLocalDateKey(targetDate),
+          targetDate,
+          daysAgo: d,
+          sessions
+        });
+      } catch (e) {}
+    }
+
+    if (dayGroups.length > 0) {
+      changed = syncSheetSessionsToForestHistory(dayGroups, fallbackPlant, { reconcileAllSheetDates: false });
+      if (changed && typeof onUpdated === 'function') onUpdated();
+    }
+    return changed;
+  }
+
   // Assign to global root (window or globalThis)
   root.NEPAL_PLANTS = NEPAL_PLANTS;
   root.getSelectedNepalPlant = getSelectedNepalPlant;
@@ -271,6 +504,9 @@
   root.saveSelectedNepalPlant = saveSelectedNepalPlant;
   root.syncSelectedNepalPlantFromState = syncSelectedNepalPlantFromState;
   root.resolvePlantFromSource = resolvePlantFromSource;
+  root.formatLocalDateKey = formatLocalDateKey;
+  root.syncSheetSessionsToForestHistory = syncSheetSessionsToForestHistory;
+  root.fetchAndSyncForestHistory = fetchAndSyncForestHistory;
   root.getPlantSlug = getPlantSlug;
   root.getBotanicalSvgContent = getBotanicalSvgContent;
   root.getPlantGrowthSvg = getPlantGrowthSvg;
