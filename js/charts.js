@@ -33,6 +33,8 @@
       }
     }
 
+    let _googleChartsTimedOut = false;
+
     function initGoogleChartsLoader() {
       if (isGoogleChartsFullyLoaded()) {
         flushGoogleChartsQueue();
@@ -60,6 +62,9 @@
           }
         }
       } else {
+        setTimeout(() => {
+          if (!isGoogleChartsFullyLoaded()) _googleChartsTimedOut = true;
+        }, 4000);
         window.addEventListener('load', initGoogleChartsLoader, { once: true });
       }
     }
@@ -67,12 +72,19 @@
     // Initialize Google Charts loader early
     initGoogleChartsLoader();
 
-    function whenGoogleChartsLoaded(callback) {
+    function whenGoogleChartsLoaded(callback, onUnavailable) {
       if (isGoogleChartsFullyLoaded()) {
         callback();
+      } else if (_googleChartsTimedOut) {
+        if (typeof onUnavailable === 'function') onUnavailable();
       } else {
         _googleChartsReadyQueue.push(callback);
         initGoogleChartsLoader();
+        if (typeof onUnavailable === 'function') {
+          setTimeout(() => {
+            if (!isGoogleChartsFullyLoaded()) onUnavailable();
+          }, 4500);
+        }
       }
     }
 
@@ -94,31 +106,36 @@
 
     function saveGoal() {
       const newGoal = parseFloat(document.getElementById('goalInput').value);
-      if (newGoal <= 0) { alert('Goal must be greater than 0'); return; }
-      fetch(WEB_APP_URL, {
-        method: "POST", mode: "no-cors",
+      if (isNaN(newGoal) || newGoal <= 0) { alert('Goal must be greater than 0'); return; }
+      const targetUrl = (typeof getEffectiveWebAppUrl === 'function') ? getEffectiveWebAppUrl() : WEB_APP_URL;
+      fetch(targetUrl, {
+        method: "POST",
+        headers: { "Content-Type": "text/plain;charset=utf-8" },
         body: JSON.stringify({ action: "setGoal", goal: newGoal })
-      }).then(() => {
+      }).then(res => {
+        if (!res.ok) throw new Error('HTTP ' + res.status);
         load24HourWatchWithCache();
         loadMasterChronometer();
         generateSchedule();
         alert('Goal updated to ' + newGoal + ' hours!');
+      }).catch(() => {
+        alert('Failed to update goal on backend.');
       });
     }
 
     window.onload = async function() {
-      const savedTheme = localStorage.getItem('selectedTheme') || 'default';
+      const savedTheme = (typeof safeStorageGet === 'function' ? safeStorageGet('selectedTheme', 'default') : null) || 'default';
       document.getElementById('themeSelect').value = savedTheme;
       changeTheme(savedTheme, false);
 
       // Initialize IndexedDB
       await initIndexedDB().catch(err => console.error('Failed to init IndexedDB:', err));
 
-      fetch(`${WEB_APP_URL}?action=getGoal`).then(res => res.json()).then(data => {
-        document.getElementById('goalInput').value = data.goal;
+      fetchBackendJson('action=getGoal').then(data => {
+        if (data && data.goal) document.getElementById('goalInput').value = data.goal;
       }).catch(() => null);
       
-      fetch(`${WEB_APP_URL}?action=getState&_t=${Date.now()}`).then(res => res.json()).then(props => {
+      fetchBackendJson(`action=getState&_t=${Date.now()}`).then(props => {
         if (typeof syncSelectedNepalPlantFromState === 'function') {
           const syncedPlant = syncSelectedNepalPlantFromState(props);
           if (syncedPlant && typeof selectedForestPlantId !== 'undefined') {
@@ -134,20 +151,31 @@
           fetchPastWeekWatchSessionsToForest();
         }
       });
-      
-      whenGoogleChartsLoaded(async () => {
-        loadChartDailyWithCache(); loadChartWeeklyWithCache(); loadChartMonthlyWithCache(); loadCalendarData(); loadHourlyDist();
-        load24HourWatchWithCache(); loadMountain(); loadScatter(); loadMasterChronometer();
-        loadActualStudySessions(); loadDailyProgressChart(); loadWeeklySessionsChart(); 
-        loadActiveHoursChart();
-        loadMultiDaySessionsTimeline();
-      });
+
+      // Run HTML/SVG/IndexedDB panels immediately without blocking on external Google Charts script
+      loadCalendarData();
+      load24HourWatchWithCache();
+      loadMasterChronometer();
+      loadActualStudySessions();
       loadPlannerWithCache();
+      loadMultiDaySessionsTimeline();
       setDefaultEndTime();
       updateRealTimeClock();
       initCardControls();
-      loadActiveHoursChart(); // Add with other chart updates
-      loadMultiDaySessionsTimeline();
+
+      // Run Google Charts widgets once library loads (or mark offline notice gracefully)
+      whenGoogleChartsLoaded(async () => {
+        loadChartDailyWithCache(); loadChartWeeklyWithCache(); loadChartMonthlyWithCache();
+        loadHourlyDist(); loadMountain(); loadScatter();
+        loadDailyProgressChart(); loadWeeklySessionsChart(); loadActiveHoursChart();
+      }, () => {
+        ['chart_div_daily', 'chart_div_weekly', 'chart_div_monthly', 'hourly_dist_chart', 'mountain_chart', 'dailyProgressChart', 'weeklySessionsChart', 'activeHoursChartAM', 'activeHoursChartPM'].forEach(id => {
+          const el = document.getElementById(id);
+          if (el && !el.querySelector('svg')) {
+            el.innerHTML = '<div style="text-align:center;padding:24px;color:var(--text-tertiary);font-size:12px;">Charts unavailable offline</div>';
+          }
+        });
+      });
     };
 
     function restoreSessions(props) {
@@ -179,7 +207,9 @@
     function getShadowSessionsForDay() {
       let shadowSessions = [];
       try {
-        const forestHistory = JSON.parse(localStorage.getItem('nepalForestHistory')) || [];
+        const forestHistory = (typeof safeGetJsonStorage === 'function')
+          ? safeGetJsonStorage('nepalForestHistory', [], Array.isArray)
+          : (JSON.parse(localStorage.getItem('nepalForestHistory') || '[]') || []);
         if (Array.isArray(forestHistory) && forestHistory.length > 0) {
           const recent = forestHistory.slice(-5);
           let startH = 9.0;
@@ -398,7 +428,7 @@
       if (cachedData) {
         processChart(cachedData);
       } else {
-        fetch(`${WEB_APP_URL}?view=${fetchView}`).then(res => res.json()).then(processChart).catch(err => {
+        fetchBackendJson(`view=${fetchView}`).then(processChart).catch(() => {
           processChart([]);
         });
       }
@@ -419,7 +449,7 @@ function getDayHoursFromStats(dateObj) {
 
 async function loadCalendarData() {
   try {
-    const allData = await fetch(`${WEB_APP_URL}?view=Daily`).then(res => res.json());
+    const allData = await fetchBackendJson('view=Daily');
     if (!allData || !Array.isArray(allData) || allData.length <= 1) return;
 
     calendarStats = {};
@@ -432,9 +462,7 @@ async function loadCalendarData() {
       const rawDateStr = row[0];
       if (!rawDateStr) continue;
 
-      const parsedDate = (typeof parseSessionDate === 'function')
-        ? parseSessionDate(rawDateStr)
-        : (/\b\d{4}\b/.test(rawDateStr) ? new Date(rawDateStr) : new Date(rawDateStr + ' ' + currentYear));
+      const parsedDate = parseSessionDate(rawDateStr);
 
       const parsedYear = parsedDate.getFullYear();
       if (!isNaN(parsedYear)) years.add(parsedYear);
@@ -590,7 +618,7 @@ function updateCalendar() {
 }
 
 function loadHourlyDist() {
-      fetch(`${WEB_APP_URL}?action=getHourlyDistribution`).then(res => res.ok ? res.json() : []).then(data => {
+      fetchBackendJson('action=getHourlyDistribution').then(data => {
         const shadowData = [
           ['Hour', 'Sessions'], ['06:00', 0.5], ['08:00', 1.5], ['10:00', 2.5],
           ['12:00', 1.8], ['14:00', 3.0], ['16:00', 2.2], ['18:00', 1.5], ['20:00', 0.8]
@@ -610,7 +638,7 @@ function loadHourlyDist() {
     }
 
     function loadMountain() {
-      fetch(`${WEB_APP_URL}?action=getMountainData`).then(res => res.ok ? res.json() : []).then(data => {
+      fetchBackendJson('action=getMountainData').then(data => {
         const shadowData = [
           ['Time', 'Cumulative'], ['08:00', 0], ['10:00', 1.5], ['12:00', 3.0],
           ['14:00', 4.5], ['16:00', 6.0], ['18:00', 7.5], ['20:00', 8.0]
@@ -629,7 +657,7 @@ function loadHourlyDist() {
     }
 
     function loadScatter() {
-      fetch(`${WEB_APP_URL}?action=getScatterData`).then(res => res.ok ? res.json() : []).then(data => {
+      fetchBackendJson('action=getScatterData').then(data => {
         const shadowData = [
           ['Planned', 'Actual'], [1.0, 1.0], [1.5, 1.6], [2.0, 1.9],
           [2.5, 2.7], [3.0, 2.9], [4.0, 3.8]
@@ -683,7 +711,7 @@ function loadHourlyDist() {
         document.getElementById('scheduleContainer').innerHTML = '<div style="text-align: center; color: var(--text-tertiary); font-size: 12px; padding: 20px;">Set an end time to generate schedule</div>';
         return;
       }
-      fetch(`${WEB_APP_URL}?action=getGoalData`).then(res => res.json()).then(data => {
+      fetchBackendJson('action=getGoalData').then(data => {
         const dailyGoal = data.goal;
         const currentStudied = data.current;
         const hoursRemaining = Math.max(0, dailyGoal - currentStudied);
@@ -794,8 +822,8 @@ function loadHourlyDist() {
       const colors = [themeColors.primary, themeColors.success, themeColors.danger, themeColors.warning, '#8B4513', themeColors.calEvent];
       const timestamp = Date.now();
       Promise.all([
-        fetch(`${WEB_APP_URL}?action=getWatchData&_t=${timestamp}`).then(res => res.ok ? res.json() : []).catch(() => []),
-        fetch(`${WEB_APP_URL}?action=getGoalData&_t=${timestamp}`).then(res => res.ok ? res.json() : { current: 0, goal: 4 }).catch(() => ({ current: 0, goal: 4 }))
+        fetchBackendJson(`action=getWatchData&_t=${timestamp}`).catch(() => []),
+        fetchBackendJson(`action=getGoalData&_t=${timestamp}`).catch(() => ({ current: 0, goal: 4 }))
       ]).then(([rawSessions, goalData]) => {
         const sessions = (typeof mergeContinuousSessions === 'function')
           ? mergeContinuousSessions(rawSessions)
@@ -888,7 +916,7 @@ function loadHourlyDist() {
     }
 
     function loadActualStudySessions() {
-      fetch(`${WEB_APP_URL}?action=getWatchData`).then(res => res.json()).then(rawSessions => {
+      fetchBackendJson('action=getWatchData').then(rawSessions => {
         const sessions = (typeof mergeContinuousSessions === 'function')
           ? mergeContinuousSessions(rawSessions)
           : (Array.isArray(rawSessions) ? rawSessions : []);
@@ -956,8 +984,8 @@ function loadHourlyDist() {
     function loadDailyProgressChart() {
       const themeColors = getThemeColors();
       Promise.all([
-        fetch(`${WEB_APP_URL}?action=getWatchData`).then(res => res.json()).catch(() => []),
-        fetch(`${WEB_APP_URL}?action=getProjectionData`).then(res => res.json()).catch(() => [])
+        fetchBackendJson('action=getWatchData').catch(() => []),
+        fetchBackendJson('action=getProjectionData').catch(() => [])
       ]).then(([rawTodayWatch, projectionData]) => {
         const todayWatch = (typeof mergeContinuousSessions === 'function')
           ? mergeContinuousSessions(rawTodayWatch)
@@ -1016,7 +1044,9 @@ function loadHourlyDist() {
     }
 
     function initCardControls() {
-      const hiddenCards = JSON.parse(localStorage.getItem('hiddenCards')) || [];
+      const hiddenCards = (typeof safeGetJsonStorage === 'function')
+        ? safeGetJsonStorage('hiddenCards', [], Array.isArray)
+        : [];
       hiddenCards.forEach(id => { document.getElementById(id)?.classList.add('hidden'); });
       document.querySelectorAll('.card').forEach((card, idx) => {
         if (!card.id) card.id = 'card-' + idx;
@@ -1051,13 +1081,19 @@ function loadHourlyDist() {
     function toggleCardVisibility(cardId) {
       const card = document.getElementById(cardId);
       card.classList.toggle('hidden');
-      let hiddenCards = JSON.parse(localStorage.getItem('hiddenCards')) || [];
+      let hiddenCards = (typeof safeGetJsonStorage === 'function')
+        ? safeGetJsonStorage('hiddenCards', [], Array.isArray).slice()
+        : [];
       if (card.classList.contains('hidden')) {
         if (!hiddenCards.includes(cardId)) hiddenCards.push(cardId);
       } else {
         hiddenCards = hiddenCards.filter(id => id !== cardId);
       }
-      localStorage.setItem('hiddenCards', JSON.stringify(hiddenCards));
+      if (typeof safeStorageSet === 'function') {
+        safeStorageSet('hiddenCards', JSON.stringify(hiddenCards));
+      } else {
+        try { localStorage.setItem('hiddenCards', JSON.stringify(hiddenCards)); } catch (e) {}
+      }
     }
 
     function getDragAfterElement(container, y) {
@@ -1071,8 +1107,7 @@ function loadHourlyDist() {
     }
 
     function loadWeeklySessionsChart() {
-      fetch(`${WEB_APP_URL}?action=getPlannerData`)
-        .then(res => res.json())
+      fetchBackendJson('action=getPlannerData')
         .then(data => {
           const rowMap = new Map();
           if (Array.isArray(data) && data.length > 0) {
@@ -1160,7 +1195,7 @@ setInterval(updateRealTimeClock, 1000);
 updateRealTimeClock();
 
 function loadActiveHoursChart() {
-  fetch(`${WEB_APP_URL}?action=getWatchData`).then(res => res.json()).then(rawSessions => {
+  fetchBackendJson('action=getWatchData').then(rawSessions => {
     const sessions = (typeof mergeContinuousSessions === 'function')
       ? mergeContinuousSessions(rawSessions)
       : (Array.isArray(rawSessions) ? rawSessions : []);
@@ -1248,7 +1283,7 @@ async function loadMultiDaySessionsTimeline(daysCount = timelineDaysToLoad) {
 
   // 1. Fetch today's live sessions from the existing GAS endpoint
   try {
-    const todayWatch = await fetch(`${WEB_APP_URL}?action=getWatchData&daysAgo=0&_t=${Date.now()}`).then(r => r.json());
+    const todayWatch = await fetchBackendJson(`action=getWatchData&daysAgo=0&_t=${Date.now()}`);
     if (Array.isArray(todayWatch) && todayWatch.length > 0) {
       localMap[todayKey] = {
         dateKey: todayKey,
@@ -1280,8 +1315,8 @@ async function loadMultiDaySessionsTimeline(daysCount = timelineDaysToLoad) {
       dailyData = await getFromIndexedDB('dailyData');
     }
     if (!dailyData || !Array.isArray(dailyData) || dailyData.length <= 1) {
-      dailyData = await fetch(`${WEB_APP_URL}?view=Daily`).then(r => r.json()).catch(() => null);
-      if (dailyData && typeof saveToIndexedDB === 'function') {
+      dailyData = await fetchBackendJson('view=Daily').catch(() => null);
+      if (Array.isArray(dailyData) && typeof saveToIndexedDB === 'function') {
         saveToIndexedDB('dailyData', dailyData);
       }
     }
@@ -1306,9 +1341,7 @@ async function loadMultiDaySessionsTimeline(daysCount = timelineDaysToLoad) {
           }
         }
         if (rowTotalHours > 0) {
-          const parsed = (typeof parseSessionDate === 'function')
-            ? parseSessionDate(rawDate)
-            : (/\b\d{4}\b/.test(rawDate) ? new Date(rawDate) : new Date(rawDate + ' ' + now.getFullYear()));
+          const parsed = parseSessionDate(rawDate);
           if (!isNaN(parsed.getTime())) {
             const y = parsed.getFullYear();
             const m = String(parsed.getMonth() + 1).padStart(2, '0');
@@ -1335,7 +1368,9 @@ async function loadMultiDaySessionsTimeline(daysCount = timelineDaysToLoad) {
 
   // 3. Read Nepal Forest history which contains multi-day planted sessions
   try {
-    const forestHistory = JSON.parse(localStorage.getItem('nepalForestHistory')) || [];
+    const forestHistory = (typeof safeGetJsonStorage === 'function')
+      ? safeGetJsonStorage('nepalForestHistory', [], Array.isArray)
+      : (JSON.parse(localStorage.getItem('nepalForestHistory') || '[]') || []);
     if (Array.isArray(forestHistory) && forestHistory.length > 0) {
       forestHistory.forEach(item => {
         if (!item || !item.timestamp) return;

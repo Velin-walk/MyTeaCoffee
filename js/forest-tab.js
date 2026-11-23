@@ -2,13 +2,15 @@
 // Loaded modularly from /plants/registry.js
 var NEPAL_PLANTS = window.NEPAL_PLANTS || [];
 
-var selectedForestPlantId = parseInt(localStorage.getItem('selectedNepalPlantId'), 10);
+var selectedForestPlantId = parseInt(typeof safeStorageGet === 'function' ? safeStorageGet('selectedNepalPlantId', '') : localStorage.getItem('selectedNepalPlantId'), 10);
 if (isNaN(selectedForestPlantId) || !selectedForestPlantId) {
   const initialPlant = (typeof getSelectedNepalPlant === 'function' ? getSelectedNepalPlant() : (window.NEPAL_PLANTS && window.NEPAL_PLANTS[0])) || { id: 4 };
   selectedForestPlantId = initialPlant.id;
-  try {
-    localStorage.setItem('selectedNepalPlantId', selectedForestPlantId);
-  } catch (e) {}
+  if (typeof safeStorageSet === 'function') {
+    safeStorageSet('selectedNepalPlantId', selectedForestPlantId);
+  } else {
+    try { localStorage.setItem('selectedNepalPlantId', selectedForestPlantId); } catch (e) {}
+  }
 }
 forestTimerMode = 'fixed'; // 'fixed' or 'open'
 var forestActiveFilter = 'today';
@@ -20,21 +22,21 @@ function syncForestTimerState() {
 
 function getSelectedPlant() {
   if (typeof getSelectedNepalPlant === 'function') {
-    return getSelectedNepalPlant();
+    const sel = getSelectedNepalPlant();
+    if (sel) return sel;
   }
   const plants = window.NEPAL_PLANTS || NEPAL_PLANTS || [];
   let id = selectedForestPlantId;
-  try {
-    const stored = parseInt(localStorage.getItem('selectedNepalPlantId'), 10);
-    if (!isNaN(stored) && stored > 0) id = stored;
-  } catch (e) {}
+  const rawStored = typeof safeStorageGet === 'function' ? safeStorageGet('selectedNepalPlantId', '') : (function () { try { return localStorage.getItem('selectedNepalPlantId'); } catch (e) { return ''; } })();
+  const stored = parseInt(rawStored, 10);
+  if (!isNaN(stored) && stored > 0) id = stored;
   const match = plants.find(p => p.id === id);
   if (match) return match;
   if (plants.length > 0) {
-    try { localStorage.setItem('selectedNepalPlantId', plants[0].id); } catch(e){}
+    if (typeof safeStorageSet === 'function') safeStorageSet('selectedNepalPlantId', plants[0].id);
     return plants[0];
   }
-  return null;
+  return { id: 4, slug: 'rhododendron', nepali: 'लालीगुराँस', english: 'Rhododendron', scientific: 'Rhododendron arboreum', category: 'National Flower / Tree', icon: '🌺' };
 }
 
 function setForestTimerMode(mode) {
@@ -161,7 +163,7 @@ function openForestApp() {
 }
 
 function toggleTopForestTab() {
-  const currentTab = localStorage.getItem('studyFlowActiveTab') || 'charts';
+  const currentTab = (typeof safeStorageGet === 'function' ? safeStorageGet('studyFlowActiveTab', 'charts') : 'charts') || 'charts';
   if (currentTab === 'forest') {
     switchMainTab('charts');
   } else {
@@ -360,7 +362,7 @@ function giveUpForestSession() {
 
   if (actualStudiedMinutes >= 1) {
     const logDuration = `${Math.floor(actualStudiedMinutes / 60).toString().padStart(2, '0')}:${(actualStudiedMinutes % 60).toString().padStart(2, '0')}:00`;
-    logData("Forest", logDuration, plant.nepali);
+    logData("Forest", logDuration, forestDurationMinutes || "N/A", plant.nepali);
   }
 
   finishAndPlantSharedSession(true);
@@ -372,13 +374,11 @@ function finishForestSession() {
   finishAndPlantSharedSession(false);
 }
 
-function saveForestPlantToHistory(plant, minutes, isHealthy, stage, growthPercent) {
-  let history = [];
-  try {
-    history = JSON.parse(localStorage.getItem('nepalForestHistory')) || [];
-  } catch (e) {
-    history = [];
-  }
+function saveForestPlantToHistory(plant, minutes, isHealthy, stage, growthPercent, customTimestamp) {
+  const safePlant = plant || getSelectedPlant();
+  let history = typeof safeGetJsonStorage === 'function'
+    ? safeGetJsonStorage('nepalForestHistory', [], Array.isArray)
+    : [];
   let finalStage = stage;
   let finalPct = typeof growthPercent === 'number' ? growthPercent : null;
 
@@ -409,27 +409,31 @@ function saveForestPlantToHistory(plant, minutes, isHealthy, stage, growthPercen
 
   // Do not store redundant full SVG string in localStorage to prevent hitting browser quotas
   history.push({
-    id: plant.id,
-    slug: plant.slug || (typeof getPlantSlug === 'function' ? getPlantSlug(plant) : undefined),
-    nepali: plant.nepali,
-    english: plant.english,
-    scientific: plant.scientific,
-    category: plant.category,
+    id: safePlant.id,
+    slug: safePlant.slug || (typeof getPlantSlug === 'function' ? getPlantSlug(safePlant) : undefined),
+    nepali: safePlant.nepali,
+    english: safePlant.english,
+    scientific: safePlant.scientific,
+    category: safePlant.category,
     minutes: minutes,
     isHealthy: isHealthy,
     stage: finalStage,
     growthPercent: finalPct !== null ? Math.round(finalPct) : 100,
-    timestamp: Date.now()
+    timestamp: (typeof customTimestamp === 'number' && customTimestamp > 0) ? customTimestamp : Date.now()
   });
 
-  try {
-    localStorage.setItem('nepalForestHistory', JSON.stringify(history));
-  } catch (err) {
-    console.warn("Storage quota exceeded, pruning old forest history:", err);
+  if (typeof safeStorageSet === 'function') {
+    if (!safeStorageSet('nepalForestHistory', JSON.stringify(history))) {
+      safeStorageSet('nepalForestHistory', JSON.stringify(history.slice(-500)));
+    }
+  } else {
     try {
-      const pruned = history.slice(-500);
-      localStorage.setItem('nepalForestHistory', JSON.stringify(pruned));
-    } catch (e) {}
+      localStorage.setItem('nepalForestHistory', JSON.stringify(history));
+    } catch (err) {
+      try {
+        localStorage.setItem('nepalForestHistory', JSON.stringify(history.slice(-500)));
+      } catch (e) {}
+    }
   }
 }
 
@@ -453,12 +457,9 @@ function renderActivePlantProfile() {
 }
 
 function renderMyForest() {
-  let history = [];
-  try {
-    history = JSON.parse(localStorage.getItem('nepalForestHistory')) || [];
-  } catch (e) {
-    history = [];
-  }
+  const history = typeof safeGetJsonStorage === 'function'
+    ? safeGetJsonStorage('nepalForestHistory', [], Array.isArray)
+    : [];
   const now = new Date();
   const startOfDay = new Date(now.getFullYear(), now.getMonth(), now.getDate()).getTime();
   const startOfWeek = startOfDay - (now.getDay() * 24 * 60 * 60 * 1000);
@@ -525,8 +526,9 @@ window.filterForest = filterForestGrid;
 function zoomForest(delta) {
   const canvas = document.getElementById('forestGridCanvas');
   if (canvas && typeof adjustDioramaZoom === 'function') {
-    let history = [];
-    try { history = JSON.parse(localStorage.getItem('nepalForestHistory')) || []; } catch (e) {}
+    const history = typeof safeGetJsonStorage === 'function'
+      ? safeGetJsonStorage('nepalForestHistory', [], Array.isArray)
+      : [];
     const now = new Date();
     const startOfDay = new Date(now.getFullYear(), now.getMonth(), now.getDate()).getTime();
     const startOfWeek = startOfDay - (now.getDay() * 24 * 60 * 60 * 1000);
@@ -662,29 +664,30 @@ window.addEventListener('load', () => {
   if (typeof window.load24HourWatchWithCache !== 'function') {
     fetchPastWeekWatchSessionsToForest();
   }
-  const savedTab = localStorage.getItem('studyFlowActiveTab') || 'charts';
+  const savedTab = (typeof safeStorageGet === 'function' ? safeStorageGet('studyFlowActiveTab', 'charts') : 'charts') || 'charts';
   switchMainTab(savedTab);
 
   // Auto-restore active session if present
-  try {
-    const active = JSON.parse(localStorage.getItem('activeFocusSession'));
-    if (active && active.startTime && !isForestRunning) {
-      const elapsed = Math.floor((Date.now() - active.startTime) / 1000);
-      if (elapsed < 12 * 3600) {
-        openStartTime = active.startTime;
-        forestTimerMode = active.mode || 'open';
-        if (active.durationMinutes) forestDurationMinutes = active.durationMinutes;
-        startSharedFocusSession(forestTimerMode, true);
-      } else {
-        localStorage.removeItem('activeFocusSession');
-      }
+  const active = typeof safeGetJsonStorage === 'function'
+    ? safeGetJsonStorage('activeFocusSession', null, v => v && typeof v === 'object' && typeof v.startTime === 'number' && v.startTime > 0)
+    : null;
+  if (active && !isForestRunning) {
+    const elapsed = Math.floor((Date.now() - active.startTime) / 1000);
+    if (elapsed < 12 * 3600) {
+      openStartTime = active.startTime;
+      forestTimerMode = active.mode || 'open';
+      if (active.durationMinutes) forestDurationMinutes = active.durationMinutes;
+      startSharedFocusSession(forestTimerMode, true);
+    } else if (typeof safeStorageRemove === 'function') {
+      safeStorageRemove('activeFocusSession');
     }
-  } catch (e) {}
+  }
 });
 
 async function fetchPastWeekWatchSessionsToForest() {
   if (typeof fetchAndSyncForestHistory === 'function') {
-    await fetchAndSyncForestHistory(WEB_APP_URL, getSelectedPlant(), () => {
+    const url = (typeof getEffectiveWebAppUrl === 'function') ? getEffectiveWebAppUrl() : WEB_APP_URL;
+    await fetchAndSyncForestHistory(url, getSelectedPlant(), () => {
       if (typeof renderMyForest === 'function') renderMyForest();
       if (typeof renderForestPlots === 'function') renderForestPlots();
     });

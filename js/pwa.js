@@ -78,22 +78,37 @@ function closePWAModal(e) {
   if (modal) modal.style.display = 'none';
 }
 
-// Strictly no caching anytime: unregister any service worker and clear browser cache storage
-if ('serviceWorker' in navigator) {
-  navigator.serviceWorker.getRegistrations().then(registrations => {
-    for (const registration of registrations) {
-      registration.unregister();
-    }
-  });
+function updateOfflineStatusBadge() {
+  if (typeof document === 'undefined' || !document.body) return;
+  const isOffline = (typeof navigator !== 'undefined' && navigator.onLine === false);
+  let badge = document.getElementById('studyFlowOfflineBadge');
+  if (!isOffline) {
+    if (badge && badge.parentNode) badge.parentNode.removeChild(badge);
+    return;
+  }
+  if (!badge) {
+    badge = document.createElement('div');
+    badge.id = 'studyFlowOfflineBadge';
+    badge.textContent = 'Offline mode — timers & local history remain active';
+    badge.style.cssText = 'position:fixed;bottom:16px;left:16px;z-index:9996;background:#1e293b;color:#f8fafc;border:1px solid rgba(255,255,255,0.2);border-radius:8px;padding:7px 12px;font-size:12px;font-weight:600;box-shadow:0 4px 12px rgba(0,0,0,0.2);';
+    document.body.appendChild(badge);
+  }
 }
-if ('caches' in window) {
-  caches.keys().then(names => {
-    for (const name of names) {
-      caches.delete(name);
-    }
+
+if (typeof navigator !== 'undefined' && 'serviceWorker' in navigator) {
+  window.addEventListener('load', () => {
+    navigator.serviceWorker.register('/sw.js', { scope: '/' }).catch((err) => {
+      console.warn('Service worker registration failed:', err);
+    });
   });
 }
 
-document.addEventListener('DOMContentLoaded', updateInstallButtonVisibility);
+window.addEventListener('online', updateOfflineStatusBadge);
+window.addEventListener('offline', updateOfflineStatusBadge);
+
+document.addEventListener('DOMContentLoaded', () => {
+  updateInstallButtonVisibility();
+  updateOfflineStatusBadge();
+});
 updateInstallButtonVisibility();
 

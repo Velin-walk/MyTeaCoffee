@@ -5,61 +5,87 @@ function formatHours(decimalHours) {
 }
 
 function parseSessionDate(dateStr) {
-  if (!dateStr) return new Date();
-  if (/\b\d{4}\b/.test(dateStr)) return new Date(dateStr);
-  return new Date(dateStr + ' ' + (new Date().getFullYear()));
+  const now = new Date();
+  if (!dateStr) return now;
+  const trimmed = String(dateStr).trim();
+  if (!trimmed) return now;
+
+  // Unambiguous ISO yyyy-MM-dd in local time (avoid UTC midnight date shift)
+  const iso = trimmed.match(/^(\d{4})-(\d{1,2})-(\d{1,2})$/);
+  if (iso) {
+    return new Date(parseInt(iso[1], 10), parseInt(iso[2], 10) - 1, parseInt(iso[3], 10));
+  }
+
+  // Explicit 4-digit year present (e.g. "Dec 28 2025")
+  if (/\b\d{4}\b/.test(trimmed)) {
+    const parsed = new Date(trimmed);
+    return isNaN(parsed.getTime()) ? now : parsed;
+  }
+
+  // Month/Day without year (e.g. "Dec 28"): infer most recent year so Dec viewed in Jan stays previous year
+  const currentYear = now.getFullYear();
+  let candidate = new Date(trimmed + ' ' + currentYear);
+  if (isNaN(candidate.getTime())) return now;
+
+  const sevenDaysMs = 7 * 24 * 60 * 60 * 1000;
+  if (candidate.getTime() - now.getTime() > sevenDaysMs) {
+    const prevYearCandidate = new Date(trimmed + ' ' + (currentYear - 1));
+    if (!isNaN(prevYearCandidate.getTime())) {
+      candidate = prevYearCandidate;
+    }
+  }
+  return candidate;
 }
 window.parseSessionDate = parseSessionDate;
-    // ============= INDEXEDDB SETUP =============
-    var DIRECT_GAS_URL = "https://script.google.com/macros/s/AKfycbwXOTn__dyqNI-8JvsTPEGtC4OPJYuC9-_jqIlq-lutQZDeQzlmM-46XwWAmWYQu8mT/exec";
-    var DEFAULT_WEB_APP_URL = "/api/data";
 
-    function getEffectiveWebAppUrl() {
-      try {
-        const custom = localStorage.getItem('study_custom_gas_url');
-        if (custom && custom.trim()) {
-          const trimmed = custom.trim();
-          if (trimmed.startsWith('http')) return trimmed;
-        }
-      } catch (e) {}
+// Shared backend warning indicator (clears automatically when backend recovers)
+function setBackendErrorState(isError, message) {
+  if (typeof document === 'undefined' || !document.body) return;
+  let badge = document.getElementById('studyFlowBackendNotice');
+  if (!isError) {
+    if (badge && badge.parentNode) badge.parentNode.removeChild(badge);
+    return;
+  }
+  if (!badge) {
+    badge = document.createElement('div');
+    badge.id = 'studyFlowBackendNotice';
+    badge.style.cssText = 'position:fixed;bottom:76px;left:16px;z-index:9997;background:#fef2f2;color:#991b1b;border:1px solid #fecaca;border-radius:8px;padding:8px 12px;font-size:12px;font-weight:600;box-shadow:0 4px 12px rgba(0,0,0,0.12);max-width:340px;';
+    document.body.appendChild(badge);
+  }
+  badge.textContent = message || 'Backend sync unavailable — showing cached data.';
+}
+window.setBackendErrorState = setBackendErrorState;
 
-      // On Node preview environments (localhost / AI Studio), use local proxy /api/data.
-      // On Cloudflare Pages or static hosting, use direct Google Apps Script Web App URL.
-      const host = window.location.hostname;
-      const isNodeProxyAvailable = host === 'localhost' || host === '127.0.0.1' || host.includes('run.app') || host.includes('aistudio');
-      if (isNodeProxyAvailable) {
-        return DEFAULT_WEB_APP_URL;
+async function fetchBackendJson(queryString) {
+  const base = (typeof getEffectiveWebAppUrl === 'function') ? getEffectiveWebAppUrl() : (window.WEB_APP_URL || '/api/data');
+  const url = (typeof buildApiUrl === 'function')
+    ? buildApiUrl(base, queryString)
+    : base + (queryString ? ((base.indexOf('?') === -1 ? '?' : '&') + queryString.replace(/^\?/, '')) : '');
+  const res = await fetch(url);
+  if (!res.ok) {
+    let errText = `Backend HTTP ${res.status}`;
+    try {
+      const errBody = await res.json();
+      if (errBody && (errBody.message || errBody.error)) {
+        errText = errBody.message || errBody.error;
       }
-      return DIRECT_GAS_URL;
-    }
-
-    var WEB_APP_URL = getEffectiveWebAppUrl();
-
-    function getGasWebAppUrl() {
-      try {
-        return localStorage.getItem('study_custom_gas_url') || DIRECT_GAS_URL;
-      } catch (e) {
-        return DIRECT_GAS_URL;
-      }
-    }
-
-    function setGasWebAppUrl(url) {
-      try {
-        if (url && url.trim()) {
-          const trimmed = url.trim();
-          localStorage.setItem('study_custom_gas_url', trimmed);
-          WEB_APP_URL = trimmed;
-        } else {
-          localStorage.removeItem('study_custom_gas_url');
-          WEB_APP_URL = getEffectiveWebAppUrl();
-        }
-      } catch (e) {
-        console.error('Failed to save GAS URL:', e);
-      }
-    }
-    window.getGasWebAppUrl = getGasWebAppUrl;
-    window.setGasWebAppUrl = setGasWebAppUrl;
-    window.DIRECT_GAS_URL = DIRECT_GAS_URL;
+    } catch (e) {}
+    setBackendErrorState(true, `Backend unavailable (${res.status}) — cached data may be shown.`);
+    throw new Error(errText);
+  }
+  const data = await res.json();
+  if (data && !Array.isArray(data) && typeof data === 'object' && data.error) {
+    setBackendErrorState(true, `Backend error: ${data.error}`);
+    throw new Error(data.message || data.error);
+  }
+  if (!res.headers || !res.headers.get('X-Proxy-Cache')) {
+    setBackendErrorState(false);
+  } else {
+    setBackendErrorState(true, 'Using stale proxy cache — Google Sheets unreachable.');
+  }
+  return data;
+}
+window.fetchBackendJson = fetchBackendJson;
 
     function openGasModal() {
       const modal = document.getElementById('gasModal');
@@ -109,7 +135,7 @@ window.parseSessionDate = parseSessionDate;
     function resetCustomGasUrl() {
       setGasWebAppUrl('');
       const input = document.getElementById('customGasUrlInput');
-      if (input) input.value = DEFAULT_WEB_APP_URL;
+      if (input) input.value = getGasWebAppUrl();
       const status = document.getElementById('gasUrlSaveStatus');
       if (status) {
         status.textContent = 'Reset to default Web App URL.';
@@ -205,35 +231,44 @@ window.parseSessionDate = parseSessionDate;
     async function loadChartDailyWithCache() {
       const cachedData = await getFromIndexedDB('dailyData');
       if (cachedData) { loadChart('Daily', 'chart_div_daily', cachedData); }
-      fetch(`${WEB_APP_URL}?view=Daily`).then(res => res.json()).then(newData => {
-        saveToIndexedDB('dailyData', newData);
+      fetchBackendJson('view=Daily').then(newData => {
+        if (Array.isArray(newData)) saveToIndexedDB('dailyData', newData);
         loadChart('Daily', 'chart_div_daily', newData);
-      }).catch(err => { if (!cachedData) document.getElementById('chart_div_daily').innerHTML = 'Error loading chart'; });
+      }).catch(() => {
+        const el = document.getElementById('chart_div_daily');
+        if (!cachedData && el) el.innerHTML = '<div style="text-align:center;padding:20px;color:var(--danger);font-size:12px;">Error loading chart</div>';
+      });
     }
 
     async function loadChartWeeklyWithCache() {
       const cachedData = await getFromIndexedDB('weeklyData');
       if (cachedData) { loadChart('Weekly', 'chart_div_weekly', cachedData); }
-      fetch(`${WEB_APP_URL}?view=Weekly`).then(res => res.json()).then(newData => {
-        saveToIndexedDB('weeklyData', newData);
+      fetchBackendJson('view=Weekly').then(newData => {
+        if (Array.isArray(newData)) saveToIndexedDB('weeklyData', newData);
         loadChart('Weekly', 'chart_div_weekly', newData);
-      }).catch(err => { if (!cachedData) document.getElementById('chart_div_weekly').innerHTML = 'Error loading chart'; });
+      }).catch(() => {
+        const el = document.getElementById('chart_div_weekly');
+        if (!cachedData && el) el.innerHTML = '<div style="text-align:center;padding:20px;color:var(--danger);font-size:12px;">Error loading chart</div>';
+      });
     }
 
     async function loadChartMonthlyWithCache() {
       const cachedData = await getFromIndexedDB('monthlyData');
       if (cachedData) { loadChart('Monthly', 'chart_div_monthly', cachedData); }
-      fetch(`${WEB_APP_URL}?view=Monthly`).then(res => res.json()).then(newData => {
-        saveToIndexedDB('monthlyData', newData);
+      fetchBackendJson('view=Monthly').then(newData => {
+        if (Array.isArray(newData)) saveToIndexedDB('monthlyData', newData);
         loadChart('Monthly', 'chart_div_monthly', newData);
-      }).catch(err => { if (!cachedData) document.getElementById('chart_div_monthly').innerHTML = 'Error loading chart'; });
+      }).catch(() => {
+        const el = document.getElementById('chart_div_monthly');
+        if (!cachedData && el) el.innerHTML = '<div style="text-align:center;padding:20px;color:var(--danger);font-size:12px;">Error loading chart</div>';
+      });
     }
 
     async function load24HourWatchWithCache() {
       const cachedData = await getFromIndexedDB('watchData');
       if (cachedData) { updateWatchDisplay(cachedData); }
-      fetch(`${WEB_APP_URL}?action=getWatchData&_t=${Date.now()}`).then(res => res.json()).then(newData => {
-        saveToIndexedDB('watchData', newData);
+      fetchBackendJson(`action=getWatchData&_t=${Date.now()}`).then(newData => {
+        if (Array.isArray(newData)) saveToIndexedDB('watchData', newData);
         updateWatchDisplay(newData);
         loadMasterChronometer();
       }).catch(err => console.error("Watch error:", err));
@@ -242,10 +277,13 @@ window.parseSessionDate = parseSessionDate;
     async function loadPlannerWithCache() {
       const cachedData = await getFromIndexedDB('plannerData');
       if (cachedData) { displayPlannerTable(cachedData); }
-      fetch(`${WEB_APP_URL}?action=getPlannerData`).then(res => res.json()).then(newData => {
-        saveToIndexedDB('plannerData', newData);
+      fetchBackendJson('action=getPlannerData').then(newData => {
+        if (Array.isArray(newData)) saveToIndexedDB('plannerData', newData);
         displayPlannerTable(newData);
-      }).catch(err => { if (!cachedData) document.getElementById('gridWrapper').innerHTML = `<div style="text-align: center; padding: 20px; color: var(--danger);">Error loading planner</div>`; });
+      }).catch(() => {
+        const el = document.getElementById('gridWrapper');
+        if (!cachedData && el) el.innerHTML = `<div style="text-align: center; padding: 20px; color: var(--danger);">Error loading planner</div>`;
+      });
     }
 
     // ============= DISPLAY FUNCTIONS =============

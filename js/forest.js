@@ -3,20 +3,14 @@
     const NEPAL_PLANTS = window.NEPAL_PLANTS || [];
 
     // ================= ORIGINAL SOURCE API & LOGGING =================
-    var WEB_APP_URL = window.WEB_APP_URL || (function () {
-      const DEFAULT = "https://script.google.com/macros/s/AKfycbwXOTn__dyqNI-8JvsTPEGtC4OPJYuC9-_jqIlq-lutQZDeQzlmM-46XwWAmWYQu8mT/exec";
-      try { return localStorage.getItem('study_custom_gas_url') || DEFAULT; }
-      catch (e) { return DEFAULT; }
-    })();
+    var WEB_APP_URL = (typeof getEffectiveWebAppUrl === 'function') ? getEffectiveWebAppUrl() : (window.WEB_APP_URL || '/api/data');
 
     // ================= STATE VARIABLES =================
-    let selectedPlantId = parseInt(localStorage.getItem('selectedNepalPlantId'), 10);
+    let selectedPlantId = parseInt(typeof safeStorageGet === 'function' ? safeStorageGet('selectedNepalPlantId', '') : '', 10);
     if (isNaN(selectedPlantId) || !selectedPlantId) {
       const initialPlant = (typeof getSelectedNepalPlant === 'function' ? getSelectedNepalPlant() : (window.NEPAL_PLANTS && window.NEPAL_PLANTS[0])) || { id: 4 };
       selectedPlantId = initialPlant.id;
-      try {
-        localStorage.setItem('selectedNepalPlantId', selectedPlantId);
-      } catch (e) {}
+      if (typeof safeStorageSet === 'function') safeStorageSet('selectedNepalPlantId', selectedPlantId);
     }
     let timerMode = 'fixed'; // 'fixed' or 'open'
     let openElapsedSecs = 0;
@@ -31,18 +25,53 @@
     let activeForestFilter = 'today';
     let currentCatalogCategory = 'all';
 
+    let forestFixedTimeout = null;
+
+    function clearFixedTimerTimeout() {
+      if (forestFixedTimeout) {
+        clearTimeout(forestFixedTimeout);
+        forestFixedTimeout = null;
+      }
+    }
+
+    function readActiveSessionSafe() {
+      if (typeof safeGetJsonStorage === 'function') {
+        return safeGetJsonStorage('activeFocusSession', null, v => v && typeof v === 'object' && typeof v.startTime === 'number' && v.startTime > 0);
+      }
+      try {
+        const p = JSON.parse(localStorage.getItem('activeFocusSession'));
+        return (p && typeof p === 'object' && p.startTime > 0) ? p : null;
+      } catch (e) {
+        return null;
+      }
+    }
+
+    function writeActiveSessionSafe(obj) {
+      try {
+        const raw = JSON.stringify(obj);
+        if (typeof safeStorageSet === 'function') safeStorageSet('activeFocusSession', raw);
+        else localStorage.setItem('activeFocusSession', raw);
+      } catch (e) {}
+    }
+
     function syncForestTimer() {
       if (!isSessionActive) return;
       const now = Date.now();
       if (timerMode === 'open') {
         openElapsedSecs = Math.max(0, Math.floor((now - sessionStartTime) / 1000));
         const completedCycles = Math.floor(openElapsedSecs / 1500);
-        if (completedCycles > openPlantedCycles) {
+        const safeTargetCycles = Math.min(completedCycles, 48);
+        if (safeTargetCycles > openPlantedCycles) {
           const plant = getCurrentPlant();
-          for (let c = openPlantedCycles + 1; c <= completedCycles; c++) {
-            saveForestRecord(plant, 25, true, 'mature', 100);
+          for (let c = openPlantedCycles + 1; c <= safeTargetCycles; c++) {
+            saveForestRecord(plant, 25, true, 'mature', 100, sessionStartTime + (c * 1500 * 1000));
           }
-          openPlantedCycles = completedCycles;
+          openPlantedCycles = safeTargetCycles;
+          const active = readActiveSessionSafe();
+          if (active) {
+            active.plantedCycles = openPlantedCycles;
+            writeActiveSessionSafe(active);
+          }
           playSuccessChime();
           renderForestPlots();
         }
@@ -59,21 +88,20 @@
 
     function getCurrentPlant() {
       if (typeof getSelectedNepalPlant === 'function') {
-        return getSelectedNepalPlant();
+        const sel = getSelectedNepalPlant();
+        if (sel) return sel;
       }
       const plants = window.NEPAL_PLANTS || NEPAL_PLANTS || [];
       let id = selectedPlantId;
-      try {
-        const stored = parseInt(localStorage.getItem('selectedNepalPlantId'), 10);
-        if (!isNaN(stored) && stored > 0) id = stored;
-      } catch (e) {}
+      const stored = parseInt(typeof safeStorageGet === 'function' ? safeStorageGet('selectedNepalPlantId', '') : '', 10);
+      if (!isNaN(stored) && stored > 0) id = stored;
       const match = plants.find(p => p.id === id);
       if (match) return match;
       if (plants.length > 0) {
-        try { localStorage.setItem('selectedNepalPlantId', plants[0].id); } catch(e){}
+        if (typeof safeStorageSet === 'function') safeStorageSet('selectedNepalPlantId', plants[0].id);
         return plants[0];
       }
-      return null;
+      return { id: 4, slug: 'rhododendron', nepali: 'लालीगुराँस', english: 'Rhododendron', scientific: 'Rhododendron arboreum', category: 'National Flower / Tree', icon: '🌺' };
     }
 
     // ================= TIMER MODE TOGGLE =================
@@ -105,14 +133,16 @@
       if (themeClass && themeClass !== 'default') {
         document.body.classList.add(themeClass);
       }
-      try {
-        localStorage.setItem('selectedTheme', themeClass);
-      } catch (e) {}
+      if (typeof safeStorageSet === 'function') {
+        safeStorageSet('selectedTheme', themeClass);
+      } else {
+        try { localStorage.setItem('selectedTheme', themeClass); } catch (e) {}
+      }
     }
 
     // Load saved theme
     (function initTheme() {
-      const savedTheme = localStorage.getItem('selectedTheme') || 'theme-forest';
+      const savedTheme = (typeof safeStorageGet === 'function' ? safeStorageGet('selectedTheme', 'theme-forest') : 'theme-forest') || 'theme-forest';
       if (savedTheme) {
         changeForestTheme(savedTheme);
         const sel = document.getElementById('forestThemeSelect');
@@ -265,23 +295,25 @@
     function startOrResumeSession(isResuming = false) {
       if (isSessionActive) return;
       isSessionActive = true;
+      clearFixedTimerTimeout();
       if (!isResuming) {
         sessionStartTime = Date.now();
         openPlantedCycles = 0;
-        try {
-          localStorage.setItem('activeFocusSession', JSON.stringify({
-            startTime: sessionStartTime,
-            mode: timerMode,
-            durationMinutes: timerDurationMins
-          }));
-        } catch (e) {}
+        writeActiveSessionSafe({
+          startTime: sessionStartTime,
+          mode: timerMode,
+          durationMinutes: timerDurationMins,
+          plantedCycles: 0
+        });
       } else {
-        const elapsedSecs = Math.max(0, Math.floor((Date.now() - sessionStartTime) / 1000));
-        try {
-          const history = JSON.parse(localStorage.getItem('nepalForestHistory')) || [];
-          openPlantedCycles = history.filter(item => item.timestamp >= (sessionStartTime - 2000)).length;
-        } catch (e) {
-          openPlantedCycles = Math.floor(elapsedSecs / 1500);
+        const active = readActiveSessionSafe();
+        if (active && typeof active.plantedCycles === 'number' && active.plantedCycles >= 0) {
+          openPlantedCycles = active.plantedCycles;
+        } else {
+          const history = typeof safeGetJsonStorage === 'function'
+            ? safeGetJsonStorage('nepalForestHistory', [], Array.isArray)
+            : [];
+          openPlantedCycles = history.filter(item => item && item.source !== 'charts' && item.source !== 'charts-sync' && item.timestamp >= (sessionStartTime - 2000)).length;
         }
       }
 
@@ -304,6 +336,7 @@
         }
         renderTimerDisplay();
         sessionTimerInterval = setInterval(syncForestTimer, 1000);
+        syncForestTimer();
       } else {
         timerTotalSecs = timerDurationMins * 60;
         sessionTargetEndTime = sessionStartTime + (timerTotalSecs * 1000);
@@ -311,10 +344,18 @@
         if (btnCompleteOpen) btnCompleteOpen.style.display = 'none';
         if (btnGiveUp) {
           btnGiveUp.style.display = 'inline-flex';
-          btnGiveUp.innerText = '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display:inline-block; vertical-align:middle;"><circle cx="12" cy="12" r="10"/><line x1="15" y1="9" x2="9" y2="15"/><line x1="9" y1="9" x2="15" y2="15"/></svg> Give Up';
+          btnGiveUp.innerHTML = '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display:inline-block; vertical-align:middle;"><circle cx="12" cy="12" r="10"/><line x1="15" y1="9" x2="9" y2="15"/><line x1="9" y1="9" x2="15" y2="15"/></svg> Give Up';
         }
         renderTimerDisplay();
-        sessionTimerInterval = setInterval(syncForestTimer, 1000);
+        if (timerRemainingSecs <= 0) {
+          completeForestSession();
+        } else {
+          const delay = Math.max(0, sessionTargetEndTime - Date.now()) + 150;
+          forestFixedTimeout = setTimeout(() => {
+            if (isSessionActive && timerMode === 'fixed') syncForestTimer();
+          }, Math.min(delay, 2147483647));
+          sessionTimerInterval = setInterval(syncForestTimer, 1000);
+        }
       }
     }
 
@@ -350,7 +391,7 @@
       const totalElapsedMins = Math.max(1, Math.round(openElapsedSecs / 60));
       if (totalElapsedMins >= 1 && typeof logData === 'function') {
         const fullDuration = `${Math.floor(totalElapsedMins / 60).toString().padStart(2, '0')}:${(totalElapsedMins % 60).toString().padStart(2, '0')}:00`;
-        logData("Forest", fullDuration, plant.nepali);
+        logData("Open", fullDuration, "N/A", plant.nepali);
       }
 
       openPlantedCycles = 0;
@@ -442,7 +483,7 @@
       // Send actual focused study time to original source so all charts are populated and saved
       if (actualStudiedMinutes >= 1) {
         const logDuration = `${Math.floor(actualStudiedMinutes / 60).toString().padStart(2, '0')}:${(actualStudiedMinutes % 60).toString().padStart(2, '0')}:00`;
-        logData("Forest", logDuration, plant.nepali);
+        logData("Forest", logDuration, timerDurationMins || "N/A", plant.nepali);
       }
 
       renderTimerDisplay(true);
@@ -461,19 +502,21 @@
 
     function completeForestSession() {
       clearInterval(sessionTimerInterval);
+      clearFixedTimerTimeout();
       sessionTimerInterval = null;
       isSessionActive = false;
+      const completedStart = sessionStartTime || Date.now();
       sessionStartTime = null;
       sessionTargetEndTime = null;
-      try { localStorage.removeItem('activeFocusSession'); } catch (e) {}
+      if (typeof safeStorageRemove === 'function') safeStorageRemove('activeFocusSession');
 
       const plant = getCurrentPlant();
-      const studiedMinutes = Math.round(timerTotalSecs / 60);
-      saveForestRecord(plant, studiedMinutes, true, 'mature', 100);
+      const studiedMinutes = Math.max(1, Math.round(timerTotalSecs / 60));
+      saveForestRecord(plant, studiedMinutes, true, 'mature', 100, completedStart + (timerTotalSecs * 1000));
 
       // Send to original source so all charts are populated and saved
       const logDuration = `${Math.floor(studiedMinutes / 60).toString().padStart(2, '0')}:${(studiedMinutes % 60).toString().padStart(2, '0')}:00`;
-      logData("Forest", logDuration, plant.nepali);
+      logData("Forest", logDuration, timerDurationMins || "N/A", plant.nepali);
 
       playSuccessChime();
       renderTimerDisplay(false);
@@ -531,11 +574,11 @@
     }
 
     // ================= STORAGE =================
-    function saveForestRecord(plant, minutes, isHealthy, stage, growthPercent) {
-      let history = [];
-      try {
-        history = JSON.parse(localStorage.getItem('nepalForestHistory')) || [];
-      } catch (e) {}
+    function saveForestRecord(plant, minutes, isHealthy, stage, growthPercent, customTimestamp) {
+      const safePlant = plant || getCurrentPlant();
+      let history = typeof safeGetJsonStorage === 'function'
+        ? safeGetJsonStorage('nepalForestHistory', [], Array.isArray)
+        : [];
 
       let finalStage = stage;
       let finalPct = typeof growthPercent === 'number' ? growthPercent : null;
@@ -566,22 +609,26 @@
       }
 
       history.push({
-        id: plant.id,
-        nepali: plant.nepali,
-        english: plant.english,
-        scientific: plant.scientific,
-        category: plant.category,
-        icon: plant.icon,
+        id: safePlant.id,
+        nepali: safePlant.nepali,
+        english: safePlant.english,
+        scientific: safePlant.scientific,
+        category: safePlant.category,
+        icon: safePlant.icon,
         minutes: minutes,
         isHealthy: isHealthy,
         stage: finalStage,
         growthPercent: finalPct !== null ? Math.round(finalPct) : 100,
-        timestamp: Date.now()
+        timestamp: (typeof customTimestamp === 'number' && customTimestamp > 0) ? customTimestamp : Date.now()
       });
 
-      try {
-        localStorage.setItem('nepalForestHistory', JSON.stringify(history));
-      } catch (e) {}
+      if (typeof safeStorageSet === 'function') {
+        if (!safeStorageSet('nepalForestHistory', JSON.stringify(history))) {
+          safeStorageSet('nepalForestHistory', JSON.stringify(history.slice(-500)));
+        }
+      } else {
+        try { localStorage.setItem('nepalForestHistory', JSON.stringify(history)); } catch (e) {}
+      }
     }
 
     function renderActivePlant() {
@@ -602,10 +649,9 @@
 
     // ================= MY FOREST PLOTS =================
     function renderForestPlots() {
-      let history = [];
-      try {
-        history = JSON.parse(localStorage.getItem('nepalForestHistory')) || [];
-      } catch (e) {}
+      const history = typeof safeGetJsonStorage === 'function'
+        ? safeGetJsonStorage('nepalForestHistory', [], Array.isArray)
+        : [];
 
       const now = new Date();
       const startOfDay = new Date(now.getFullYear(), now.getMonth(), now.getDate()).getTime();
@@ -776,12 +822,9 @@
     // 2-Way Sync: Auto-plant study chart sessions into Nepal Forest
     function syncWatchSessionsToForest(sessions) {
       if (!Array.isArray(sessions) || sessions.length === 0) return;
-      let history = [];
-      try {
-        history = JSON.parse(localStorage.getItem('nepalForestHistory')) || [];
-      } catch (e) {
-        history = [];
-      }
+      const history = typeof safeGetJsonStorage === 'function'
+        ? safeGetJsonStorage('nepalForestHistory', [], Array.isArray)
+        : [];
 
       const now = new Date();
       const startOfDay = new Date(now.getFullYear(), now.getMonth(), now.getDate()).getTime();
@@ -862,37 +905,48 @@
       renderForestPlots();
 
       // Auto-restore active session if present from charts/other tabs
-      try {
-        const active = JSON.parse(localStorage.getItem('activeFocusSession'));
-        if (active && active.startTime && !isSessionActive) {
-          const elapsed = Math.floor((Date.now() - active.startTime) / 1000);
-          if (elapsed < 12 * 3600) {
-            sessionStartTime = active.startTime;
-            if (active.mode) timerMode = active.mode;
-            if (active.durationMinutes) timerDurationMins = active.durationMinutes;
-            startOrResumeSession(true);
-          } else {
-            localStorage.removeItem('activeFocusSession');
-          }
+      const active = readActiveSessionSafe();
+      if (active && !isSessionActive) {
+        const elapsed = Math.floor((Date.now() - active.startTime) / 1000);
+        if (elapsed < 12 * 3600) {
+          sessionStartTime = active.startTime;
+          if (active.mode) timerMode = active.mode;
+          if (active.durationMinutes) timerDurationMins = active.durationMinutes;
+          startOrResumeSession(true);
+        } else if (typeof safeStorageRemove === 'function') {
+          safeStorageRemove('activeFocusSession');
         }
-      } catch (e) {}
+      }
 
       // Sync selected plant from backend state before syncing watch sessions
-      fetch(`${WEB_APP_URL}?action=getState&_t=${Date.now()}`).then(res => res.json()).then(props => {
-        if (typeof syncSelectedNepalPlantFromState === 'function') {
-          const syncedPlant = syncSelectedNepalPlantFromState(props);
-          if (syncedPlant) {
-            selectedPlantId = syncedPlant.id;
+      const apiBase = (typeof getEffectiveWebAppUrl === 'function') ? getEffectiveWebAppUrl() : WEB_APP_URL;
+      const stateUrl = (typeof buildApiUrl === 'function')
+        ? buildApiUrl(apiBase, `action=getState&_t=${Date.now()}`)
+        : `${apiBase}${apiBase.indexOf('?') === -1 ? '?' : '&'}action=getState&_t=${Date.now()}`;
+
+      fetch(stateUrl)
+        .then(res => {
+          if (!res.ok) throw new Error('HTTP ' + res.status);
+          return res.json();
+        })
+        .then(props => {
+          if (props && !props.error && typeof syncSelectedNepalPlantFromState === 'function') {
+            const syncedPlant = syncSelectedNepalPlantFromState(props);
+            if (syncedPlant) {
+              selectedPlantId = syncedPlant.id;
+            }
           }
-        }
-      }).catch(() => null).finally(() => {
-        fetchPastWeekWatchSessionsToForest();
-      });
+        })
+        .catch(() => null)
+        .finally(() => {
+          fetchPastWeekWatchSessionsToForest();
+        });
     });
 
     async function fetchPastWeekWatchSessionsToForest() {
       if (typeof fetchAndSyncForestHistory === 'function') {
-        await fetchAndSyncForestHistory(WEB_APP_URL, getCurrentPlant(), () => {
+        const apiBase = (typeof getEffectiveWebAppUrl === 'function') ? getEffectiveWebAppUrl() : WEB_APP_URL;
+        await fetchAndSyncForestHistory(apiBase, getCurrentPlant(), () => {
           if (typeof renderForestPlots === 'function') renderForestPlots();
           if (typeof renderMyForest === 'function') renderMyForest();
         });

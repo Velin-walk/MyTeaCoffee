@@ -42,34 +42,127 @@
     };
   }).filter(Boolean);
 
+  const EXACT_PLANT_ALIASES = {
+    'jacaranda': 'jacaranda',
+    'jacaranda mimosifolia': 'jacaranda',
+    'ज्याकारान्दा': 'jacaranda',
+    'suntala': 'suntala',
+    'suntala (orange tree)': 'suntala',
+    'orange tree': 'suntala',
+    'orange': 'suntala',
+    'citrus sinensis': 'suntala',
+    'सुन्तला': 'suntala',
+    'sunpati': 'sunpati',
+    'sunpati (dwarf rhododendron)': 'sunpati',
+    'dwarf rhododendron': 'sunpati',
+    'rhododendron anthopogon': 'sunpati',
+    'सुनपाती': 'sunpati',
+    'sunakhari': 'sunakhari',
+    'sunakhari orchid': 'sunakhari',
+    'orchid': 'sunakhari',
+    'dendrobium densiflorum': 'sunakhari',
+    'सुनखरी': 'sunakhari',
+    'rhododendron': 'rhododendron',
+    'rhododendron arboreum': 'rhododendron',
+    'laliguras': 'rhododendron',
+    'laligurans': 'rhododendron',
+    'लालीगुराँस': 'rhododendron',
+    'लालिगुराँस': 'rhododendron',
+    'गुराँस': 'rhododendron',
+    'peepal': 'peepal',
+    'peepal tree': 'peepal',
+    'ficus religiosa': 'peepal',
+    'पीपल': 'peepal',
+    'banyan': 'banyan',
+    'banyan tree': 'banyan',
+    'ficus benghalensis': 'banyan',
+    'बर': 'banyan',
+    'sal': 'sal',
+    'sal tree': 'sal',
+    'shorea robusta': 'sal',
+    'साल': 'sal',
+    'pine': 'pine',
+    'chir pine': 'pine',
+    'himalayan pine': 'pine',
+    'pinus roxburghii': 'pine',
+    'रानी सल्ला': 'pine',
+    'सल्ला': 'pine',
+    'mugwort': 'mugwort',
+    'artemisia vulgaris': 'mugwort',
+    'तितेपाती': 'mugwort',
+    'bamboo': 'bamboo',
+    'bambusa spp.': 'bamboo',
+    'बाँस': 'bamboo',
+    'nettle': 'nettle',
+    'stinging nettle': 'nettle',
+    'urtica dioica': 'nettle',
+    'सिस्नु': 'nettle',
+    'lotus': 'lotus',
+    'sacred lotus': 'lotus',
+    'nelumbo nucifera': 'lotus',
+    'कमल': 'lotus',
+    'marigold': 'marigold',
+    'tagetes erecta': 'marigold',
+    'सयपत्री': 'marigold'
+  };
+
+  const ID_TO_SLUG = {
+    39: 'jacaranda',
+    38: 'suntala',
+    37: 'sunpati',
+    36: 'sunakhari',
+    4: 'rhododendron',
+    9: 'peepal',
+    10: 'banyan',
+    1: 'sal',
+    2: 'pine',
+    3: 'pine',
+    23: 'mugwort',
+    20: 'bamboo',
+    22: 'nettle',
+    35: 'lotus',
+    33: 'marigold'
+  };
+
   function matchPlantSlugOrNull(plant) {
     if (!plant) return null;
     if (typeof plant === 'object' && plant.slug && root.NEPAL_PLANTS_REGISTRY[plant.slug]) {
       return plant.slug;
     }
+
     const rawStr = typeof plant === 'object' ? '' : String(plant).trim();
     const id = typeof plant === 'object'
-      ? plant.id
+      ? Number(plant.id)
       : (/^\d+$/.test(rawStr) ? parseInt(rawStr, 10) : NaN);
-    const name = typeof plant === 'object'
-      ? `${plant.english || ''} ${plant.nepali || ''}`.toLowerCase()
-      : rawStr.toLowerCase();
-    if (!name && (isNaN(id) || id <= 0)) return null;
 
-    if (id === 39 || name.includes('jacaranda') || name.includes('ज्याकारान्दा') || name.includes('mimosifolia')) return 'jacaranda';
-    if (id === 38 || name.includes('suntala') || name.includes('सुन्तला') || name.includes('citrus') || name.includes('orange')) return 'suntala';
-    if (id === 37 || name.includes('sunpati') || name.includes('सुनपाती') || name.includes('anthopogon')) return 'sunpati';
-    if (id === 36 || name.includes('sunakhari') || name.includes('सुनखरी') || name.includes('orchid') || name.includes('dendrobium')) return 'sunakhari';
-    if (id === 4 || (name.includes('rhododendron') && !name.includes('sunpati') && !name.includes('सुनपाती')) || name.includes('गुराँस')) return 'rhododendron';
-    if (id === 9 || name.includes('peepal') || name.includes('पीपल')) return 'peepal';
-    if (id === 10 || name.includes('banyan') || name.includes('बर')) return 'banyan';
-    if (id === 1 || name.includes('sal') || name.includes('साल')) return 'sal';
-    if (id === 2 || id === 3 || name.includes('pine') || name.includes('सल्ला')) return 'pine';
-    if (id === 23 || name.includes('mugwort') || name.includes('तितेपाती')) return 'mugwort';
-    if (id === 20 || name.includes('bamboo') || name.includes('बाँस')) return 'bamboo';
-    if (id === 22 || name.includes('nettle') || name.includes('सिस्नु')) return 'nettle';
-    if (id === 35 || name.includes('lotus') || name.includes('कमल')) return 'lotus';
-    if (id === 33 || name.includes('marigold') || name.includes('सयपत्री')) return 'marigold';
+    if (!isNaN(id) && ID_TO_SLUG[id]) return ID_TO_SLUG[id];
+
+    const candidates = typeof plant === 'object'
+      ? [plant.english, plant.nepali, plant.scientific].filter(Boolean)
+      : [rawStr];
+
+    for (let i = 0; i < candidates.length; i++) {
+      const normalized = String(candidates[i]).trim().toLowerCase().replace(/\s+/g, ' ');
+      if (!normalized) continue;
+
+      if (EXACT_PLANT_ALIASES[normalized]) {
+        return EXACT_PLANT_ALIASES[normalized];
+      }
+
+      // Disambiguate multi-word phrases before token lookup
+      if (normalized.indexOf('dwarf rhododendron') !== -1 || normalized.indexOf('rhododendron anthopogon') !== -1) {
+        return 'sunpati';
+      }
+
+      // Tokenize on separators so short words like 'बर' or 'sal' never match inside unrelated plant names
+      const tokens = normalized.split(/[\s,()/\\\-:]+/).filter(Boolean);
+      for (let t = 0; t < tokens.length; t++) {
+        if (EXACT_PLANT_ALIASES[tokens[t]]) {
+          return EXACT_PLANT_ALIASES[tokens[t]];
+        }
+      }
+    }
+
     return null;
   }
 
@@ -430,15 +523,24 @@
     return true;
   }
 
+  function appendQuery(baseUrl, qs) {
+    if (typeof root.buildApiUrl === 'function') return root.buildApiUrl(baseUrl, qs);
+    const clean = String(qs || '').replace(/^\?/, '');
+    if (!clean) return baseUrl;
+    return baseUrl + (baseUrl.indexOf('?') === -1 ? '?' : '&') + clean;
+  }
+
   async function fetchAndSyncForestHistory(webAppUrl, fallbackPlant, onUpdated) {
-    if (!webAppUrl || typeof fetch !== 'function') return false;
+    const targetBase = webAppUrl || (typeof root.getEffectiveWebAppUrl === 'function' ? root.getEffectiveWebAppUrl() : root.WEB_APP_URL);
+    if (!targetBase || typeof fetch !== 'function') return false;
 
     const now = new Date();
     const todayStart = new Date(now.getFullYear(), now.getMonth(), now.getDate()).getTime();
     let changed = false;
 
     try {
-      const res = await fetch(`${webAppUrl}?action=getForestData&_t=${Date.now()}`);
+      const res = await fetch(appendQuery(targetBase, `action=getForestData&_t=${Date.now()}`));
+      if (!res.ok) throw new Error('HTTP ' + res.status);
       const rows = await res.json();
       const isValidForestResponse = Array.isArray(rows) && (
         rows.length === 0 ||
@@ -476,7 +578,8 @@
     const dayGroups = [];
     for (let d = 0; d < 7; d++) {
       try {
-        const res = await fetch(`${webAppUrl}?action=getWatchData&daysAgo=${d}&_t=${Date.now()}`);
+        const res = await fetch(appendQuery(targetBase, `action=getWatchData&daysAgo=${d}&_t=${Date.now()}`));
+        if (!res.ok) continue;
         const sessions = await res.json();
         if (!Array.isArray(sessions) || sessions.length === 0) continue;
         const targetDate = new Date(now.getFullYear(), now.getMonth(), now.getDate() - d);

@@ -1,4 +1,5 @@
 import express from 'express';
+import fs from 'fs';
 import path from 'path';
 import { fileURLToPath } from 'url';
 
@@ -27,11 +28,35 @@ app.use((req, res, next) => {
   next();
 });
 
+function isHtmlErrorResponse(contentType, text) {
+  const ct = String(contentType || '').toLowerCase();
+  const body = String(text || '').trim();
+  return ct.includes('text/html') || body.startsWith('<!') || body.startsWith('<html');
+}
+
+// Serve runtime config with server proxy enabled for any hostname running server.js
+app.get('/js/config.js', (req, res) => {
+  try {
+    const configPath = path.join(__dirname, 'js', 'config.js');
+    const source = fs.readFileSync(configPath, 'utf8');
+    const injected = `window.__STUDY_FLOW_CONFIG__ = ${JSON.stringify({
+      directGasUrl: GOOGLE_SCRIPT_URL,
+      proxyUrl: '/api/data',
+      proxyEnabled: true
+    })};\n`;
+    res.setHeader('Content-Type', 'application/javascript; charset=utf-8');
+    return res.status(200).send(injected + source);
+  } catch (err) {
+    console.error('[Config] Failed to serve /js/config.js:', err.message);
+    return res.status(500).send('// Failed to load config');
+  }
+});
+
 // Server-side proxy for Google Apps Script data API to avoid iframe CORS/redirect fetch errors
 app.all(['/api/data', '/api/proxy'], async (req, res) => {
   try {
-    const customUrl = req.query.customUrl;
-    const baseScriptUrl = (customUrl && customUrl.startsWith('http')) ? customUrl : GOOGLE_SCRIPT_URL;
+    const customUrl = req.query.customUrl || req.headers['x-custom-gas-url'];
+    const baseScriptUrl = (customUrl && typeof customUrl === 'string' && customUrl.startsWith('http')) ? customUrl : GOOGLE_SCRIPT_URL;
     const targetUrl = new URL(baseScriptUrl);
 
     for (const [key, val] of Object.entries(req.query)) {
@@ -40,7 +65,7 @@ app.all(['/api/data', '/api/proxy'], async (req, res) => {
       }
     }
 
-    const cacheKey = req.method === 'GET' ? targetUrl.search : null;
+    const cacheKey = req.method === 'GET' ? targetUrl.toString() : null;
 
     if (req.method === 'GET') {
       try {
@@ -53,34 +78,37 @@ app.all(['/api/data', '/api/proxy'], async (req, res) => {
           }
         });
 
-        if (response.ok) {
-          const text = await response.text();
-          if (cacheKey && text) {
+        const contentType = response.headers.get('content-type') || '';
+        const text = await response.text();
+        res.setHeader('Content-Type', 'application/json; charset=utf-8');
+        res.setHeader('Access-Control-Allow-Origin', '*');
+
+        if (response.ok && text && !isHtmlErrorResponse(contentType, text)) {
+          if (cacheKey) {
             if (memoryCache.size >= 200) memoryCache.delete(memoryCache.keys().next().value);
             memoryCache.set(cacheKey, text);
           }
-          res.setHeader('Content-Type', 'application/json; charset=utf-8');
-          res.setHeader('Access-Control-Allow-Origin', '*');
           return res.status(200).send(text);
         }
-        res.setHeader('Content-Type', 'application/json; charset=utf-8');
-        res.setHeader('Access-Control-Allow-Origin', '*');
+
+        const errMsg = `Upstream returned status ${response.status}`;
         if (cacheKey && memoryCache.has(cacheKey)) {
+          res.setHeader('X-Proxy-Cache', 'stale');
+          res.setHeader('X-Backend-Error', errMsg);
           return res.status(200).send(memoryCache.get(cacheKey));
         }
-        const action = req.query.action;
-        const defaultFallback = action === 'getGoalData' ? { current: 0, goal: 4 } : action === 'getGoal' ? { goal: 4 } : [];
-        return res.status(200).json(defaultFallback);
+
+        return res.status(502).json({ error: 'Upstream backend failure', status: response.status, message: errMsg });
       } catch (networkErr) {
-        console.warn('[Proxy] Network fetch failed, checking memory cache:', networkErr.message);
+        console.warn('[Proxy] Network fetch failed:', networkErr.message);
         res.setHeader('Content-Type', 'application/json; charset=utf-8');
         res.setHeader('Access-Control-Allow-Origin', '*');
         if (cacheKey && memoryCache.has(cacheKey)) {
+          res.setHeader('X-Proxy-Cache', 'stale');
+          res.setHeader('X-Backend-Error', networkErr.message);
           return res.status(200).send(memoryCache.get(cacheKey));
         }
-        const action = req.query.action;
-        const defaultFallback = action === 'getGoalData' ? { current: 0, goal: 4 } : action === 'getGoal' ? { goal: 4 } : [];
-        return res.status(200).json(defaultFallback);
+        return res.status(502).json({ error: 'Upstream backend unreachable', message: networkErr.message });
       }
     }
 
@@ -99,15 +127,20 @@ app.all(['/api/data', '/api/proxy'], async (req, res) => {
           },
           body: bodyData || '{}'
         });
+        const contentType = response.headers.get('content-type') || '';
         const text = await response.text();
-        res.setHeader('Content-Type', 'application/json; charset=utf-8');
+        res.setHeader('Content-Type', 'text/plain; charset=utf-8');
         res.setHeader('Access-Control-Allow-Origin', '*');
+
+        if (!response.ok || isHtmlErrorResponse(contentType, text)) {
+          return res.status(502).json({ error: 'Upstream POST failed', status: response.status });
+        }
         return res.status(200).send(text);
       } catch (postErr) {
         console.warn('[Proxy] POST fetch failed:', postErr.message);
         res.setHeader('Content-Type', 'application/json; charset=utf-8');
         res.setHeader('Access-Control-Allow-Origin', '*');
-        return res.status(200).send('Queued');
+        return res.status(502).json({ error: 'Upstream POST unreachable', message: postErr.message });
       }
     }
 
@@ -116,7 +149,7 @@ app.all(['/api/data', '/api/proxy'], async (req, res) => {
     console.error('[Proxy] Error forwarding request:', err);
     res.setHeader('Content-Type', 'application/json; charset=utf-8');
     res.setHeader('Access-Control-Allow-Origin', '*');
-    res.status(200).json([]);
+    res.status(500).json({ error: 'Proxy internal error', message: err.message });
   }
 });
 
