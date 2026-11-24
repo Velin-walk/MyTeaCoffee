@@ -826,12 +826,18 @@
       st = {
         uid: nextUid++,
         zoom: 1.0,
+        panX: 0,
+        panY: 0,
+        interactionMode: 'rotate',
+        manualMode: false,
         yaw: DEFAULT_YAW,
         pitch: DEFAULT_PITCH,
         selectedIdx: null,
         scrollZoomActive: false,
         eventsBound: false,
         isDragging: false,
+        isPinching: false,
+        pinchCooldownUntil: 0,
         rafPending: false,
         lastWheelZoomAt: 0,
         latestItems: [],
@@ -841,6 +847,117 @@
       containerStates.set(container, st);
     }
     return st;
+  }
+
+  function getEffectiveMode(state) {
+    if (state.manualMode) return state.interactionMode;
+    return state.zoom > 1.02 ? 'pan' : 'rotate';
+  }
+
+  function clampCameraPan(container, state, rawX, rawY, targetZoom) {
+    const z = typeof targetZoom === 'number' ? targetZoom : state.zoom;
+    if (z <= 1.02 && !(state.manualMode && state.interactionMode === 'pan')) {
+      return { x: 0, y: 0 };
+    }
+    const viewport = container.querySelector('.iso-stage-viewport');
+    const scaler = container.querySelector('.iso-island-scaler');
+    if (!viewport || !scaler) {
+      return { x: rawX, y: rawY };
+    }
+    const vw = viewport.clientWidth || 320;
+    const vh = viewport.clientHeight || 240;
+    const sw = scaler.offsetWidth || vw;
+    const sh = scaler.offsetHeight || vh;
+    const maxX = sw * z > vw
+      ? (sw * z - vw) * 0.5 + 24
+      : Math.max(24, (vw - sw * z) * 0.35);
+    const maxY = sh * z > vh
+      ? (sh * z - vh) * 0.5 + 20
+      : Math.max(16, (vh - sh * z) * 0.25);
+    return {
+      x: Math.max(-maxX, Math.min(maxX, rawX)),
+      y: Math.max(-maxY, Math.min(maxY, rawY))
+    };
+  }
+
+  function syncCameraToolbarUI(container, state) {
+    const effectiveMode = getEffectiveMode(state);
+    const zoomResetBtn = container.querySelector('.iso-zoom-reset');
+    if (zoomResetBtn) {
+      zoomResetBtn.textContent = `${Math.round(state.zoom * 100)}%`;
+    }
+    const modeBtns = container.querySelectorAll('.iso-mode-btn');
+    modeBtns.forEach((btn) => {
+      const m = btn.getAttribute('data-interaction-mode');
+      const active = m === effectiveMode;
+      btn.classList.toggle('is-active', active);
+      btn.setAttribute('aria-pressed', active ? 'true' : 'false');
+    });
+    const viewport = container.querySelector('.iso-stage-viewport');
+    if (viewport) {
+      viewport.style.cursor = effectiveMode === 'pan' ? 'move' : 'grab';
+      viewport.style.touchAction = (effectiveMode === 'pan' || state.zoom > 1.02) ? 'none' : 'pan-y';
+    }
+  }
+
+  function applyCameraTransform(container, state) {
+    const clamped = clampCameraPan(container, state, state.panX, state.panY, state.zoom);
+    state.panX = clamped.x;
+    state.panY = clamped.y;
+
+    const scaler = container.querySelector('.iso-island-scaler');
+    if (scaler) {
+      scaler.style.transform = `translate3d(${state.panX.toFixed(2)}px, ${state.panY.toFixed(2)}px, 0) scale(${state.zoom.toFixed(4)})`;
+    }
+    syncCameraToolbarUI(container, state);
+  }
+
+  function setCameraZoom(container, state, rawNextZoom, focalClientX, focalClientY) {
+    const oldZoom = state.zoom;
+    const nextZoom = Math.max(0.4, Math.min(4.0, Number(rawNextZoom.toFixed(3))));
+    if (nextZoom === oldZoom && state.zoom <= 1.02) {
+      applyCameraTransform(container, state);
+      return;
+    }
+
+    let nextPanX = state.panX;
+    let nextPanY = state.panY;
+
+    if (nextZoom <= 1.02) {
+      if (!state.manualMode) {
+        state.interactionMode = 'rotate';
+      }
+      if (!state.manualMode || state.interactionMode === 'rotate') {
+        nextPanX = 0;
+        nextPanY = 0;
+      }
+    } else {
+      if (!state.manualMode) {
+        state.interactionMode = 'pan';
+      }
+      if (typeof focalClientX === 'number' && typeof focalClientY === 'number') {
+        const scaler = container.querySelector('.iso-island-scaler');
+        if (scaler) {
+          const rect = scaler.getBoundingClientRect();
+          const baseCenterX = rect.left + rect.width * 0.5 - state.panX;
+          const baseCenterY = rect.top + rect.height * 0.5 - state.panY;
+          const fx = focalClientX - baseCenterX;
+          const fy = focalClientY - baseCenterY;
+          const ratio = nextZoom / oldZoom;
+          nextPanX = fx - (fx - state.panX) * ratio;
+          nextPanY = fy - (fy - state.panY) * ratio;
+        }
+      } else {
+        const ratio = nextZoom / oldZoom;
+        nextPanX = state.panX * ratio;
+        nextPanY = state.panY * ratio;
+      }
+    }
+
+    state.zoom = Number(nextZoom.toFixed(2));
+    state.panX = nextPanX;
+    state.panY = nextPanY;
+    applyCameraTransform(container, state);
   }
 
   const SVG_STATIC_DEFS = `
@@ -933,55 +1050,170 @@
     }
 
     container.addEventListener('wheel', (e) => {
-      if (!state.scrollZoomActive) return;
-      if (e.deltaY === 0 || Math.abs(e.deltaY) <= Math.abs(e.deltaX)) return;
+      const inViewport = Boolean(e.target.closest('.iso-stage-viewport'));
+      if (!inViewport) return;
+      if (!state.scrollZoomActive && !e.ctrlKey) return;
+      if (e.deltaY === 0) return;
+      if (!e.ctrlKey && Math.abs(e.deltaY) <= Math.abs(e.deltaX)) return;
       e.preventDefault();
-      const now = Date.now();
-      if (now - state.lastWheelZoomAt < 60) return;
-      state.lastWheelZoomAt = now;
-      const delta = e.deltaY < 0 ? 0.2 : -0.2;
-      const nextZoom = Math.max(0.4, Math.min(4.0, Number((state.zoom + delta).toFixed(2))));
-      if (nextZoom !== state.zoom) {
-        state.zoom = nextZoom;
-        renderForestDiorama(container, state.latestItems, state.latestOpts);
-      }
+      const nextZoom = e.ctrlKey
+        ? state.zoom * Math.exp(-e.deltaY * 0.01)
+        : state.zoom + (e.deltaY < 0 ? 0.2 : -0.2);
+      setCameraZoom(container, state, nextZoom, e.clientX, e.clientY);
     }, { passive: false });
 
-    // 3D-style drag rotation across the forest platform
+    // Multi-touch pinch-to-zoom & 2-finger pan for mobile/tablet
+    let pinchActive = false;
+    let pinchStartDist = 0;
+    let pinchStartZoom = 1.0;
+    let pinchStartPanX = 0;
+    let pinchStartPanY = 0;
+    let pinchStartFx = 0;
+    let pinchStartFy = 0;
+    let pinchBaseCenterX = 0;
+    let pinchBaseCenterY = 0;
+
+    // Single-pointer drag (rotates OR pans depending on active mode)
     let pointerDown = false;
     let activePointerId = null;
+    let dragMode = 'rotate';
     let startX = 0;
     let startY = 0;
     let startYaw = DEFAULT_YAW;
     let startPitch = DEFAULT_PITCH;
+    let startPanX = 0;
+    let startPanY = 0;
+
+    const cancelSingleDrag = () => {
+      pointerDown = false;
+      activePointerId = null;
+      state.isDragging = false;
+    };
+
+    container.addEventListener('touchstart', (e) => {
+      const viewport = e.target.closest('.iso-stage-viewport');
+      if (!viewport) return;
+      if (e.touches.length === 2) {
+        e.preventDefault();
+        cancelSingleDrag();
+        pinchActive = true;
+        state.isPinching = true;
+        state.scrollZoomActive = true;
+
+        const t0 = e.touches[0];
+        const t1 = e.touches[1];
+        pinchStartDist = Math.max(10, Math.hypot(t1.clientX - t0.clientX, t1.clientY - t0.clientY));
+        pinchStartZoom = state.zoom;
+        pinchStartPanX = state.panX;
+        pinchStartPanY = state.panY;
+
+        const midX = (t0.clientX + t1.clientX) * 0.5;
+        const midY = (t0.clientY + t1.clientY) * 0.5;
+        const scaler = container.querySelector('.iso-island-scaler');
+        if (scaler) {
+          const rect = scaler.getBoundingClientRect();
+          pinchBaseCenterX = rect.left + rect.width * 0.5 - state.panX;
+          pinchBaseCenterY = rect.top + rect.height * 0.5 - state.panY;
+        } else {
+          const vpRect = viewport.getBoundingClientRect();
+          pinchBaseCenterX = vpRect.left + vpRect.width * 0.5 - state.panX;
+          pinchBaseCenterY = vpRect.top + vpRect.height * 0.5 - state.panY;
+        }
+        pinchStartFx = midX - pinchBaseCenterX;
+        pinchStartFy = midY - pinchBaseCenterY;
+      }
+    }, { passive: false });
+
+    container.addEventListener('touchmove', (e) => {
+      if (!pinchActive) return;
+      if (e.touches.length === 2) {
+        e.preventDefault();
+        const t0 = e.touches[0];
+        const t1 = e.touches[1];
+        const currDist = Math.max(10, Math.hypot(t1.clientX - t0.clientX, t1.clientY - t0.clientY));
+        const midX = (t0.clientX + t1.clientX) * 0.5;
+        const midY = (t0.clientY + t1.clientY) * 0.5;
+
+        const rawZoom = pinchStartZoom * (currDist / pinchStartDist);
+        const nextZoom = Math.max(0.4, Math.min(4.0, rawZoom));
+        const ratio = nextZoom / pinchStartZoom;
+        const currFx = midX - pinchBaseCenterX;
+        const currFy = midY - pinchBaseCenterY;
+
+        state.zoom = Number(nextZoom.toFixed(2));
+        if (state.zoom <= 1.02 && !state.manualMode) {
+          state.interactionMode = 'rotate';
+          state.panX = 0;
+          state.panY = 0;
+        } else {
+          if (state.zoom > 1.02 && !state.manualMode) {
+            state.interactionMode = 'pan';
+          }
+          state.panX = currFx - (pinchStartFx - pinchStartPanX) * ratio;
+          state.panY = currFy - (pinchStartFy - pinchStartPanY) * ratio;
+        }
+        applyCameraTransform(container, state);
+      }
+    }, { passive: false });
+
+    const endPinch = (e) => {
+      if (!pinchActive) return;
+      if (!e.touches || e.touches.length < 2) {
+        pinchActive = false;
+        state.isPinching = false;
+        state.pinchCooldownUntil = Date.now() + 180;
+        cancelSingleDrag();
+      }
+    };
+
+    container.addEventListener('touchend', endPinch);
+    container.addEventListener('touchcancel', endPinch);
 
     container.addEventListener('pointerdown', (e) => {
       if (e.button !== 0 && e.pointerType === 'mouse') return;
       const viewport = e.target.closest('.iso-stage-viewport');
       if (!viewport) return;
+      if (pinchActive || state.isPinching || Date.now() < state.pinchCooldownUntil) return;
+      if (pointerDown && e.pointerType === 'touch') {
+        cancelSingleDrag();
+        return;
+      }
+
       state.scrollZoomActive = true;
       pointerDown = true;
       activePointerId = e.pointerId;
       state.isDragging = false;
+      dragMode = (e.shiftKey || e.altKey)
+        ? (getEffectiveMode(state) === 'pan' ? 'rotate' : 'pan')
+        : getEffectiveMode(state);
       startX = e.clientX;
       startY = e.clientY;
       startYaw = state.yaw;
       startPitch = state.pitch;
+      startPanX = state.panX;
+      startPanY = state.panY;
     });
 
     window.addEventListener('pointermove', (e) => {
+      if (pinchActive || state.isPinching) return;
       if (!pointerDown || e.pointerId !== activePointerId) return;
       const dx = e.clientX - startX;
       const dy = e.clientY - startY;
-      if (!state.isDragging && Math.hypot(dx, dy) > 5) {
+      if (!state.isDragging && Math.hypot(dx, dy) > 6) {
         state.isDragging = true;
         const viewport = container.querySelector('.iso-stage-viewport');
-        if (viewport) viewport.style.cursor = 'grabbing';
+        if (viewport) viewport.style.cursor = dragMode === 'pan' ? 'grabbing' : 'grabbing';
       }
       if (state.isDragging) {
-        state.yaw = startYaw - dx * 0.009;
-        state.pitch = Math.max(0.34, Math.min(0.66, startPitch + dy * 0.0025));
-        scheduleRotationFrame(container, state);
+        if (dragMode === 'pan') {
+          state.panX = startPanX + dx;
+          state.panY = startPanY + dy;
+          applyCameraTransform(container, state);
+        } else {
+          state.yaw = startYaw - dx * 0.009;
+          state.pitch = Math.max(0.34, Math.min(0.66, startPitch + dy * 0.0025));
+          scheduleRotationFrame(container, state);
+        }
       }
     });
 
@@ -989,8 +1221,7 @@
       if (!pointerDown || (e && activePointerId !== null && e.pointerId !== activePointerId)) return;
       pointerDown = false;
       activePointerId = null;
-      const viewport = container.querySelector('.iso-stage-viewport');
-      if (viewport) viewport.style.cursor = 'grab';
+      syncCameraToolbarUI(container, state);
       if (state.isDragging) {
         setTimeout(() => {
           state.isDragging = false;
@@ -1088,11 +1319,11 @@
     }
 
     const baseWidth = Math.max(540, Math.round(geom.svgW));
-    const zoomedWidth = Math.round(baseWidth * state.zoom);
     const zoomPct = Math.round(state.zoom * 100);
-    const scalerStyle = state.zoom <= 1.0
-      ? `width:${zoomedWidth}px;max-width:100%;`
-      : `width:${zoomedWidth}px;max-width:none;`;
+    const effectiveMode = getEffectiveMode(state);
+    const viewportTouchAction = (effectiveMode === 'pan' || state.zoom > 1.02) ? 'none' : 'pan-y';
+    const viewportCursor = effectiveMode === 'pan' ? 'move' : 'grab';
+    const scalerStyle = `width:100%;max-width:${baseWidth}px;transform:translate3d(${state.panX.toFixed(2)}px, ${state.panY.toFixed(2)}px, 0) scale(${state.zoom.toFixed(4)});transform-origin:50% 50%;`;
 
     container.innerHTML = `
       <div class="iso-forest-stage" data-empty="${geom.orderedItems.length === 0 ? 'true' : 'false'}">
@@ -1102,15 +1333,21 @@
             <span class="iso-inspector-sep">·</span>
             <span>${N}×${N} grove</span>
           </div>
-          <div class="iso-zoom-controls" role="group" aria-label="Forest zoom controls">
-            <button type="button" class="iso-zoom-btn" data-zoom-delta="-0.2" title="Zoom out" aria-label="Zoom out">−</button>
-            <button type="button" class="iso-zoom-btn iso-zoom-reset" data-zoom-reset="1" title="Reset zoom" aria-label="Reset zoom">${zoomPct}%</button>
-            <button type="button" class="iso-zoom-btn" data-zoom-delta="0.2" title="Zoom in" aria-label="Zoom in">+</button>
+          <div class="iso-toolbar-actions">
+            <div class="iso-mode-controls" role="group" aria-label="Interaction mode">
+              <button type="button" class="iso-mode-btn ${effectiveMode === 'rotate' ? 'is-active' : ''}" data-interaction-mode="rotate" title="Drag to rotate forest" aria-pressed="${effectiveMode === 'rotate'}">Rotate</button>
+              <button type="button" class="iso-mode-btn ${effectiveMode === 'pan' ? 'is-active' : ''}" data-interaction-mode="pan" title="Drag to move across forest" aria-pressed="${effectiveMode === 'pan'}">Move</button>
+            </div>
+            <div class="iso-zoom-controls" role="group" aria-label="Forest zoom controls">
+              <button type="button" class="iso-zoom-btn" data-zoom-delta="-0.2" title="Zoom out" aria-label="Zoom out">−</button>
+              <button type="button" class="iso-zoom-btn iso-zoom-reset" data-zoom-reset="1" title="Reset zoom" aria-label="Reset zoom">${zoomPct}%</button>
+              <button type="button" class="iso-zoom-btn" data-zoom-delta="0.2" title="Zoom in" aria-label="Zoom in">+</button>
+            </div>
           </div>
         </div>
 
-        <div class="iso-stage-viewport" style="cursor:grab;user-select:none;">
-          <div class="iso-island-scaler" style="${scalerStyle}touch-action:none;">
+        <div class="iso-stage-viewport" style="cursor:${viewportCursor};user-select:none;touch-action:${viewportTouchAction};">
+          <div class="iso-island-scaler" style="${scalerStyle}">
             <svg class="iso-island-svg" viewBox="0 0 ${geom.svgW} ${geom.svgH}" width="100%" height="auto" role="img" aria-label="Isometric forest platform with ${geom.orderedItems.length} planted trees">
               <defs class="iso-island-defs">
                 ${SVG_STATIC_DEFS}
@@ -1140,23 +1377,39 @@
       </div>
     `;
 
+    const modeBtns = container.querySelectorAll('.iso-mode-btn');
+    modeBtns.forEach((btn) => {
+      btn.addEventListener('click', () => {
+        const nextMode = btn.getAttribute('data-interaction-mode');
+        if (nextMode === 'rotate' || nextMode === 'pan') {
+          state.interactionMode = nextMode;
+          state.manualMode = true;
+          syncCameraToolbarUI(container, state);
+        }
+      });
+    });
+
     const zoomBtns = container.querySelectorAll('.iso-zoom-btn');
     zoomBtns.forEach((btn) => {
       btn.addEventListener('click', () => {
         if (btn.dataset.zoomReset) {
           state.zoom = 1.0;
+          state.panX = 0;
+          state.panY = 0;
+          state.manualMode = false;
+          state.interactionMode = 'rotate';
+          applyCameraTransform(container, state);
         } else {
           const delta = parseFloat(btn.dataset.zoomDelta || '0');
-          state.zoom = Math.max(0.4, Math.min(4.0, Number((state.zoom + delta).toFixed(2))));
+          setCameraZoom(container, state, state.zoom + delta);
         }
-        renderForestDiorama(container, items, opts);
       });
     });
 
     const treeNodes = container.querySelectorAll('.iso-plant-pin');
     treeNodes.forEach((node) => {
       const selectTree = () => {
-        if (state.isDragging) return;
+        if (state.isDragging || state.isPinching || Date.now() < state.pinchCooldownUntil) return;
         const idx = parseInt(node.getAttribute('data-tree-idx'), 10);
         if (!isNaN(idx)) {
           state.selectedIdx = idx;
@@ -1176,6 +1429,10 @@
   function adjustDioramaZoom(container, delta, items) {
     if (!container) return;
     const state = getContainerState(container);
+    if (container.querySelector('.iso-island-scaler')) {
+      setCameraZoom(container, state, state.zoom + delta);
+      return;
+    }
     state.zoom = Math.max(0.4, Math.min(4.0, Number((state.zoom + delta).toFixed(2))));
     if (Array.isArray(items)) {
       renderForestDiorama(container, items);

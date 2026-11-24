@@ -86,7 +86,7 @@
       const cardOpen = document.getElementById('card-open');
       if (cardOpen) {
         let progress = ((elapsed % 3600) / 3600) * 100;
-        cardOpen.style.background = `linear-gradient(to right, white ${progress}%, var(--text) ${progress}%)`;
+        cardOpen.style.background = `linear-gradient(to right, yellow ${progress}%, var(--text) ${progress}%)`;
       }
       if (typeof toggleButtons === 'function') {
         toggleButtons('O', true);

@@ -89,292 +89,227 @@
       overscroll-behavior-x: none;
     }
 
-    /* Top Navigation Bar */
+    /* Compact Top App Bar */
     header.top-header {
       position: sticky;
       top: 0;
       z-index: 100;
       background: var(--card-bg);
       border-bottom: 1px solid var(--border-color);
-      box-shadow: 0 2px 10px rgba(0,0,0,0.06);
-      backdrop-filter: blur(10px);
-      padding: 12px 20px;
+      padding: 8px 14px;
+      min-height: 48px;
       display: flex;
       justify-content: space-between;
       align-items: center;
-      gap: 12px;
-      flex-wrap: wrap;
+      gap: 10px;
+      flex-wrap: nowrap;
     }
 
-    .brand-section {
-      display: flex;
+    .header-back-link {
+      display: inline-flex;
       align-items: center;
-      gap: 12px;
-    }
-
-    .brand-logo {
-      font-size: 28px;
-      line-height: 1;
-      filter: drop-shadow(0 2px 4px rgba(46, 125, 50, 0.2));
-    }
-
-    .brand-titles h1 {
-      font-size: 18px;
-      font-weight: 800;
-      color: var(--text);
-      line-height: 1.2;
-    }
-
-    .brand-titles span {
-      font-size: 11px;
-      font-weight: 600;
+      gap: 4px;
+      min-height: 36px;
+      padding: 0 6px 0 2px;
+      border-radius: 8px;
       color: var(--text-secondary);
-      letter-spacing: 0.5px;
+      font-size: 13px;
+      font-weight: 600;
+      text-decoration: none;
+      white-space: nowrap;
+      flex-shrink: 0;
+      transition: color 0.15s ease;
+    }
+
+    .header-back-link:hover {
+      color: var(--text);
+    }
+
+    .header-title {
+      font-size: 15px;
+      font-weight: 700;
+      color: var(--text);
+      letter-spacing: -0.01em;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      min-width: 0;
     }
 
     .header-controls {
       display: flex;
       align-items: center;
-      gap: 10px;
-      flex-wrap: wrap;
+      gap: 8px;
+      flex-shrink: 0;
+    }
+
+    .theme-select-minimal {
+      height: 34px;
+      padding: 0 8px;
+      border: 1px solid var(--border-color);
+      border-radius: 8px;
+      background: var(--input-bg);
+      color: var(--text);
+      font-weight: 600;
+      font-size: 12px;
+      cursor: pointer;
+      outline: none;
+      max-width: 104px;
     }
 
     .header-btn {
       display: inline-flex;
       align-items: center;
-      gap: 6px;
-      padding: 8px 14px;
-      border-radius: 10px;
+      justify-content: center;
+      gap: 5px;
+      height: 34px;
+      padding: 0 10px;
+      border-radius: 8px;
       border: 1px solid var(--border-color);
       background: var(--input-bg);
       color: var(--text);
-      font-size: 13px;
-      font-weight: 700;
+      font-size: 12px;
+      font-weight: 600;
       cursor: pointer;
       text-decoration: none;
-      transition: all 0.2s ease;
-      box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+      white-space: nowrap;
+      transition: border-color 0.15s ease, color 0.15s ease;
     }
 
     .header-btn:hover {
       border-color: var(--primary);
-      transform: translateY(-1px);
-    }
-
-    .header-btn.btn-chart-link {
-      background: var(--button-bg);
-      color: var(--primary);
-      border-color: var(--primary);
-    }
-
-    .theme-select-box {
-      display: inline-flex;
-      align-items: center;
-      gap: 6px;
-      font-size: 12px;
-      font-weight: 600;
-      color: var(--text-secondary);
-    }
-
-    .theme-select-box select {
-      padding: 7px 12px;
-      border: 1.5px solid var(--border-color);
-      border-radius: 8px;
-      background: var(--card-bg);
-      color: var(--text);
-      font-weight: 700;
-      font-size: 12px;
-      cursor: pointer;
-      outline: none;
     }
 
     /* Main Container */
     main.forest-main-container {
-      max-width: 1200px;
+      max-width: 1040px;
       width: 100%;
       margin: 0 auto;
-      padding: 24px 16px 80px;
+      padding: 12px 14px 48px;
       flex: 1;
-    }
-
-    /* Hero Banner */
-    .forest-hero-card {
-      background: var(--card-bg);
-      border: 1px solid var(--border-color);
-      border-radius: 20px;
-      padding: 24px 28px;
-      box-shadow: var(--card-shadow);
-      margin-bottom: 24px;
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      flex-wrap: wrap;
-      gap: 16px;
-    }
-
-    .hero-text h2 {
-      font-size: 24px;
-      font-weight: 800;
-      display: flex;
-      align-items: center;
-      gap: 10px;
-      margin-bottom: 6px;
-    }
-
-    .hero-text p {
-      font-size: 14px;
-      color: var(--text-secondary);
-    }
-
-    .hero-badge {
-      display: inline-block;
-      font-size: 12px;
-      font-weight: 700;
-      padding: 3px 10px;
-      border-radius: 20px;
-      background: rgba(46, 125, 50, 0.15);
-      color: var(--primary);
-    }
-
-    .hero-actions {
-      display: flex;
-      align-items: center;
-      gap: 10px;
-      flex-wrap: wrap;
-    }
-
-    .btn-action {
-      padding: 10px 18px;
-      border-radius: 12px;
-      font-size: 13px;
-      font-weight: 700;
-      cursor: pointer;
-      display: inline-flex;
-      align-items: center;
-      gap: 8px;
-      border: 1px solid var(--border-color);
-      background: var(--card-bg);
-      color: var(--text);
-      transition: all 0.2s;
-    }
-
-    .btn-action:hover {
-      border-color: var(--primary);
-      transform: translateY(-2px);
-    }
-
-    .btn-action.btn-primary {
-      background: var(--primary);
-      color: white;
-      border-color: var(--primary);
-      box-shadow: 0 4px 12px rgba(46, 125, 50, 0.25);
-    }
-
-    /* Two-column layout */
-    .forest-workspace-grid {
-      display: grid;
-      grid-template-columns: 340px 1fr;
-      gap: 24px;
-      margin-bottom: 24px;
-    }
-
-    @media (max-width: 900px) {
-      .forest-workspace-grid {
-        grid-template-columns: 1fr;
-      }
-    }
-
-    /* Plant Card */
-    .plant-info-card {
-      background: var(--card-bg);
-      border: 1px solid var(--border-color);
-      border-radius: 20px;
-      padding: 24px;
-      box-shadow: var(--card-shadow);
       display: flex;
       flex-direction: column;
+      gap: 14px;
+    }
+
+    /* Minimal Focus Studio */
+    .forest-focus-studio {
+      background: var(--card-bg);
+      border: 1px solid var(--border-color);
+      border-radius: 16px;
+      overflow: hidden;
+    }
+
+    .plant-picker-bar {
+      width: 100%;
+      display: flex;
       align-items: center;
-      text-align: center;
-      position: relative;
+      gap: 12px;
+      padding: 10px 14px;
+      border: none;
+      border-bottom: 1px solid var(--border-color);
+      background: transparent;
+      color: var(--text);
+      cursor: pointer;
+      text-align: left;
+      transition: background 0.15s ease;
+    }
+
+    .plant-picker-bar:hover {
+      background: var(--input-bg);
     }
 
     .plant-avatar {
-      width: 100px;
-      height: 100px;
-      border-radius: 50%;
-      background: radial-gradient(circle, rgba(76, 175, 80, 0.2) 0%, rgba(76, 175, 80, 0.05) 70%);
-      border: 2px solid var(--border-color);
+      width: 40px;
+      height: 40px;
+      border-radius: 10px;
+      background: var(--input-bg);
+      border: 1px solid var(--border-color);
       display: flex;
       align-items: center;
       justify-content: center;
-      font-size: 50px;
-      margin-bottom: 16px;
-      box-shadow: 0 6px 16px rgba(0,0,0,0.06);
+      flex-shrink: 0;
+      overflow: hidden;
+    }
+
+    .plant-avatar svg {
+      width: 30px !important;
+      height: 30px !important;
+    }
+
+    .plant-picker-text {
+      flex: 1;
+      min-width: 0;
+    }
+
+    .plant-picker-names {
+      display: flex;
+      align-items: baseline;
+      gap: 6px;
+      flex-wrap: nowrap;
+      overflow: hidden;
     }
 
     .plant-nepali-name {
-      font-size: 26px;
-      font-weight: 800;
+      font-size: 15px;
+      font-weight: 700;
       color: var(--text);
-      margin-bottom: 4px;
+      white-space: nowrap;
     }
 
     .plant-english-name {
-      font-size: 15px;
+      font-size: 13px;
       font-weight: 600;
       color: var(--text-secondary);
-      margin-bottom: 2px;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .plant-picker-sub {
+      font-size: 11px;
+      color: var(--text-tertiary);
+      margin-top: 2px;
+      display: flex;
+      align-items: center;
+      gap: 5px;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
     }
 
     .plant-scientific {
-      font-size: 12px;
       font-style: italic;
-      color: var(--text-tertiary);
-      margin-bottom: 14px;
     }
 
-    .plant-category-pill {
-      display: inline-block;
-      padding: 4px 14px;
-      border-radius: 20px;
+    .meta-sep {
+      opacity: 0.45;
+    }
+
+    .plant-picker-action {
+      display: inline-flex;
+      align-items: center;
+      gap: 2px;
       font-size: 12px;
-      font-weight: 700;
-      background: rgba(46, 125, 50, 0.12);
+      font-weight: 600;
       color: var(--primary);
-      margin-bottom: 20px;
+      flex-shrink: 0;
     }
 
-    .plant-description {
-      font-size: 13px;
-      color: var(--text-secondary);
-      line-height: 1.5;
-      margin-bottom: 20px;
-      text-align: left;
-      background: var(--input-bg);
-      padding: 12px 14px;
-      border-radius: 12px;
-      width: 100%;
-    }
-
-    /* Focus Timer Card */
+    /* Timer Core */
     .timer-focus-card {
-      background: var(--card-bg);
-      border: 1px solid var(--border-color);
-      border-radius: 20px;
-      padding: 32px 24px;
-      box-shadow: var(--card-shadow);
+      padding: 20px 16px 18px;
       display: flex;
       flex-direction: column;
       align-items: center;
       text-align: center;
-      position: relative;
     }
 
     .growth-ring-container {
       position: relative;
-      width: 260px;
-      height: 260px;
-      margin-bottom: 20px;
+      width: 156px;
+      height: 156px;
+      margin-bottom: 12px;
     }
 
     .growth-ring-svg {
@@ -386,13 +321,13 @@
     .growth-ring-bg {
       fill: none;
       stroke: var(--input-bg);
-      stroke-width: 10;
+      stroke-width: 7;
     }
 
     .growth-ring-progress {
       fill: none;
       stroke: var(--primary);
-      stroke-width: 10;
+      stroke-width: 7;
       stroke-linecap: round;
       stroke-dasharray: 660;
       stroke-dashoffset: 660;
@@ -404,240 +339,308 @@
       top: 50%;
       left: 50%;
       transform: translate(-50%, -50%);
-      width: 160px;
-      height: 160px;
+      width: 96px;
+      height: 96px;
       display: flex;
       align-items: center;
       justify-content: center;
       pointer-events: none;
     }
 
+    .growth-svg-center svg {
+      width: 100% !important;
+      height: 100% !important;
+    }
+
     .timer-digits {
-      font-size: 56px;
-      font-weight: 900;
-      font-family: 'Courier New', Courier, monospace;
-      letter-spacing: 2px;
+      font-size: 44px;
+      font-weight: 700;
+      font-family: ui-monospace, 'SFMono-Regular', Menlo, Consolas, monospace;
+      font-variant-numeric: tabular-nums;
+      letter-spacing: 1px;
       color: var(--text);
-      line-height: 1;
-      margin-bottom: 8px;
+      line-height: 1.05;
+      margin-bottom: 4px;
     }
 
     .stage-status-label {
-      font-size: 15px;
-      font-weight: 800;
+      font-size: 13px;
+      font-weight: 600;
       color: var(--primary);
-      margin-bottom: 6px;
+      margin-bottom: 14px;
     }
 
-    .quote-text {
-      font-size: 13px;
-      font-style: italic;
+    .timer-mode-switcher {
+      display: inline-flex;
+      padding: 3px;
+      border-radius: 10px;
+      background: var(--input-bg);
+      border: 1px solid var(--border-color);
+      gap: 2px;
+      margin-bottom: 12px;
+    }
+
+    .mode-seg-btn {
+      min-width: 74px;
+      height: 32px;
+      padding: 0 12px;
+      border: none;
+      border-radius: 7px;
+      background: transparent;
       color: var(--text-secondary);
-      margin-bottom: 24px;
-      max-width: 440px;
+      font-size: 12px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: background 0.15s ease, color 0.15s ease;
+    }
+
+    .mode-seg-btn.active {
+      background: var(--card-bg);
+      color: var(--text);
+      box-shadow: 0 1px 2px rgba(0, 0, 0, 0.08);
     }
 
     .duration-pills-wrap {
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      flex-wrap: wrap;
-      gap: 8px;
-      margin-bottom: 28px;
+      display: grid;
+      grid-template-columns: repeat(6, minmax(0, 1fr));
+      gap: 6px;
+      width: 100%;
+      max-width: 360px;
+      margin-bottom: 14px;
     }
 
     .duration-pill {
-      padding: 8px 16px;
-      border-radius: 20px;
-      border: 1.5px solid var(--border-color);
+      height: 36px;
+      padding: 0 6px;
+      border-radius: 8px;
+      border: 1px solid var(--border-color);
       background: var(--input-bg);
-      color: var(--text);
-      font-size: 13px;
-      font-weight: 700;
+      color: var(--text-secondary);
+      font-size: 12px;
+      font-weight: 600;
+      font-variant-numeric: tabular-nums;
       cursor: pointer;
-      transition: all 0.2s;
+      white-space: nowrap;
+      transition: background 0.15s ease, color 0.15s ease, border-color 0.15s ease;
     }
 
     .duration-pill:hover {
       border-color: var(--primary);
-      transform: translateY(-1px);
+      color: var(--text);
     }
 
     .duration-pill.active {
       background: var(--primary);
-      color: white;
+      color: #ffffff;
       border-color: var(--primary);
-      box-shadow: 0 4px 10px rgba(46, 125, 50, 0.3);
     }
 
     .timer-action-buttons {
       display: flex;
-      gap: 14px;
+      gap: 10px;
       align-items: center;
       justify-content: center;
       width: 100%;
-      max-width: 420px;
+      max-width: 320px;
     }
 
     .btn-timer-start {
       flex: 1;
-      padding: 16px 24px;
-      border-radius: 16px;
+      height: 44px;
+      padding: 0 18px;
+      border-radius: 12px;
       border: none;
       background: var(--primary);
-      color: white;
-      font-size: 16px;
-      font-weight: 800;
-      cursor: pointer;
-      display: inline-flex;
-      align-items: center;
-      justify-content: center;
-      gap: 10px;
-      box-shadow: 0 6px 16px rgba(46, 125, 50, 0.35);
-      transition: all 0.2s;
-    }
-
-    .btn-timer-start:hover {
-      filter: brightness(1.1);
-      transform: translateY(-2px);
-    }
-
-    .btn-timer-giveup {
-      padding: 16px 24px;
-      border-radius: 16px;
-      border: none;
-      background: var(--danger);
-      color: white;
-      font-size: 15px;
-      font-weight: 800;
+      color: #ffffff;
+      font-size: 14px;
+      font-weight: 700;
       cursor: pointer;
       display: inline-flex;
       align-items: center;
       justify-content: center;
       gap: 8px;
-      transition: all 0.2s;
+      transition: opacity 0.15s ease, transform 0.1s ease;
+    }
+
+    .btn-timer-start:hover {
+      opacity: 0.92;
+    }
+
+    .btn-timer-start:active {
+      transform: scale(0.98);
+    }
+
+    .btn-timer-giveup {
+      height: 44px;
+      padding: 0 16px;
+      border-radius: 12px;
+      border: 1px solid rgba(234, 67, 53, 0.35);
+      background: transparent;
+      color: var(--danger);
+      font-size: 13px;
+      font-weight: 700;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
+      transition: background 0.15s ease;
     }
 
     .btn-timer-giveup:hover {
-      filter: brightness(1.1);
+      background: rgba(234, 67, 53, 0.08);
     }
 
-    /* Forest History & Stats */
+    /* Forest Summary & Planted Forest Container */
     .my-forest-card {
-      width: 100vw;
-      position: relative;
-      left: 50%;
-      right: 50%;
-      margin-left: -50vw;
-      margin-right: -50vw;
+      width: 100%;
       box-sizing: border-box;
       background: var(--card-bg);
-      border-top: 1px solid var(--border-color);
-      border-bottom: 1px solid var(--border-color);
-      border-left: none;
-      border-right: none;
-      border-radius: 0;
-      padding: 28px 24px;
-      box-shadow: var(--card-shadow);
-      margin-bottom: 30px;
+      border: 1px solid var(--border-color);
+      border-radius: 16px;
+      padding: 12px;
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
     }
 
     body.is-fullscreen .my-forest-card {
-      width: 100%;
-      left: 0;
-      right: 0;
-      margin-left: 0;
-      margin-right: 0;
-      padding: 28px 0;
-      border-top: none;
-      border-bottom: none;
+      border-radius: 12px;
     }
 
     .forest-stats-grid {
       display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(170px, 1fr));
-      gap: 14px;
-      margin-bottom: 24px;
-      width: 100%;
-      box-sizing: border-box;
-    }
-
-    @media (max-width: 900px) {
-      .my-forest-card {
-        width: 100%;
-        left: auto;
-        right: auto;
-        margin-left: 0;
-        margin-right: 0;
-        border: 1px solid var(--border-color);
-        border-radius: 18px;
-        padding: 18px 12px;
-      }
-    }
-
-    @media (max-width: 650px) {
-      header.top-header {
-        padding: 10px 12px;
-        gap: 8px;
-      }
-      main.forest-main-container {
-        padding: 14px 10px 48px;
-      }
-      .forest-hero-card,
-      .plant-info-card,
-      .timer-focus-card {
-        padding: 18px 14px;
-        min-width: 0;
-        max-width: 100%;
-      }
-      .timer-digits {
-        font-size: 42px;
-      }
-      .growth-ring-container {
-        width: min(240px, 100%);
-        height: min(240px, 72vw);
-      }
-      .forest-stats-grid {
-        grid-template-columns: repeat(2, minmax(0, 1fr));
-        gap: 10px;
-        margin-bottom: 18px;
-      }
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+      background: var(--input-bg);
+      border: 1px solid var(--border-color);
+      border-radius: 12px;
+      overflow: hidden;
     }
 
     .stat-box {
-      background: var(--input-bg);
-      border: 1px solid var(--border-color);
-      border-radius: 14px;
-      padding: 16px;
+      padding: 9px 6px;
       text-align: center;
+      border-right: 1px solid var(--border-color);
+      min-width: 0;
+    }
+
+    .stat-box:last-child {
+      border-right: none;
     }
 
     .stat-number {
-      font-size: 28px;
-      font-weight: 900;
+      font-size: 17px;
+      font-weight: 700;
+      font-variant-numeric: tabular-nums;
+      color: var(--text);
+      line-height: 1.2;
+      margin-bottom: 2px;
+    }
+
+    .stat-number.stat-healthy {
       color: var(--primary);
-      margin-bottom: 4px;
+    }
+
+    .stat-number.stat-withered {
+      color: var(--danger);
     }
 
     .stat-label {
-      font-size: 11px;
-      font-weight: 700;
-      color: var(--text-secondary);
+      font-size: 10px;
+      font-weight: 600;
+      color: var(--text-tertiary);
       text-transform: uppercase;
-      letter-spacing: 0.5px;
+      letter-spacing: 0.04em;
     }
 
     .forest-toolbar {
       display: flex;
       justify-content: space-between;
       align-items: center;
-      flex-wrap: wrap;
-      gap: 12px;
-      padding-bottom: 16px;
-      border-bottom: 1px solid var(--border-color);
-      margin-bottom: 20px;
+      gap: 10px;
       width: 100%;
-      box-sizing: border-box;
+    }
+
+    .forest-toolbar-title {
+      font-size: 14px;
+      font-weight: 700;
+      color: var(--text);
+      white-space: nowrap;
+    }
+
+    .forest-filter-group {
+      display: inline-flex;
+      padding: 2px;
+      border-radius: 9px;
+      background: var(--input-bg);
+      border: 1px solid var(--border-color);
+      gap: 2px;
+    }
+
+    .filter-seg-btn {
+      height: 30px;
+      padding: 0 10px;
+      border: none;
+      border-radius: 7px;
+      background: transparent;
+      color: var(--text-secondary);
+      font-size: 12px;
+      font-weight: 600;
+      cursor: pointer;
+      white-space: nowrap;
+      transition: background 0.15s ease, color 0.15s ease;
+    }
+
+    .filter-seg-btn.active {
+      background: var(--card-bg);
+      color: var(--text);
+      box-shadow: 0 1px 2px rgba(0, 0, 0, 0.08);
+    }
+
+    @media (max-width: 640px) {
+      header.top-header {
+        padding: 6px 10px;
+      }
+      .header-btn {
+        width: 36px;
+        padding: 0;
+      }
+      .header-btn-label {
+        display: none;
+      }
+      .theme-select-minimal {
+        max-width: 92px;
+      }
+      main.forest-main-container {
+        padding: 10px 10px 36px;
+        gap: 10px;
+      }
+      .growth-ring-container {
+        width: 140px;
+        height: 140px;
+      }
+      .growth-svg-center {
+        width: 84px;
+        height: 84px;
+      }
+      .timer-digits {
+        font-size: 40px;
+      }
+      .duration-pills-wrap {
+        gap: 4px;
+      }
+      .duration-pill {
+        height: 38px;
+        font-size: 11.5px;
+      }
+      .filter-seg-btn {
+        height: 32px;
+        padding: 0 9px;
+      }
+      .my-forest-card {
+        padding: 10px;
+        gap: 10px;
+      }
     }
 
     .forest-grid-canvas,
@@ -666,7 +669,8 @@
       display: flex;
       align-items: center;
       justify-content: space-between;
-      gap: 12px;
+      flex-wrap: wrap;
+      gap: 8px 12px;
       padding: 12px 16px;
       border-bottom: 1px solid rgba(255, 255, 255, 0.1);
       background: rgba(10, 26, 20, 0.25);
@@ -688,6 +692,15 @@
       font-variant-numeric: tabular-nums;
     }
 
+    .iso-toolbar-actions {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      flex-wrap: wrap;
+      margin-left: auto;
+    }
+
+    .iso-mode-controls,
     .iso-zoom-controls {
       display: inline-flex;
       align-items: center;
@@ -697,6 +710,33 @@
       border-radius: 10px;
       padding: 2px;
       flex-shrink: 0;
+    }
+
+    .iso-mode-btn {
+      height: 32px;
+      padding: 0 10px;
+      border: none;
+      border-radius: 8px;
+      background: transparent;
+      color: rgba(236, 253, 245, 0.78);
+      font-size: 12px;
+      font-weight: 700;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      transition: background 0.15s ease, color 0.15s ease;
+    }
+
+    .iso-mode-btn:hover {
+      background: rgba(255, 255, 255, 0.1);
+      color: #ffffff;
+    }
+
+    .iso-mode-btn.is-active {
+      background: rgba(168, 222, 84, 0.28);
+      color: #ffffff;
+      box-shadow: inset 0 0 0 1px rgba(190, 242, 100, 0.45);
     }
 
     .iso-zoom-btn {
@@ -727,20 +767,22 @@
     }
 
     .iso-stage-viewport {
+      position: relative;
       width: 100%;
-      overflow-x: auto;
-      overflow-y: hidden;
-      -webkit-overflow-scrolling: touch;
+      overflow: hidden;
       padding: 12px 12px 8px;
       box-sizing: border-box;
       display: flex;
+      align-items: center;
+      justify-content: center;
+      touch-action: pan-y;
     }
 
     .iso-island-scaler {
       position: relative;
       margin: 0 auto;
       flex-shrink: 0;
-      max-width: none;
+      transform-origin: 50% 50%;
     }
 
     .iso-island-svg {
@@ -888,9 +930,13 @@
       .iso-stage-toolbar {
         padding: 10px 12px;
       }
+      .iso-mode-btn {
+        height: 36px;
+        padding: 0 10px;
+      }
       .iso-zoom-btn {
         min-width: 40px;
-        height: 38px;
+        height: 36px;
       }
       .iso-inspector-bar {
         padding: 12px;
@@ -909,7 +955,8 @@
     @media (prefers-reduced-motion: reduce) {
       .iso-plant-pin,
       .btn-empty-grassland-cue,
-      .iso-zoom-btn {
+      .iso-zoom-btn,
+      .iso-mode-btn {
         transition: none;
       }
       .iso-pond-ripple {
@@ -918,37 +965,38 @@
       }
     }
 
-    /* Modal */
+    /* Minimal Bottom-Sheet / Modal */
     .catalog-modal-backdrop {
       position: fixed;
-      top: 0;
-      left: 0;
-      right: 0;
-      bottom: 0;
-      background: rgba(0,0,0,0.65);
+      inset: 0;
+      background: rgba(0, 0, 0, 0.55);
       z-index: 99999;
       display: flex;
       align-items: center;
       justify-content: center;
       padding: 16px;
-      backdrop-filter: blur(6px);
+      backdrop-filter: blur(4px);
     }
 
     .catalog-modal-box {
       background: var(--card-bg);
       border: 1px solid var(--border-color);
-      border-radius: 20px;
-      max-width: 850px;
+      border-radius: 18px;
+      max-width: 680px;
       width: 100%;
-      max-height: 85vh;
+      max-height: 82vh;
       display: flex;
       flex-direction: column;
       overflow: hidden;
-      box-shadow: 0 16px 40px rgba(0,0,0,0.3);
+      box-shadow: 0 16px 40px rgba(0, 0, 0, 0.28);
+    }
+
+    .modal-sheet-handle {
+      display: none;
     }
 
     .modal-head {
-      padding: 20px 24px;
+      padding: 14px 16px;
       border-bottom: 1px solid var(--border-color);
       display: flex;
       justify-content: space-between;
@@ -956,35 +1004,40 @@
     }
 
     .modal-head h3 {
-      font-size: 18px;
-      font-weight: 800;
-      display: flex;
-      align-items: center;
-      gap: 8px;
+      font-size: 16px;
+      font-weight: 700;
+      color: var(--text);
     }
 
     .btn-close-modal {
+      width: 36px;
+      height: 36px;
+      border-radius: 8px;
       background: none;
       border: none;
-      font-size: 26px;
+      font-size: 24px;
       cursor: pointer;
       color: var(--text-secondary);
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
       line-height: 1;
     }
 
     .modal-filters {
-      padding: 16px 24px;
+      padding: 12px 16px;
       border-bottom: 1px solid var(--border-color);
       display: flex;
       flex-direction: column;
-      gap: 12px;
+      gap: 10px;
     }
 
     .search-box-input {
       width: 100%;
-      padding: 12px 16px;
-      border-radius: 12px;
-      border: 1.5px solid var(--border-color);
+      height: 40px;
+      padding: 0 12px;
+      border-radius: 10px;
+      border: 1px solid var(--border-color);
       background: var(--input-bg);
       color: var(--text);
       font-size: 14px;
@@ -995,50 +1048,69 @@
       border-color: var(--primary);
     }
 
+    .modal-cat-tabs {
+      display: flex;
+      gap: 6px;
+      overflow-x: auto;
+      scrollbar-width: none;
+    }
+
+    .modal-cat-tabs::-webkit-scrollbar {
+      display: none;
+    }
+
+    .modal-cat-tabs .duration-pill {
+      height: 32px;
+      padding: 0 12px;
+      flex-shrink: 0;
+    }
+
     .modal-plants-grid {
-      padding: 20px 24px;
+      padding: 10px 14px 16px;
       overflow-y: auto;
       display: grid;
       grid-template-columns: repeat(auto-fill, minmax(230px, 1fr));
-      gap: 12px;
+      gap: 8px;
       flex: 1;
     }
 
     .catalog-card-item {
       background: var(--input-bg);
-      border: 1.5px solid var(--border-color);
-      border-radius: 14px;
-      padding: 12px;
+      border: 1px solid var(--border-color);
+      border-radius: 12px;
+      padding: 10px 12px;
       display: flex;
       align-items: center;
       gap: 12px;
       cursor: pointer;
-      transition: all 0.2s;
+      transition: border-color 0.15s ease;
     }
 
     .catalog-card-item:hover {
       border-color: var(--primary);
-      transform: translateY(-2px);
-      box-shadow: 0 4px 10px rgba(0,0,0,0.06);
     }
 
     .catalog-card-item.selected {
       border-color: var(--primary);
       background: rgba(46, 125, 50, 0.1);
-      box-shadow: 0 0 0 2px var(--primary);
+      box-shadow: inset 0 0 0 1px var(--primary);
     }
 
     .catalog-icon {
-      font-size: 32px;
-      width: 48px;
-      height: 48px;
+      width: 40px;
+      height: 40px;
       display: flex;
       align-items: center;
       justify-content: center;
       background: var(--card-bg);
-      border-radius: 12px;
+      border-radius: 10px;
       border: 1px solid var(--border-color);
       flex-shrink: 0;
+    }
+
+    .catalog-icon svg {
+      width: 28px !important;
+      height: 28px !important;
     }
 
     .catalog-meta {
@@ -1048,43 +1120,57 @@
 
     .catalog-meta-top {
       display: flex;
-      justify-content: space-between;
-      align-items: center;
+      align-items: baseline;
+      gap: 6px;
+      min-width: 0;
     }
 
     .catalog-nepali {
       font-size: 14px;
-      font-weight: 800;
+      font-weight: 700;
       color: var(--text);
       white-space: nowrap;
-      overflow: hidden;
-      text-overflow: ellipsis;
-    }
-
-    .catalog-badge {
-      font-size: 10px;
-      font-weight: 700;
-      color: var(--primary);
-      background: rgba(46, 125, 50, 0.12);
-      padding: 2px 6px;
-      border-radius: 10px;
     }
 
     .catalog-english {
-      font-size: 12px;
+      font-size: 12.5px;
+      font-weight: 500;
       color: var(--text-secondary);
       white-space: nowrap;
       overflow: hidden;
       text-overflow: ellipsis;
     }
 
-    .catalog-scientific {
-      font-size: 10px;
-      font-style: italic;
+    .catalog-sub {
+      font-size: 11px;
       color: var(--text-tertiary);
+      margin-top: 2px;
       white-space: nowrap;
       overflow: hidden;
       text-overflow: ellipsis;
+    }
+
+    @media (max-width: 640px) {
+      .catalog-modal-backdrop {
+        align-items: flex-end;
+        padding: 0;
+      }
+      .catalog-modal-box {
+        border-radius: 20px 20px 0 0;
+        max-height: 84vh;
+        border-bottom: none;
+      }
+      .modal-sheet-handle {
+        display: block;
+        width: 36px;
+        height: 4px;
+        border-radius: 999px;
+        background: var(--border-color);
+        margin: 8px auto 2px;
+      }
+      .modal-plants-grid {
+        grid-template-columns: 1fr;
+      }
     }
 
     /* Fullscreen Mode */

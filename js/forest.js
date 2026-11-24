@@ -155,12 +155,12 @@
       const isFull = document.body.classList.toggle('is-fullscreen');
       const btn = document.getElementById('btnFullscreenHeader');
       if (isFull) {
-        if (btn) btn.innerHTML = '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display:inline-block; vertical-align:middle;"><path d="M8 3v3a2 2 0 0 1-2 2H3m18 0h-3a2 2 0 0 1-2-2V3m0 18v-3a2 2 0 0 1 2-2h3M3 16h3a2 2 0 0 1 2 2v3"/></svg> <span>Exit Fullscreen</span>';
+        if (btn) btn.innerHTML = '<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M8 3v3a2 2 0 0 1-2 2H3m18 0h-3a2 2 0 0 1-2-2V3m0 18v-3a2 2 0 0 1 2-2h3M3 16h3a2 2 0 0 1 2 2v3"/></svg><span class="header-btn-label">Exit</span>';
         if (document.documentElement.requestFullscreen && !document.fullscreenElement) {
           document.documentElement.requestFullscreen().catch(() => {});
         }
       } else {
-        if (btn) btn.innerHTML = '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display:inline-block; vertical-align:middle;"><path d="M8 3H5a2 2 0 0 0-2 2v3m18 0V5a2 2 0 0 0-2-2h-3m0 18h3a2 2 0 0 0 2-2v-3M3 16v3a2 2 0 0 0 2 2h3"/></svg> <span>Fullscreen</span>';
+        if (btn) btn.innerHTML = '<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M8 3H5a2 2 0 0 0-2 2v3m18 0V5a2 2 0 0 0-2-2h-3m0 18h3a2 2 0 0 0 2-2v-3M3 16v3a2 2 0 0 0 2 2h3"/></svg><span class="header-btn-label">Fullscreen</span>';
         if (document.exitFullscreen && document.fullscreenElement) {
           document.exitFullscreen().catch(() => {});
         }
@@ -637,12 +637,17 @@
       if (avatarEl) {
         avatarEl.innerHTML = getBotanicalAvatarSvg(plant);
       }
-      document.getElementById('activePlantNepali').innerText = plant.nepali;
-      document.getElementById('activePlantEnglish').innerText = plant.english;
-      document.getElementById('activePlantScientific').innerText = plant.scientific;
-      document.getElementById('activePlantCategory').innerText = plant.category;
-      if (plant.desc) {
-        document.getElementById('activePlantDescription').innerText = plant.desc;
+      const nepaliEl = document.getElementById('activePlantNepali');
+      const englishEl = document.getElementById('activePlantEnglish');
+      const sciEl = document.getElementById('activePlantScientific');
+      const catEl = document.getElementById('activePlantCategory');
+      const descEl = document.getElementById('activePlantDescription');
+      if (nepaliEl) nepaliEl.innerText = plant.nepali;
+      if (englishEl) englishEl.innerText = plant.english;
+      if (sciEl) sciEl.innerText = plant.scientific;
+      if (catEl) catEl.innerText = plant.category;
+      if (descEl && plant.desc) {
+        descEl.innerText = plant.desc;
       }
       renderTimerDisplay();
     }
@@ -781,10 +786,9 @@
             <div class="catalog-meta">
               <div class="catalog-meta-top">
                 <span class="catalog-nepali">${plant.nepali}</span>
-                <span class="catalog-badge">${plant.category}</span>
+                <span class="catalog-english">${plant.english}</span>
               </div>
-              <div class="catalog-english">${plant.english}</div>
-              <div class="catalog-scientific">${plant.scientific}</div>
+              <div class="catalog-sub">${plant.scientific} · ${plant.category}</div>
             </div>
           </div>
         `;

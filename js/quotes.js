@@ -9,6 +9,8 @@
   var STORAGE_STATE_KEY = 'studyFlow_quoteState_v1';
   var STORAGE_INIT_KEY = 'studyFlow_quotes_initialized_v1';
   var STORAGE_SEED_V2_KEY = 'studyFlow_quotes_seed_v2';
+  var STORAGE_SEED_V3_KEY = 'studyFlow_quotes_seed_v3';
+  var STORAGE_SEED_V4_KEY = 'studyFlow_quotes_seed_v4';
   var ROTATION_MS = 60 * 1000; // 1 minute per quote
 
   var DEFAULT_QUOTES = [
@@ -17,7 +19,16 @@
     { id: 'q-init-3', text: 'Small daily improvements over time lead to stunning results.', author: 'Robin Sharma' },
     { id: 'q-init-4', text: 'Pain is temporary. Quitting lasts forever.', author: 'Lance Armstrong' },
     { id: 'q-init-5', text: 'Pain is the price you pay for success.', author: '' },
-    { id: 'q-init-6', text: 'We struggle with the complexities and avoid the simplicities.', author: 'Norman Vincent Peale' }
+    { id: 'q-init-6', text: 'We struggle with the complexities and avoid the simplicities.', author: 'Norman Vincent Peale' },
+    { id: 'q-init-7', text: 'effort-reward, wont be immediate for actual dopamine.\neffort-reward, will be immediate for cheap dopamine.\nchoose wisely', author: '' },
+    { id: 'q-init-8', text: 'What do you choose?\nshort-term thinking addict or long-term future building.', author: '' },
+    { id: 'q-init-9', text: 'Fake Dopamine is more about anticipation rather than actual getting.', author: '' },
+    { id: 'q-init-10', text: "If you don't sacrifice for what you want, what you want ultimately becomes your sacrifice.", author: '' },
+    { id: 'q-init-11', text: 'Discipline, doing it anyway.', author: '' },
+    { id: 'q-init-12', text: 'Stress does not come from overworking, it comes from not working to become what you could have become.', author: 'Jeff Bezos' },
+    { id: 'q-init-13', text: 'it is not because things are hard that we do nothing. It is because we do nothing that things are hard', author: '' },
+    { id: 'q-init-14', text: 'comfort kills', author: '' },
+    { id: 'q-init-15', text: 'The brain doesn\u2019t adapt to difficulty, it adapts to novelty. We\u2019ve tracked thousands of people doing progressively harder cognitive tasks and the improvement plateau hits around week 3. The ones who kept improving past that point were the ones who switched to a different type of challenge, not a harder version of the same one. Variety of difficulty beats intensity of difficulty every time.', author: '' }
   ];
 
   var isLoaderOpen = false;
@@ -39,6 +50,8 @@
       if (!initialized && !raw) {
         localStorage.setItem(STORAGE_INIT_KEY, '1');
         localStorage.setItem(STORAGE_SEED_V2_KEY, '1');
+        localStorage.setItem(STORAGE_SEED_V3_KEY, '1');
+        localStorage.setItem(STORAGE_SEED_V4_KEY, '1');
         localStorage.setItem(STORAGE_QUOTES_KEY, JSON.stringify(DEFAULT_QUOTES));
         return DEFAULT_QUOTES.slice();
       }
@@ -46,16 +59,44 @@
       if (!Array.isArray(parsed)) return [];
       var list = parsed.filter(function (q) { return q && typeof q.text === 'string' && q.text.trim().length > 0; });
       if (!localStorage.getItem(STORAGE_SEED_V2_KEY)) {
-        var added = false;
-        DEFAULT_QUOTES.slice(3).forEach(function (dq) {
-          var exists = list.some(function (q) { return q.id === dq.id || q.text.trim() === dq.text; });
+        var addedV2 = false;
+        DEFAULT_QUOTES.slice(3, 6).forEach(function (dq) {
+          var exists = list.some(function (q) { return q.id === dq.id || q.text.trim() === dq.text.trim(); });
           if (!exists) {
             list.push(dq);
-            added = true;
+            addedV2 = true;
           }
         });
         localStorage.setItem(STORAGE_SEED_V2_KEY, '1');
-        if (added) {
+        if (addedV2) {
+          localStorage.setItem(STORAGE_QUOTES_KEY, JSON.stringify(list));
+        }
+      }
+      if (!localStorage.getItem(STORAGE_SEED_V3_KEY)) {
+        var addedV3 = false;
+        DEFAULT_QUOTES.slice(6, 12).forEach(function (dq) {
+          var exists = list.some(function (q) { return q.id === dq.id || q.text.trim() === dq.text.trim(); });
+          if (!exists) {
+            list.push(dq);
+            addedV3 = true;
+          }
+        });
+        localStorage.setItem(STORAGE_SEED_V3_KEY, '1');
+        if (addedV3) {
+          localStorage.setItem(STORAGE_QUOTES_KEY, JSON.stringify(list));
+        }
+      }
+      if (!localStorage.getItem(STORAGE_SEED_V4_KEY)) {
+        var addedV4 = false;
+        DEFAULT_QUOTES.slice(12).forEach(function (dq) {
+          var exists = list.some(function (q) { return q.id === dq.id || q.text.trim() === dq.text.trim(); });
+          if (!exists) {
+            list.push(dq);
+            addedV4 = true;
+          }
+        });
+        localStorage.setItem(STORAGE_SEED_V4_KEY, '1');
+        if (addedV4) {
           localStorage.setItem(STORAGE_QUOTES_KEY, JSON.stringify(list));
         }
       }
