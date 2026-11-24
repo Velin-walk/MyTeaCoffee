@@ -36,6 +36,8 @@ const APP_SHELL_URLS = [
   '/plants/sunpati.js',
   '/plants/suntala.js',
   '/plants/jacaranda.js',
+  '/plants/kenjo.js',
+  '/plants/lauka.js',
   '/plants/registry.js'
 ];
 

@@ -20,7 +20,9 @@
     'sunakhari',
     'sunpati',
     'suntala',
-    'jacaranda'
+    'jacaranda',
+    'kenjo',
+    'lauka'
   ];
 
   // Build canonical NEPAL_PLANTS array
@@ -43,6 +45,23 @@
   }).filter(Boolean);
 
   const EXACT_PLANT_ALIASES = {
+    'lauka': 'lauka',
+    'lauka (bottle gourd)': 'lauka',
+    'bottle gourd': 'lauka',
+    'gourd': 'lauka',
+    'calabash': 'lauka',
+    'lagenaria siceraria': 'lauka',
+    'लौका': 'lauka',
+    'kenjo': 'kenjo',
+    'kenzo': 'kenjo',
+    'kenzo flower': 'kenjo',
+    'kenjo (padamchal)': 'kenjo',
+    'padamchal': 'kenjo',
+    'rheum nobile': 'kenjo',
+    'sikkim rhubarb': 'kenjo',
+    'केन्जो': 'kenjo',
+    'पदमचाल': 'kenjo',
+    'केन्जो (पदमचाल)': 'kenjo',
     'jacaranda': 'jacaranda',
     'jacaranda mimosifolia': 'jacaranda',
     'ज्याकारान्दा': 'jacaranda',
@@ -107,6 +126,8 @@
   };
 
   const ID_TO_SLUG = {
+    41: 'lauka',
+    40: 'kenjo',
     39: 'jacaranda',
     38: 'suntala',
     37: 'sunpati',
