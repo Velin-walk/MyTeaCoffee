@@ -22,7 +22,8 @@
     'suntala',
     'jacaranda',
     'kenjo',
-    'lauka'
+    'lauka',
+    'totola'
   ];
 
   // Build canonical NEPAL_PLANTS array
@@ -45,6 +46,12 @@
   }).filter(Boolean);
 
   const EXACT_PLANT_ALIASES = {
+    'totola': 'totola',
+    'totola (indian trumpet flower)': 'totola',
+    'indian trumpet flower': 'totola',
+    'broken bones tree': 'totola',
+    'oroxylum indicum': 'totola',
+    'टोटला': 'totola',
     'lauka': 'lauka',
     'lauka (bottle gourd)': 'lauka',
     'bottle gourd': 'lauka',
@@ -126,6 +133,7 @@
   };
 
   const ID_TO_SLUG = {
+    42: 'totola',
     41: 'lauka',
     40: 'kenjo',
     39: 'jacaranda',

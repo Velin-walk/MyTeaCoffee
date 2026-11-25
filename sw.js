@@ -38,6 +38,7 @@ const APP_SHELL_URLS = [
   '/plants/jacaranda.js',
   '/plants/kenjo.js',
   '/plants/lauka.js',
+  '/plants/totola.js',
   '/plants/registry.js'
 ];
 
