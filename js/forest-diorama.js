@@ -249,7 +249,203 @@
     return { ponds, pondTileKeys };
   }
 
-  function buildSteplandGrid(N, ponds) {
+  function getStepDir(fromTile, toTile) {
+    if (!fromTile || !toTile) return null;
+    const dr = toTile.r - fromTile.r;
+    const dc = toTile.c - fromTile.c;
+    if (dr === -1 && dc === 0) return 'N';
+    if (dr === 0 && dc === 1) return 'E';
+    if (dr === 1 && dc === 0) return 'S';
+    if (dr === 0 && dc === -1) return 'W';
+    return null;
+  }
+
+  const STREAM_DIRS = {
+    N: { du: 0, dv: -0.5, dr: -1, dc: 0, nu: 0, nv: -1, pu: 1, pv: 0 },
+    E: { du: 0.5, dv: 0, dr: 0, dc: 1, nu: 1, nv: 0, pu: 0, pv: 1 },
+    S: { du: 0, dv: 0.5, dr: 1, dc: 0, nu: 0, nv: 1, pu: -1, pv: 0 },
+    W: { du: -0.5, dv: 0, dr: 0, dc: -1, nu: -1, nv: 0, pu: 0, pv: -1 }
+  };
+
+  function buildForestStreams(N, ponds, pondTileKeys) {
+    const candidates = [];
+    if (N === 4) {
+      candidates.push(
+        { tiles: [{ r: 0, c: 0 }, { r: 0, c: 1 }, { r: 1, c: 1 }], toPond: { r: 2, c: 1 }, hw: 0.048, seed: 4101 },
+        { tiles: [{ r: 1, c: 0 }, { r: 1, c: 1 }], hw: 0.032, seed: 4102 },
+        { tiles: [{ r: 3, c: 1 }, { r: 3, c: 2 }], fromPond: { r: 2, c: 1 }, hw: 0.048, seed: 4103 },
+        { tiles: [{ r: 0, c: 2 }, { r: 0, c: 3 }, { r: 1, c: 3 }, { r: 2, c: 3 }, { r: 2, c: 2 }, { r: 3, c: 2 }], hw: 0.034, seed: 4104 }
+      );
+    } else if (N === 5) {
+      candidates.push(
+        { tiles: [{ r: 0, c: 1 }, { r: 0, c: 2 }, { r: 0, c: 3 }], toPond: { r: 1, c: 3 }, hw: 0.048, seed: 5101 },
+        { tiles: [{ r: 0, c: 4 }, { r: 1, c: 4 }], toPond: { r: 1, c: 3 }, hw: 0.032, seed: 5102 },
+        { tiles: [{ r: 2, c: 3 }, { r: 3, c: 3 }, { r: 4, c: 3 }], fromPond: { r: 1, c: 3 }, hw: 0.046, seed: 5103 },
+        { tiles: [{ r: 1, c: 0 }, { r: 2, c: 0 }, { r: 2, c: 1 }], toPond: { r: 3, c: 1 }, hw: 0.042, seed: 5104 },
+        { tiles: [{ r: 1, c: 1 }, { r: 2, c: 1 }], hw: 0.030, seed: 5105 },
+        { tiles: [{ r: 4, c: 1 }, { r: 4, c: 2 }, { r: 4, c: 3 }], fromPond: { r: 3, c: 1 }, hw: 0.042, seed: 5106 },
+        { tiles: [{ r: 2, c: 2 }, { r: 3, c: 2 }, { r: 3, c: 3 }], hw: 0.030, seed: 5107 }
+      );
+    } else if (N === 6) {
+      candidates.push(
+        { tiles: [{ r: 0, c: 0 }, { r: 0, c: 1 }, { r: 0, c: 2 }], toPond: { r: 1, c: 2 }, hw: 0.048, seed: 6101 },
+        { tiles: [{ r: 0, c: 4 }, { r: 0, c: 3 }], toPond: { r: 1, c: 3 }, hw: 0.034, seed: 6102 },
+        { tiles: [{ r: 1, c: 4 }, { r: 2, c: 4 }, { r: 3, c: 4 }, { r: 4, c: 4 }, { r: 5, c: 4 }], fromPond: { r: 1, c: 3 }, hw: 0.046, seed: 6103 },
+        { tiles: [{ r: 1, c: 5 }, { r: 2, c: 5 }, { r: 2, c: 4 }], hw: 0.030, seed: 6104 },
+        { tiles: [{ r: 2, c: 1 }, { r: 3, c: 1 }], toPond: { r: 4, c: 1 }, hw: 0.044, seed: 6105 },
+        { tiles: [{ r: 3, c: 0 }, { r: 4, c: 0 }], toPond: { r: 4, c: 1 }, hw: 0.030, seed: 6106 },
+        { tiles: [{ r: 5, c: 1 }, { r: 5, c: 2 }, { r: 5, c: 3 }, { r: 5, c: 4 }], fromPond: { r: 4, c: 1 }, hw: 0.044, seed: 6107 },
+        { tiles: [{ r: 2, c: 2 }, { r: 3, c: 2 }, { r: 3, c: 3 }, { r: 4, c: 3 }, { r: 4, c: 4 }], hw: 0.032, seed: 6108 }
+      );
+    } else if (N === 8) {
+      candidates.push(
+        { tiles: [{ r: 0, c: 1 }, { r: 0, c: 2 }, { r: 1, c: 2 }], toPond: { r: 2, c: 2 }, hw: 0.050, seed: 8101 },
+        { tiles: [{ r: 1, c: 0 }, { r: 1, c: 1 }, { r: 1, c: 2 }], hw: 0.032, seed: 8102 },
+        { tiles: [{ r: 0, c: 5 }, { r: 1, c: 5 }, { r: 1, c: 4 }, { r: 1, c: 3 }], toPond: { r: 2, c: 3 }, hw: 0.034, seed: 8103 },
+        { tiles: [{ r: 2, c: 4 }, { r: 3, c: 4 }, { r: 4, c: 4 }, { r: 4, c: 5 }], fromPond: { r: 2, c: 3 }, toPond: { r: 5, c: 5 }, hw: 0.048, seed: 8104 },
+        { tiles: [{ r: 3, c: 6 }, { r: 4, c: 6 }, { r: 5, c: 6 }], toPond: { r: 5, c: 5 }, hw: 0.032, seed: 8105 },
+        { tiles: [{ r: 6, c: 5 }, { r: 6, c: 6 }, { r: 7, c: 6 }], fromPond: { r: 5, c: 5 }, hw: 0.044, seed: 8106 },
+        { tiles: [{ r: 3, c: 1 }, { r: 4, c: 1 }], toPond: { r: 5, c: 1 }, hw: 0.044, seed: 8107 },
+        { tiles: [{ r: 4, c: 0 }, { r: 5, c: 0 }], toPond: { r: 5, c: 1 }, hw: 0.030, seed: 8108 },
+        { tiles: [{ r: 6, c: 1 }, { r: 6, c: 2 }, { r: 6, c: 3 }, { r: 6, c: 4 }, { r: 6, c: 5 }], fromPond: { r: 5, c: 1 }, hw: 0.042, seed: 8109 },
+        { tiles: [{ r: 3, c: 2 }, { r: 3, c: 3 }, { r: 4, c: 3 }, { r: 5, c: 3 }, { r: 6, c: 3 }], hw: 0.030, seed: 8110 }
+      );
+    } else if (N === 10) {
+      candidates.push(
+        { tiles: [{ r: 0, c: 1 }, { r: 0, c: 2 }, { r: 1, c: 2 }], toPond: { r: 2, c: 2 }, hw: 0.050, seed: 10101 },
+        { tiles: [{ r: 1, c: 0 }, { r: 1, c: 1 }, { r: 1, c: 2 }], hw: 0.032, seed: 10102 },
+        { tiles: [{ r: 2, c: 4 }, { r: 2, c: 5 }, { r: 2, c: 6 }], fromPond: { r: 2, c: 3 }, toPond: { r: 2, c: 7 }, hw: 0.048, seed: 10103 },
+        { tiles: [{ r: 0, c: 6 }, { r: 1, c: 6 }, { r: 2, c: 6 }], hw: 0.032, seed: 10104 },
+        { tiles: [{ r: 3, c: 7 }, { r: 4, c: 7 }], fromPond: { r: 2, c: 7 }, toPond: { r: 5, c: 7 }, hw: 0.046, seed: 10105 },
+        { tiles: [{ r: 3, c: 8 }, { r: 4, c: 8 }, { r: 5, c: 8 }], toPond: { r: 5, c: 7 }, hw: 0.030, seed: 10106 },
+        { tiles: [{ r: 7, c: 7 }, { r: 8, c: 7 }, { r: 8, c: 8 }], fromPond: { r: 6, c: 7 }, hw: 0.044, seed: 10107 },
+        { tiles: [{ r: 4, c: 2 }, { r: 5, c: 2 }, { r: 6, c: 2 }], toPond: { r: 7, c: 2 }, hw: 0.044, seed: 10108 },
+        { tiles: [{ r: 5, c: 0 }, { r: 5, c: 1 }, { r: 6, c: 1 }, { r: 7, c: 1 }], toPond: { r: 7, c: 2 }, hw: 0.032, seed: 10109 },
+        { tiles: [{ r: 8, c: 2 }, { r: 8, c: 3 }, { r: 8, c: 4 }, { r: 8, c: 5 }, { r: 8, c: 6 }, { r: 8, c: 7 }], fromPond: { r: 7, c: 2 }, hw: 0.042, seed: 10110 },
+        { tiles: [{ r: 3, c: 4 }, { r: 4, c: 4 }, { r: 5, c: 4 }, { r: 6, c: 4 }, { r: 7, c: 4 }, { r: 8, c: 4 }], hw: 0.032, seed: 10111 }
+      );
+    } else if (N === 12) {
+      candidates.push(
+        { tiles: [{ r: 0, c: 1 }, { r: 0, c: 2 }, { r: 1, c: 2 }], toPond: { r: 2, c: 2 }, hw: 0.050, seed: 12101 },
+        { tiles: [{ r: 1, c: 0 }, { r: 1, c: 1 }, { r: 1, c: 2 }], hw: 0.032, seed: 12102 },
+        { tiles: [{ r: 0, c: 5 }, { r: 1, c: 5 }, { r: 1, c: 4 }, { r: 1, c: 3 }], toPond: { r: 2, c: 3 }, hw: 0.034, seed: 12103 },
+        { tiles: [{ r: 3, c: 3 }, { r: 4, c: 3 }, { r: 5, c: 3 }, { r: 5, c: 4 }], fromPond: { r: 2, c: 3 }, toPond: { r: 6, c: 4 }, hw: 0.048, seed: 12104 },
+        { tiles: [{ r: 2, c: 4 }, { r: 2, c: 5 }, { r: 2, c: 6 }, { r: 3, c: 6 }, { r: 3, c: 7 }, { r: 3, c: 8 }], fromPond: { r: 2, c: 3 }, toPond: { r: 3, c: 9 }, hw: 0.038, seed: 12105 },
+        { tiles: [{ r: 0, c: 8 }, { r: 0, c: 9 }, { r: 1, c: 9 }, { r: 2, c: 9 }], toPond: { r: 3, c: 9 }, hw: 0.034, seed: 12106 },
+        { tiles: [{ r: 4, c: 9 }, { r: 4, c: 8 }, { r: 5, c: 8 }], fromPond: { r: 3, c: 9 }, toPond: { r: 6, c: 8 }, hw: 0.044, seed: 12107 },
+        { tiles: [{ r: 5, c: 10 }, { r: 6, c: 10 }, { r: 6, c: 9 }], toPond: { r: 6, c: 8 }, hw: 0.030, seed: 12108 },
+        { tiles: [{ r: 8, c: 8 }, { r: 9, c: 8 }, { r: 9, c: 9 }, { r: 10, c: 9 }, { r: 10, c: 10 }], fromPond: { r: 7, c: 8 }, hw: 0.044, seed: 12109 },
+        { tiles: [{ r: 7, c: 4 }, { r: 8, c: 4 }, { r: 8, c: 3 }], fromPond: { r: 6, c: 4 }, toPond: { r: 9, c: 3 }, hw: 0.044, seed: 12110 },
+        { tiles: [{ r: 10, c: 3 }, { r: 10, c: 4 }, { r: 10, c: 5 }, { r: 10, c: 6 }, { r: 10, c: 7 }, { r: 10, c: 8 }, { r: 10, c: 9 }], fromPond: { r: 9, c: 3 }, hw: 0.042, seed: 12111 },
+        { tiles: [{ r: 4, c: 1 }, { r: 5, c: 1 }, { r: 6, c: 1 }, { r: 6, c: 2 }, { r: 6, c: 3 }], toPond: { r: 6, c: 4 }, hw: 0.032, seed: 12112 },
+        { tiles: [{ r: 7, c: 0 }, { r: 8, c: 0 }, { r: 8, c: 1 }, { r: 9, c: 1 }, { r: 9, c: 2 }], toPond: { r: 9, c: 3 }, hw: 0.030, seed: 12113 },
+        { tiles: [{ r: 4, c: 5 }, { r: 5, c: 5 }, { r: 5, c: 6 }, { r: 6, c: 6 }, { r: 7, c: 6 }, { r: 8, c: 6 }, { r: 9, c: 6 }, { r: 10, c: 6 }], hw: 0.032, seed: 12114 }
+      );
+    } else {
+      const midR = Math.floor(N / 2);
+      const midC = Math.floor(N / 2) - 1;
+      const midFeedTiles = [{ r: 3, c: 3 }, { r: 4, c: 3 }, { r: 5, c: 3 }];
+      for (let cc = 4; cc <= midC; cc++) midFeedTiles.push({ r: 5, c: cc });
+      for (let rr = 6; rr < midR; rr++) midFeedTiles.push({ r: rr, c: midC });
+      candidates.push(
+        { tiles: [{ r: 0, c: 1 }, { r: 0, c: 2 }, { r: 1, c: 2 }], toPond: { r: 2, c: 2 }, hw: 0.050, seed: 14101 },
+        { tiles: [{ r: 1, c: 0 }, { r: 1, c: 1 }, { r: 1, c: 2 }], hw: 0.032, seed: 14102 },
+        { tiles: midFeedTiles, fromPond: { r: 2, c: 3 }, toPond: { r: midR, c: midC }, hw: 0.046, seed: 14103 },
+        { tiles: [{ r: 2, c: 4 }, { r: 2, c: 5 }, { r: 2, c: 6 }, { r: 2, c: 7 }], fromPond: { r: 2, c: 3 }, hw: 0.036, seed: 14104 },
+        { tiles: [{ r: 4, c: 9 }, { r: 5, c: 9 }], toPond: { r: 6, c: 9 }, hw: 0.046, seed: 14105 },
+        { tiles: [{ r: 4, c: 10 }, { r: 5, c: 10 }, { r: 6, c: 10 }], toPond: { r: 6, c: 9 }, hw: 0.032, seed: 14106 },
+        { tiles: [{ r: 8, c: 9 }, { r: 9, c: 9 }, { r: 10, c: 9 }, { r: 10, c: 10 }], fromPond: { r: 7, c: 9 }, hw: 0.044, seed: 14107 },
+        N === 14
+          ? { tiles: [{ r: 8, c: 6 }, { r: 9, c: 6 }, { r: 9, c: 5 }], fromPond: { r: 7, c: 6 }, toPond: { r: 10, c: 5 }, hw: 0.044, seed: 14108 }
+          : { tiles: [{ r: midR + 1, c: midC }, { r: midR + 2, c: midC }, { r: midR + 2, c: midC + 1 }], fromPond: { r: midR, c: midC }, hw: 0.044, seed: 14108 },
+        { tiles: [{ r: N - 8, c: 1 }, { r: N - 7, c: 1 }, { r: N - 6, c: 1 }, { r: N - 6, c: 2 }, { r: N - 5, c: 2 }], toPond: { r: N - 4, c: 2 }, hw: 0.034, seed: 14109 },
+        { tiles: [{ r: N - 4, c: 3 }, { r: N - 3, c: 3 }, { r: N - 3, c: 4 }, { r: N - 2, c: 4 }], fromPond: { r: N - 4, c: 2 }, hw: 0.040, seed: 14110 },
+        { tiles: [{ r: 1, c: N - 4 }, { r: 2, c: N - 4 }, { r: 2, c: N - 3 }], toPond: { r: 3, c: N - 3 }, hw: 0.036, seed: 14111 },
+        { tiles: [{ r: 4, c: N - 3 }, { r: 5, c: N - 3 }, { r: 6, c: N - 3 }, { r: 7, c: N - 3 }], fromPond: { r: 3, c: N - 3 }, hw: 0.036, seed: 14112 }
+      );
+    }
+
+    const pondByTileKey = new Map();
+    ponds.forEach((p) => {
+      p.connections = [];
+      p.tiles.forEach((t) => pondByTileKey.set(`${t.r},${t.c}`, p));
+    });
+
+    const streams = [];
+    const streamTileKeys = new Set();
+    const streamCellMap = new Map();
+
+    candidates.forEach((cand) => {
+      const valid = cand.tiles.every((t) => (
+        t.r >= 0 && t.r < N && t.c >= 0 && t.c < N &&
+        !pondTileKeys.has(`${t.r},${t.c}`)
+      ));
+      if (!valid) return;
+      if (cand.fromPond && !pondByTileKey.has(`${cand.fromPond.r},${cand.fromPond.c}`)) return;
+      if (cand.toPond && !pondByTileKey.has(`${cand.toPond.r},${cand.toPond.c}`)) return;
+
+      cand.tiles.forEach((t) => streamTileKeys.add(`${t.r},${t.c}`));
+
+      const streamObj = {
+        ...cand,
+        fromPondObj: cand.fromPond ? pondByTileKey.get(`${cand.fromPond.r},${cand.fromPond.c}`) : null,
+        toPondObj: cand.toPond ? pondByTileKey.get(`${cand.toPond.r},${cand.toPond.c}`) : null
+      };
+      streams.push(streamObj);
+
+      cand.tiles.forEach((t, idx) => {
+        const prevRef = idx > 0 ? cand.tiles[idx - 1] : cand.fromPond;
+        const nextRef = idx < cand.tiles.length - 1 ? cand.tiles[idx + 1] : cand.toPond;
+        const inDir = prevRef ? getStepDir(t, prevRef) : null;
+        const outDir = nextRef ? getStepDir(t, nextRef) : null;
+        const key = `${t.r},${t.c}`;
+        if (!streamCellMap.has(key)) {
+          streamCellMap.set(key, { r: t.r, c: t.c, branches: [] });
+        }
+        streamCellMap.get(key).branches.push({
+          inDir,
+          outDir,
+          prevTile: prevRef || null,
+          nextTile: nextRef || null,
+          fromPond: idx === 0 && Boolean(cand.fromPond),
+          toPond: idx === cand.tiles.length - 1 && Boolean(cand.toPond),
+          hw: cand.hw || 0.044,
+          isTributaryEnd: idx === cand.tiles.length - 1 && !cand.toPond && streamCellMap.get(key).branches.length > 0,
+          seed: cand.seed + idx * 37
+        });
+      });
+
+      if (streamObj.fromPondObj && cand.tiles.length > 0) {
+        const outFromPondDir = getStepDir(cand.fromPond, cand.tiles[0]);
+        if (outFromPondDir) {
+          streamObj.fromPondObj.connections.push({
+            tile: cand.fromPond,
+            dir: outFromPondDir,
+            isInlet: false,
+            hw: cand.hw || 0.044,
+            seed: cand.seed + 5
+          });
+        }
+      }
+      if (streamObj.toPondObj && cand.tiles.length > 0) {
+        const lastTile = cand.tiles[cand.tiles.length - 1];
+        const inToPondDir = getStepDir(cand.toPond, lastTile);
+        if (inToPondDir) {
+          streamObj.toPondObj.connections.push({
+            tile: cand.toPond,
+            dir: inToPondDir,
+            isInlet: true,
+            hw: cand.hw || 0.044,
+            seed: cand.seed + 9
+          });
+        }
+      }
+    });
+
+    return { streams, streamTileKeys, streamCellMap };
+  }
+
+  function buildSteplandGrid(N, ponds, streams) {
     const numLevels = N <= 4 ? 3 : (N <= 6 ? 4 : 5);
     const levels = [];
 
@@ -287,6 +483,23 @@
       });
     });
 
+    const enforceStreamSlopes = () => {
+      (streams || []).forEach((stream) => {
+        const minAllowed = stream.toPondObj ? (stream.toPondObj.level || 0) : 0;
+        let prevLvl = stream.fromPondObj ? (stream.fromPondObj.level || 0) : numLevels - 1;
+        for (let i = 0; i < stream.tiles.length; i++) {
+          const t = stream.tiles[i];
+          let lvl = levels[t.r][t.c];
+          if (lvl > prevLvl) lvl = prevLvl;
+          if (lvl < minAllowed) lvl = minAllowed;
+          levels[t.r][t.c] = lvl;
+          prevLvl = lvl;
+        }
+      });
+    };
+
+    enforceStreamSlopes();
+
     // Smooth non-pond step transitions so adjacent terraces never jump more than 1 level
     for (let pass = 0; pass < 3; pass++) {
       for (let r = 0; r < N; r++) {
@@ -302,6 +515,7 @@
           }
         }
       }
+      enforceStreamSlopes();
     }
 
     return levels;
@@ -546,11 +760,52 @@
     if (reedPt.y <= pondCenterPt.y) backProps.push(reedSvg);
     else frontProps.push(reedSvg);
 
+    // Stream inlet/outlet stubs connecting smoothly beneath the pond water surface
+    const pondStubsHalo = [];
+    const pondStubsShore = [];
+    const pondStubsWater = [];
+    (pond.connections || []).forEach((conn) => {
+      const dv = STREAM_DIRS[conn.dir];
+      if (!dv) return;
+      const tcu = conn.tile.c + 0.5 - half;
+      const tcv = conn.tile.r + 0.5 - half;
+      const edgeU = tcu + dv.du;
+      const edgeV = tcv + dv.dv;
+      const innerU = tcu + dv.du * 0.28;
+      const innerV = tcv + dv.dv * 0.28;
+      const hw = conn.hw || 0.048;
+
+      const makeStubPoly = (mult) => {
+        const w = hw * mult;
+        const pts = [
+          projPond(edgeU + dv.pu * w, edgeV + dv.pv * w, 0),
+          projPond(innerU + dv.pu * w, innerV + dv.pv * w, 0),
+          projPond(innerU - dv.pu * w, innerV - dv.pv * w, 0),
+          projPond(edgeU - dv.pu * w, edgeV - dv.pv * w, 0)
+        ];
+        return `<polygon points="${pts.map((p) => `${p.x.toFixed(1)},${p.y.toFixed(1)}`).join(' ')}"/>`;
+      };
+      const makeWaterStubPoly = () => {
+        const pts = [
+          projPond(edgeU + dv.pu * hw, edgeV + dv.pv * hw, waterDrop * 0.35),
+          projPond(innerU + dv.pu * hw, innerV + dv.pv * hw, waterDrop),
+          projPond(innerU - dv.pu * hw, innerV - dv.pv * hw, waterDrop),
+          projPond(edgeU - dv.pu * hw, edgeV - dv.pv * hw, waterDrop * 0.35)
+        ];
+        return `<polygon points="${pts.map((p) => `${p.x.toFixed(1)},${p.y.toFixed(1)}`).join(' ')}"/>`;
+      };
+      pondStubsHalo.push(makeStubPoly(1.38));
+      pondStubsShore.push(makeStubPoly(1.18));
+      pondStubsWater.push(makeWaterStubPoly());
+    });
+
     const clipDef = `<clipPath id="${clipId}"><path d="${shorePath}"/></clipPath>`;
     const pondSvg = `
       <g class="iso-pond">
         <path d="${haloPath}" fill="#7db838" opacity="0.52"/>
+        <g fill="#7db838" opacity="0.44">${pondStubsHalo.join('')}</g>
         ${backProps.join('')}
+        <g fill="#694d34">${pondStubsShore.join('')}</g>
         <path d="${shorePath}" fill="#694d34" stroke="#567a27" stroke-width="0.9"/>
         <g clip-path="url(#${clipId})">
           <path d="${waterPath}" fill="url(#isoPondWaterGrad)"/>
@@ -560,6 +815,7 @@
           ${lilyPadsMarkup.join('')}
           <path d="${shorePath}" fill="none" stroke="rgba(34,20,10,0.28)" stroke-width="1.8"/>
         </g>
+        <g fill="url(#isoPondWaterGrad)">${pondStubsWater.join('')}</g>
         ${frontProps.join('')}
       </g>
     `;
@@ -569,6 +825,194 @@
       clipDef,
       pondSvg
     };
+  }
+
+  function renderStreamTileSegment(cell, cu, cv, level, steplandLevels, half, centerX, centerY, cosA, sinA, pitch, stepH) {
+    const elevPx = level * stepH;
+    const proj = (u, v, yOff = 0) => {
+      const pt = projectIso(u, v, centerX, centerY, cosA, sinA, pitch);
+      return { x: pt.x, y: pt.y - elevPx + yOff };
+    };
+
+    const waterDrop = 1.1 + (0.66 - pitch) * 1.1;
+    const halos = [];
+    const shores = [];
+    const waters = [];
+    const details = [];
+    const waterfalls = [];
+
+    let primaryJoinPt = null;
+
+    (cell.branches || []).forEach((branch, bIdx) => {
+      const inVec = branch.inDir ? STREAM_DIRS[branch.inDir] : null;
+      const outVec = branch.outDir ? STREAM_DIRS[branch.outDir] : null;
+      const baseHw = branch.hw || 0.044;
+
+      const p0 = inVec
+        ? { u: cu + inVec.du, v: cv + inVec.dv }
+        : { u: cu - (outVec ? outVec.du * 0.24 : 0), v: cv - (outVec ? outVec.dv * 0.24 : 0) };
+      const p2 = outVec
+        ? { u: cu + outVec.du, v: cv + outVec.dv }
+        : (branch.isTributaryEnd
+          ? (primaryJoinPt || { u: cu, v: cv })
+          : { u: cu - (inVec ? inVec.du * 0.14 : 0), v: cv - (inVec ? inVec.dv * 0.14 : 0) });
+
+      const dx = p2.u - p0.u;
+      const dy = p2.v - p0.v;
+      const dLen = Math.hypot(dx, dy) || 1;
+      const perpU = -dy / dLen;
+      const perpV = dx / dLen;
+      const curveSign = seededRand(branch.seed + 3) >= 0.5 ? 1 : -1;
+      const isOpposite = inVec && outVec && (inVec.dr + outVec.dr === 0 && inVec.dc + outVec.dc === 0);
+      const meanderMag = isOpposite
+        ? (0.20 + seededRand(branch.seed) * 0.08) * curveSign
+        : ((branch.isTributaryEnd ? 0.05 : 0.08) + seededRand(branch.seed) * (branch.isTributaryEnd ? 0.05 : 0.08)) * curveSign;
+      const p1 = {
+        u: (p0.u + p2.u) * 0.5 + perpU * meanderMag,
+        v: (p0.v + p2.v) * 0.5 + perpV * meanderMag
+      };
+
+      const samples = 6;
+      const centerSamples = [];
+      for (let k = 0; k <= samples; k++) {
+        const t = k / samples;
+        const mt = 1 - t;
+        const u = mt * mt * p0.u + 2 * mt * t * p1.u + t * t * p2.u;
+        const v = mt * mt * p0.v + 2 * mt * t * p1.v + t * t * p2.v;
+
+        let pu;
+        let pv;
+        if (k === 0 && inVec) {
+          pu = inVec.pu;
+          pv = inVec.pv;
+        } else if (k === samples && outVec) {
+          pu = outVec.pu;
+          pv = outVec.pv;
+        } else {
+          const tu = 2 * mt * (p1.u - p0.u) + 2 * t * (p2.u - p1.u);
+          const tv = 2 * mt * (p1.v - p0.v) + 2 * t * (p2.v - p1.v);
+          const tLen = Math.hypot(tu, tv) || 1;
+          pu = -tv / tLen;
+          pv = tu / tLen;
+        }
+
+        let hw = baseHw;
+        if (!inVec && t < 0.4) {
+          hw = baseHw * (0.48 + (t / 0.4) * 0.52);
+        } else if (!outVec && !branch.isTributaryEnd && t > 0.65) {
+          hw = baseHw * (1 + ((t - 0.65) / 0.35) * 0.25);
+        }
+        centerSamples.push({ u, v, pu, pv, hw });
+      }
+
+      if (bIdx === 0) {
+        const midSample = centerSamples[Math.floor(samples / 2)];
+        primaryJoinPt = { u: midSample.u, v: midSample.v };
+      }
+
+      const buildRibbonPath = (scale, yOff) => {
+        const lCoords = centerSamples.map((s) => {
+          const pt = proj(s.u + s.pu * s.hw * scale, s.v + s.pv * s.hw * scale, yOff);
+          return `${pt.x.toFixed(1)},${pt.y.toFixed(1)}`;
+        });
+        const rCoords = centerSamples.slice().reverse().map((s) => {
+          const pt = proj(s.u - s.pu * s.hw * scale, s.v - s.pv * s.hw * scale, yOff);
+          return `${pt.x.toFixed(1)},${pt.y.toFixed(1)}`;
+        });
+        return `M ${lCoords.join(' L ')} L ${rCoords.join(' L ')} Z`;
+      };
+
+      halos.push(`<path d="${buildRibbonPath(1.38, 0)}"/>`);
+      shores.push(`<path d="${buildRibbonPath(1.18, 0)}"/>`);
+      waters.push(`<path d="${buildRibbonPath(1.0, waterDrop * 0.55)}"/>`);
+
+      details.push(`<path d="${buildRibbonPath(0.45, waterDrop * 0.5)}" fill="url(#isoPondShallowGrad)" opacity="0.45"/>`);
+
+      const flowCoords = centerSamples.map((s, idx) => {
+        const off = (idx === 0 || idx === samples) ? 0 : (seededRand(branch.seed + idx * 13) - 0.5) * 0.015;
+        const pt = proj(s.u + s.pu * off, s.v + s.pv * off, waterDrop * 0.45);
+        return `${idx === 0 ? 'M' : 'L'} ${pt.x.toFixed(1)},${pt.y.toFixed(1)}`;
+      }).join(' ');
+      details.push(`<path class="iso-stream-flow" d="${flowCoords}" fill="none" stroke="#e0f7fa" stroke-width="0.78" stroke-linecap="round" stroke-dasharray="3 4"/>`);
+
+      if (bIdx === 0 && seededRand(branch.seed + 51) > 0.45) {
+        const side = seededRand(branch.seed + 57) > 0.5 ? 1 : -1;
+        const midS = centerSamples[3];
+        const pebblePt = proj(midS.u + midS.pu * midS.hw * 1.48 * side, midS.v + midS.pv * midS.hw * 1.48 * side, 0);
+        details.push(`
+          <g transform="translate(${pebblePt.x.toFixed(1)}, ${pebblePt.y.toFixed(1)})">
+            <ellipse cx="0" cy="0.3" rx="1.9" ry="1.0" fill="#7d7a74"/>
+            <ellipse cx="-0.2" cy="-0.1" rx="1.4" ry="0.7" fill="#a8a49e"/>
+          </g>
+        `);
+      }
+
+      if (!inVec) {
+        const srcPt = proj(p0.u, p0.v, 0);
+        const rockPt = proj(p0.u - (outVec ? outVec.du * 0.08 : 0), p0.v - (outVec ? outVec.dv * 0.08 : 0), 0);
+        shores.push(`<ellipse cx="${srcPt.x.toFixed(1)}" cy="${(srcPt.y + waterDrop * 0.35).toFixed(1)}" rx="2.9" ry="1.5"/>`);
+        waters.push(`<ellipse cx="${srcPt.x.toFixed(1)}" cy="${(srcPt.y + waterDrop * 0.55).toFixed(1)}" rx="2.3" ry="1.2"/>`);
+        details.push(`
+          <g transform="translate(${rockPt.x.toFixed(1)}, ${rockPt.y.toFixed(1)})">
+            <ellipse cx="0" cy="0.4" rx="2.6" ry="1.3" fill="#2c3e18" opacity="0.22"/>
+            <polygon points="-2.4,0 -1.2,-2.6 1.0,-2.1 0,0.8" fill="#9e9b95"/>
+            <polygon points="1.0,-2.1 2.5,-0.4 1.8,0.8 0,0.8" fill="#76736d"/>
+          </g>
+        `);
+      }
+
+      if (!outVec && !branch.isTributaryEnd) {
+        const endPt = proj(p2.u, p2.v, 0);
+        halos.push(`<ellipse cx="${endPt.x.toFixed(1)}" cy="${(endPt.y + 0.1).toFixed(1)}" rx="4.6" ry="2.3"/>`);
+        shores.push(`<ellipse cx="${endPt.x.toFixed(1)}" cy="${(endPt.y + 0.2).toFixed(1)}" rx="3.8" ry="1.9"/>`);
+        waters.push(`<ellipse cx="${endPt.x.toFixed(1)}" cy="${(endPt.y + waterDrop * 0.55).toFixed(1)}" rx="3.2" ry="1.6"/>`);
+        details.push(`<ellipse cx="${endPt.x.toFixed(1)}" cy="${(endPt.y + waterDrop * 0.5).toFixed(1)}" rx="1.8" ry="0.9" fill="url(#isoPondShallowGrad)" opacity="0.5"/>`);
+      }
+
+      if (branch.prevTile && steplandLevels[branch.prevTile.r]) {
+        const prevLevel = steplandLevels[branch.prevTile.r][branch.prevTile.c];
+        if (prevLevel > level) {
+          const sp = proj(p0.u, p0.v, waterDrop * 0.5);
+          details.push(`
+            <ellipse cx="${sp.x.toFixed(1)}" cy="${sp.y.toFixed(1)}" rx="2.8" ry="1.4" fill="#e0f7fa" opacity="0.74"/>
+            <ellipse cx="${sp.x.toFixed(1)}" cy="${(sp.y - 0.3).toFixed(1)}" rx="1.6" ry="0.8" fill="#ffffff" opacity="0.82"/>
+          `);
+        }
+      }
+
+      if (outVec && branch.nextTile && steplandLevels[branch.nextTile.r]) {
+        const nextLevel = steplandLevels[branch.nextTile.r][branch.nextTile.c];
+        if (level > nextLevel) {
+          const nyScreen = outVec.nu * sinA + outVec.nv * cosA;
+          if (nyScreen > 0.005) {
+            const dropPx = (level - nextLevel) * stepH;
+            const eL = proj(p2.u + outVec.pu * baseHw, p2.v + outVec.pv * baseHw, waterDrop * 0.4);
+            const eR = proj(p2.u - outVec.pu * baseHw, p2.v - outVec.pv * baseHw, waterDrop * 0.4);
+            const fallPts = `${eL.x.toFixed(1)},${eL.y.toFixed(1)} ${eR.x.toFixed(1)},${eR.y.toFixed(1)} ${eR.x.toFixed(1)},${(eR.y + dropPx).toFixed(1)} ${eL.x.toFixed(1)},${(eL.y + dropPx).toFixed(1)}`;
+            const midX = (eL.x + eR.x) * 0.5;
+            const midYTop = (eL.y + eR.y) * 0.5;
+            waterfalls.push(`
+              <g class="iso-stream-waterfall">
+                <polygon points="${fallPts}" fill="url(#isoPondWaterGrad)"/>
+                <line x1="${midX.toFixed(1)}" y1="${midYTop.toFixed(1)}" x2="${midX.toFixed(1)}" y2="${(midYTop + dropPx).toFixed(1)}" stroke="#e0f7fa" stroke-width="0.85" stroke-linecap="round" opacity="0.8"/>
+                <line x1="${eL.x.toFixed(1)}" y1="${eL.y.toFixed(1)}" x2="${eR.x.toFixed(1)}" y2="${eR.y.toFixed(1)}" stroke="#e0f7fa" stroke-width="1.0" stroke-linecap="round" opacity="0.85"/>
+                <ellipse cx="${midX.toFixed(1)}" cy="${(midYTop + dropPx).toFixed(1)}" rx="2.8" ry="1.3" fill="#e0f7fa" opacity="0.78"/>
+              </g>
+            `);
+          }
+        }
+      }
+    });
+
+    return `
+      <g class="iso-stream" pointer-events="none">
+        <g fill="#7db838" opacity="0.42">${halos.join('')}</g>
+        <g fill="#694d34">${shores.join('')}</g>
+        <g fill="url(#isoPondWaterGrad)">${waters.join('')}</g>
+        ${details.join('')}
+        ${waterfalls.join('')}
+      </g>
+    `;
   }
 
   function computePlatformGeometry(N, items, state) {
@@ -588,7 +1032,8 @@
 
     const orderedItems = items.slice();
     const { ponds, pondTileKeys } = buildForestPonds(N, orderedItems.length);
-    const steplandLevels = buildSteplandGrid(N, ponds);
+    const { streams, streamTileKeys, streamCellMap } = buildForestStreams(N, ponds, pondTileKeys);
+    const steplandLevels = buildSteplandGrid(N, ponds, streams);
     const allSlots = buildTileSlots(N);
     const slots = allSlots.filter((s) => !pondTileKeys.has(`${s.r},${s.c}`));
     const treeSlots = slots.length > 0 ? slots : allSlots;
@@ -771,6 +1216,13 @@
         );
       }
 
+      const streamCell = streamCellMap.get(`${r},${c}`);
+      if (streamCell) {
+        tilesMarkup.push(
+          renderStreamTileSegment(streamCell, cu, cv, level, steplandLevels, half, centerX, centerY, cosA, sinA, pitch, stepH)
+        );
+      }
+
       const trigPonds = pondsAtTriggerTile.get(`${r},${c}`);
       if (trigPonds) {
         tilesMarkup.push(`<g pointer-events="none">${trigPonds.join('')}</g>`);
@@ -792,7 +1244,7 @@
           zIdx,
           isSelected
         });
-      } else if (!pondTileKeys.has(`${r},${c}`)) {
+      } else if (!pondTileKeys.has(`${r},${c}`) && !streamTileKeys.has(`${r},${c}`)) {
         const propSvg = renderTerrainProp(r * 97 + c * 193 + N * 31);
         if (propSvg) {
           terrainPropsMarkup.push(

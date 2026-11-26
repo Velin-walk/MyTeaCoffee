@@ -947,9 +947,19 @@
       animation: isoPondShimmer 3.6s ease-in-out infinite;
     }
 
+    .iso-stream-flow {
+      animation: isoStreamCurrent 2.4s linear infinite;
+      stroke-opacity: 0.62;
+    }
+
     @keyframes isoPondShimmer {
       0%, 100% { stroke-opacity: 0.35; }
       50% { stroke-opacity: 0.72; }
+    }
+
+    @keyframes isoStreamCurrent {
+      from { stroke-dashoffset: 18; }
+      to { stroke-dashoffset: 0; }
     }
 
     @media (prefers-reduced-motion: reduce) {
@@ -959,7 +969,8 @@
       .iso-mode-btn {
         transition: none;
       }
-      .iso-pond-ripple {
+      .iso-pond-ripple,
+      .iso-stream-flow {
         animation: none;
         stroke-opacity: 0.5;
       }
