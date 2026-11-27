@@ -85,72 +85,279 @@
   }
 
   // Subtle ambient terrain details for empty platform tiles (grass tufts, pebbles, tiny wildflowers)
+
+  // Realistic ambient terrain details for empty tiles: layered grass tufts, clover, ferns,
+  // mossy rocks, mushroom clusters, wildflowers, fallen leaves and twigs.
+  function grassTuft(seed, count, h, palette) {
+    let out = '';
+    for (let i = 0; i < count; i++) {
+      const x = (seededRand(seed + i * 3.1) - 0.5) * 9;
+      const lean = (seededRand(seed + i * 5.7) - 0.5) * 7;
+      const bh = h * (0.55 + seededRand(seed + i * 7.3) * 0.6);
+      const col = palette[i % palette.length];
+      out += `<path d="M${(x - 0.9).toFixed(1)},1 Q${(x + lean * 0.4).toFixed(1)},${(-bh * 0.5).toFixed(1)} ${(x + lean).toFixed(1)},${(-bh).toFixed(1)} Q${(x + lean * 0.35 + 0.6).toFixed(1)},${(-bh * 0.5).toFixed(1)} ${(x + 0.9).toFixed(1)},1 Z" fill="${col}"/>`;
+    }
+    return out;
+  }
+
   function renderTerrainProp(seed) {
     const roll = seededRand(seed);
-    if (roll < 0.24) {
-      return `
-        <g opacity="0.88">
-          <path d="M-3,1 L-5,-6 M0,1 L0,-8 M3,1 L5,-5" stroke="#6aa428" stroke-width="1.3" stroke-linecap="round"/>
-        </g>
-      `;
+    const r2 = seededRand(seed + 911);
+    const shadow = (rx, ry, o) => `<ellipse cx="0" cy="1.2" rx="${rx}" ry="${ry}" fill="#1c2a0e" opacity="${o || 0.22}"/>`;
+    if (roll < 0.2) {
+      return `<g>${shadow(6, 2, 0.16)}${grassTuft(seed, 7, 9 + r2 * 4, ['#4f8a1f', '#6aa428', '#7fbb33', '#93cc45', '#5d9723'])}</g>`;
     }
-    if (roll < 0.285) {
-      return `
-        <g>
-          <ellipse cx="0" cy="1" rx="6.5" ry="3.2" fill="#2c3e18" opacity="0.22"/>
-          <polygon points="-6,0 -3,-6 2,-5 0,2" fill="#9e9b95"/>
-          <polygon points="2,-5 6,-1 4,2 0,2" fill="#76736d"/>
-          <polygon points="-3,-6 2,-5 0,-2 -6,0" fill="#bdbab4"/>
-        </g>
-      `;
+    if (roll < 0.25) {
+      return `<g>
+          ${shadow(7.5, 3.4, 0.28)}
+          <path d="M-7,1 Q-7,-5 -2,-6.5 Q4,-7.5 7,-2 Q7.5,1.5 3,2 L-5,2 Z" fill="#8a8780"/>
+          <path d="M-2,-6.5 Q4,-7.5 7,-2 Q3,-3 1,-1.5 Q-2,-3.5 -2,-6.5 Z" fill="#a9a69f"/>
+          <path d="M3,2 Q7.5,1.5 7,-2 Q4,-0.5 2,0 Z" fill="#65625b"/>
+          <path d="M-6.5,-1.5 Q-4,-6 0,-6.2 Q-2,-4 -3,-2.5 Q-5,-1 -6.5,-1.5 Z" fill="#6f9a2e" opacity="0.85"/>
+          <circle cx="-3.5" cy="-4.2" r="0.6" fill="#a7c957" opacity="0.8"/>
+          ${grassTuft(seed + 3, 3, 5, ['#5d9723', '#7fbb33'])}
+        </g>`;
     }
-    if (roll < 0.315) {
-      return `
-        <g>
-          <ellipse cx="0" cy="1" rx="5" ry="2.4" fill="#243a15" opacity="0.22"/>
-          <polygon points="-1.5,0 -1,-6 1,-6 1.5,0" fill="#f5efe6"/>
-          <polygon points="0,-12 -6,-6 0,-5" fill="#e53935"/>
-          <polygon points="0,-12 0,-5 6,-6" fill="#c62828"/>
-          <circle cx="-2" cy="-8" r="0.9" fill="#ffffff"/>
-          <circle cx="2" cy="-7" r="0.8" fill="#ffffff"/>
-        </g>
-      `;
+    if (roll < 0.28) {
+      // Fly agaric cluster
+      return `<g>
+          ${shadow(7, 2.6, 0.24)}
+          <path d="M-1.4,1 Q-1.8,-3 -1,-6 L1,-6 Q1.8,-3 1.4,1 Z" fill="#f3ece0"/>
+          <path d="M-1.4,-2.5 Q0,-1.8 1.4,-2.5" stroke="#d8cfbf" stroke-width="0.6" fill="none"/>
+          <path d="M-6.5,-6 Q-6,-12.5 0,-12.8 Q6,-12.5 6.5,-6 Q0,-4.6 -6.5,-6 Z" fill="#d32f2f"/>
+          <path d="M-5.5,-8 Q-4,-12 0,-12.3 Q-3,-10.5 -5.5,-8 Z" fill="#ff6659" opacity="0.7"/>
+          <path d="M-6.5,-6 Q0,-4.6 6.5,-6 Q0,-5.2 -6.5,-6 Z" fill="#8e1b1b"/>
+          <circle cx="-3" cy="-9" r="0.9" fill="#fff"/><circle cx="1.5" cy="-10.6" r="0.8" fill="#fff"/>
+          <circle cx="3.6" cy="-7.6" r="0.7" fill="#fff"/><circle cx="-0.6" cy="-7.4" r="0.6" fill="#fff"/>
+          <g transform="translate(5.5,0.5) scale(0.5)">
+            <path d="M-1.4,1 L-1,-6 L1,-6 L1.4,1 Z" fill="#f3ece0"/>
+            <path d="M-6.5,-6 Q-6,-12.5 0,-12.8 Q6,-12.5 6.5,-6 Q0,-4.6 -6.5,-6 Z" fill="#c62828"/>
+            <circle cx="-2" cy="-9" r="1.2" fill="#fff"/><circle cx="2" cy="-8" r="1" fill="#fff"/>
+          </g>
+          ${grassTuft(seed + 5, 3, 5, ['#6aa428', '#4f8a1f'])}
+        </g>`;
     }
-    if (roll < 0.355) {
-      return `
-        <g>
-          <path d="M0,1 L0,-5" stroke="#5d9423" stroke-width="1.1"/>
-          <circle cx="0" cy="-6" r="2.1" fill="#fffde7"/>
-          <circle cx="0" cy="-6" r="0.9" fill="#fbc02d"/>
-        </g>
-      `;
+    if (roll < 0.33) {
+      // Wildflowers in varied colors
+      const colors = [['#fffde7', '#fbc02d'], ['#ce93d8', '#fff176'], ['#90caf9', '#fff59d'], ['#ffab91', '#ffeb3b']];
+      const [petal, core] = colors[Math.floor(r2 * colors.length)];
+      let fl = '';
+      [[-3, -7], [1.5, -9.5], [4, -6]].forEach(([x, y], k) => {
+        if (k === 2 && r2 < 0.4) return;
+        fl += `<path d="M${(x * 0.3).toFixed(1)},1 Q${(x * 0.6).toFixed(1)},${(y * 0.5).toFixed(1)} ${x},${y}" stroke="#4f8a1f" stroke-width="0.8" fill="none"/>`;
+        for (let p = 0; p < 5; p++) {
+          const a = (p / 5) * Math.PI * 2;
+          fl += `<ellipse cx="${(x + Math.cos(a) * 1.5).toFixed(2)}" cy="${(y + Math.sin(a) * 1.1).toFixed(2)}" rx="1.2" ry="0.8" fill="${petal}"/>`;
+        }
+        fl += `<circle cx="${x}" cy="${y}" r="0.75" fill="${core}"/>`;
+      });
+      return `<g>${shadow(5, 1.8, 0.14)}${grassTuft(seed + 9, 4, 6, ['#5d9723', '#7fbb33', '#4f8a1f'])}${fl}</g>`;
+    }
+    if (roll < 0.37) {
+      // Clover patch
+      let cl = '';
+      [[-3, -1], [2, -2.5], [0, 0.5], [4, 0]].forEach(([x, y], k) => {
+        const g = k % 2 ? '#5a9a2a' : '#4a8a22';
+        cl += `<circle cx="${x - 0.9}" cy="${y}" r="1.2" fill="${g}"/><circle cx="${x + 0.9}" cy="${y}" r="1.2" fill="${g}"/><circle cx="${x}" cy="${y - 1.3}" r="1.2" fill="#6cae34"/>`;
+      });
+      return `<g>${shadow(6.5, 2.2, 0.15)}${cl}</g>`;
+    }
+    if (roll < 0.41) {
+      // Fern
+      let fr = '';
+      [-1, 1, -0.5].forEach((dir, k) => {
+        const len = 8 + k * 1.5;
+        fr += `<path d="M0,1 Q${(dir * 3).toFixed(1)},${(-len * 0.6).toFixed(1)} ${(dir * 6).toFixed(1)},${(-len).toFixed(1)}" stroke="#3f7a1c" stroke-width="0.8" fill="none"/>`;
+        for (let i = 1; i < 6; i++) {
+          const t = i / 6;
+          const px = dir * 6 * t * t + dir * 3 * 2 * t * (1 - t) * 0.5;
+          const py = -len * t;
+          fr += `<ellipse cx="${(px - 1.1).toFixed(1)}" cy="${py.toFixed(1)}" rx="${(1.6 * (1 - t * 0.6)).toFixed(1)}" ry="0.6" fill="#4f9a26" transform="rotate(${(dir * 25).toFixed(0)} ${px.toFixed(1)} ${py.toFixed(1)})"/><ellipse cx="${(px + 1.1).toFixed(1)}" cy="${py.toFixed(1)}" rx="${(1.6 * (1 - t * 0.6)).toFixed(1)}" ry="0.6" fill="#62ad31" transform="rotate(${(-dir * 25).toFixed(0)} ${px.toFixed(1)} ${py.toFixed(1)})"/>`;
+        }
+      });
+      return `<g>${shadow(6, 2, 0.18)}${fr}</g>`;
+    }
+    if (roll < 0.44) {
+      // Fallen leaves and a twig
+      return `<g opacity="0.95">
+          <path d="M-6,0.5 L5,-1.5" stroke="#6b4a2f" stroke-width="1" stroke-linecap="round"/>
+          <path d="M0,-0.5 L2,-3" stroke="#6b4a2f" stroke-width="0.6" stroke-linecap="round"/>
+          <path d="M-4,-1 Q-2,-3.5 1,-2 Q-1,0.5 -4,-1 Z" fill="#d98a2b"/>
+          <path d="M2,1.5 Q4,-0.8 6.5,0.8 Q4.5,2.8 2,1.5 Z" fill="#b5651d"/>
+          <path d="M-2,2 Q-0.5,0.5 1.5,1.8 Q0,3 -2,2 Z" fill="#e0b13a"/>
+        </g>`;
+    }
+    if (roll < 0.5) {
+      return `<g>${grassTuft(seed + 13, 4, 5, ['#6aa428', '#8cc63f', '#5d9723'])}</g>`;
     }
     return '';
   }
 
+  // Natural granite outcrops, multi-tone river cobbles, and mossy stone slabs framed by grass tufts
+  function renderBoulderCluster(kind, scale, seed) {
+    const s = (typeof scale === 'number' && scale > 0) ? scale : 1;
+    const mirror = seededRand(seed + 71) > 0.5 ? -1 : 1;
+    const grassPal = ['#4a821c', '#63a026', '#7fbb33', '#92cc44'];
+    const shadow = (rx, ry, o) => `<ellipse cx="0" cy="1.8" rx="${rx}" ry="${ry}" fill="#172409" opacity="${o || 0.28}"/>`;
+
+    let inner = '';
+    if (kind === 0) {
+      // Faceted stratified granite outcrop (warm sandstone/tan & cool slate rock facets)
+      inner = `
+        ${shadow(11.5, 4.1, 0.28)}
+        <g transform="translate(-3.5, 0.4)">${grassTuft(seed + 1, 5, 8.2, grassPal)}</g>
+        <g transform="translate(5.5, 0.6)">${grassTuft(seed + 3, 4, 7.2, grassPal)}</g>
+        <path d="M-9.5,1.4 L-10.5,-3.6 L-5,-9.4 L2.4,-10.4 L8.8,-5.4 L10.6,0.4 L4.8,2.2 Z" fill="#8c8982"/>
+        <path d="M-10.2,-3.2 L-5,-9.4 L2.4,-10.4 L3.4,-5.4 L-3.8,-3.4 Z" fill="#d1cbc0"/>
+        <path d="M-8.8,-1.2 L-3.8,-4.4 L3.2,-3.6 L-0.8,0.6 Z" fill="#b79e82" opacity="0.82"/>
+        <path d="M3.4,-5.4 L8.8,-5.4 L10.6,0.4 L4.8,2.2 L1.4,-1.2 Z" fill="#64615b"/>
+        <path d="M-7.8,-4.6 L1.4,-6.2 L7.2,-3.2 M-6.2,-1.1 L2.4,-2.4 L8.8,-0.6" stroke="#484540" stroke-width="0.72" fill="none" opacity="0.72"/>
+        <path d="M-12.2,1.8 L-11.2,-2.2 L-6.0,-3.8 L-3.2,0.9 Z" fill="#9e9b93"/>
+        <path d="M-11.2,-2.2 L-6.0,-3.8 L-5.2,-1.2 L-9.2,-0.6 Z" fill="#c6c2b9"/>
+        <ellipse cx="6.8" cy="1.8" rx="1.7" ry="0.9" fill="#827f78"/>
+        <ellipse cx="-2.4" cy="2.1" rx="1.4" ry="0.7" fill="#a89882"/>
+        <g transform="translate(-4.6, 1.3)">${grassTuft(seed + 5, 4, 5.4, grassPal)}</g>
+        <g transform="translate(3.4, 1.5)">${grassTuft(seed + 9, 3, 4.6, grassPal)}</g>
+      `;
+    } else if (kind === 1) {
+      // Smooth river-worn boulders & cobbles in slate grey, warm sandstone, and muted terracotta
+      inner = `
+        ${shadow(12.2, 4.2, 0.26)}
+        <g transform="translate(-1.2, 0.2)">${grassTuft(seed + 11, 6, 8.4, grassPal)}</g>
+        <path d="M-8.6,0.4 Q-8.8,-7.4 -1.8,-8.4 Q5.4,-8.4 6.8,-1.2 Q7.2,1.8 0,1.9 Z" fill="#918e87"/>
+        <path d="M-6.4,-3.2 Q-5.8,-7.6 -1.5,-7.9 Q2.8,-7.8 4.4,-4.2 Q0,-4.4 -6.4,-3.2 Z" fill="#bab6ae" opacity="0.88"/>
+        <path d="M-11.4,1.4 Q-11.0,-3.6 -5.4,-4.2 Q0,-4.0 0.4,0.8 Q-0.2,2.4 -5.8,2.4 Z" fill="#b39a7d"/>
+        <path d="M-9.6,-1.2 Q-8.4,-3.8 -5.0,-3.8 Q-2.2,-3.6 -1.4,-1.6 Q-5.2,-1.8 -9.6,-1.2 Z" fill="#ceb79b" opacity="0.85"/>
+        <path d="M1.4,1.6 Q2.0,-3.2 6.8,-3.6 Q11.2,-3.0 11.2,1.1 Q10.2,2.6 5.8,2.6 Z" fill="#9c725b"/>
+        <path d="M3.2,-1.2 Q4.2,-3.1 7.0,-3.1 Q9.2,-2.6 9.8,-0.8 Q6.6,-1.2 3.2,-1.2 Z" fill="#bc937b" opacity="0.8"/>
+        <ellipse cx="-4.2" cy="2.5" rx="1.7" ry="0.8" fill="#88857e"/>
+        <ellipse cx="-0.4" cy="2.7" rx="1.3" ry="0.65" fill="#b59f84"/>
+        <ellipse cx="3.2" cy="2.6" rx="1.5" ry="0.7" fill="#77746d"/>
+        <ellipse cx="8.6" cy="2.4" rx="1.2" ry="0.6" fill="#a29f97"/>
+        <g transform="translate(1.2, 1.4)">${grassTuft(seed + 13, 4, 5.2, grassPal)}</g>
+      `;
+    } else {
+      // Mossy granite slab & companion pebbles with crevice grass
+      inner = `
+        ${shadow(10.8, 3.8, 0.25)}
+        <g transform="translate(1.5, 0.2)">${grassTuft(seed + 17, 5, 7.8, grassPal)}</g>
+        <path d="M-9.2,1.0 L-8.2,-4.0 L-1.0,-6.0 L7.2,-4.6 L9.2,0.2 L4.4,2.0 L-5.2,2.0 Z" fill="#9a978f"/>
+        <path d="M-7.6,-3.6 L-1.0,-5.7 L6.6,-4.3 L4.0,-1.8 L-4.8,-1.8 Z" fill="#ccc9c0"/>
+        <path d="M4.0,-1.8 L7.2,-4.6 L9.2,0.2 L4.4,2.0 Z" fill="#6b6861"/>
+        <path d="M-7.4,-2.4 Q-4.6,-5.4 -0.4,-5.4 Q-2.2,-3.4 -4.2,-2.2 Z" fill="#6c9a2e" opacity="0.88"/>
+        <path d="M-3.5,-2.2 L3.8,-2.8" stroke="#52504a" stroke-width="0.65" fill="none" opacity="0.65"/>
+        <path d="M4.8,2.1 Q5.2,-1.0 8.2,-1.4 Q11.0,-1.0 11.2,1.5 Q9.2,2.5 4.8,2.1 Z" fill="#89867f"/>
+        <ellipse cx="-6.8" cy="2.2" rx="1.8" ry="0.9" fill="#9d9a92"/>
+        <ellipse cx="-3.6" cy="2.4" rx="1.2" ry="0.6" fill="#b49e83"/>
+        <g transform="translate(-1.8, 1.4)">${grassTuft(seed + 19, 3, 4.8, grassPal)}</g>
+      `;
+    }
+    return `<g class="iso-boulder-cluster" transform="scale(${(mirror * s).toFixed(3)}, ${s.toFixed(3)})">${inner}</g>`;
+  }
+
+  function renderRimPebbles(seed, scale) {
+    const s = scale || 1;
+    const tones = [
+      ['#8f8c85', '#bab7af'],
+      ['#a89278', '#c6b197'],
+      ['#848a6b', '#a4ab88'],
+      ['#987460', '#b8927c']
+    ];
+    const t1 = tones[Math.floor(seededRand(seed + 1) * tones.length)];
+    const t2 = tones[Math.floor(seededRand(seed + 7) * tones.length)];
+    return `
+      <g class="iso-rim-pebbles" transform="scale(${s.toFixed(3)})">
+        <ellipse cx="0" cy="0.9" rx="5.2" ry="2.1" fill="#182409" opacity="0.22"/>
+        <g transform="translate(-1.5, 0.2)">${grassTuft(seed + 3, 4, 5.8, ['#549020', '#74b02e', '#8ec742'])}</g>
+        <ellipse cx="-1.6" cy="0.2" rx="3.4" ry="1.8" fill="${t1[0]}"/>
+        <ellipse cx="-2.1" cy="-0.3" rx="2.3" ry="1.1" fill="${t1[1]}" opacity="0.82"/>
+        <ellipse cx="2.6" cy="0.7" rx="2.3" ry="1.3" fill="${t2[0]}"/>
+        <ellipse cx="2.2" cy="0.3" rx="1.5" ry="0.75" fill="${t2[1]}" opacity="0.82"/>
+        <ellipse cx="-4.6" cy="1.1" rx="1.3" ry="0.7" fill="#9a978f"/>
+      </g>
+    `;
+  }
+
+
   function renderSoilStones(p0, p1, isShaded, gridSize, wallDepth, seedBase) {
     const dx = p1.x - p0.x;
     const dy = p1.y - p0.y;
-    const numStones = Math.max(8, Math.min(28, gridSize * 3));
-    const stones = [];
+    const out = [];
 
+    // Sediment strata bands following the wall slope
+    const bands = [
+      { d: 0.32, w: 2.4, c: isShaded ? 'rgba(30,16,6,0.28)' : 'rgba(40,22,8,0.22)' },
+      { d: 0.58, w: 1.4, c: isShaded ? 'rgba(150,110,70,0.16)' : 'rgba(196,150,100,0.2)' },
+      { d: 0.78, w: 3, c: isShaded ? 'rgba(20,10,4,0.3)' : 'rgba(34,18,6,0.24)' }
+    ];
+    bands.forEach((b, bi) => {
+      let d = '';
+      const steps = 14;
+      for (let i = 0; i <= steps; i++) {
+        const t = i / steps;
+        const wob = (seededRand(seedBase + bi * 57 + i * 11) - 0.5) * 3;
+        const x = p0.x + dx * t;
+        const y = p0.y + dy * t + b.d * wallDepth + wob;
+        d += `${i ? ' L' : 'M'}${x.toFixed(1)},${y.toFixed(1)}`;
+      }
+      out.push(`<path d="${d}" stroke="${b.c}" stroke-width="${b.w}" fill="none" stroke-linejoin="round"/>`);
+    });
+
+    // Embedded stones with lit top faces and contact shadows
+    const numStones = Math.max(10, Math.min(34, gridSize * 3.5));
     for (let i = 0; i < numStones; i++) {
-      const t = 0.05 + seededRand(i * 41 + seedBase) * 0.90;
-      const depth = 0.25 + seededRand(i * 73 + seedBase + 13) * 0.58;
+      const t = 0.04 + seededRand(i * 41 + seedBase) * 0.92;
+      const depth = 0.2 + seededRand(i * 73 + seedBase + 13) * 0.68;
       const cx = p0.x + dx * t;
       const cy = p0.y + dy * t + depth * wallDepth;
-      const rx = 3.5 + seededRand(i * 19 + 7) * 5.8;
-      const ry = rx * (0.45 + seededRand(i * 23 + 3) * 0.25);
-      const rot = (isShaded ? -20 : 20) + (seededRand(i * 13) - 0.5) * 24;
-      const fill = isShaded
-        ? (i % 3 === 0 ? '#704d34' : i % 3 === 1 ? '#4d301d' : '#65442b')
-        : (i % 3 === 0 ? '#976f4e' : i % 3 === 1 ? '#6e492e' : '#8a6242');
-      stones.push(
-        `<ellipse cx="${cx.toFixed(1)}" cy="${cy.toFixed(1)}" rx="${rx.toFixed(1)}" ry="${ry.toFixed(1)}" transform="rotate(${rot.toFixed(1)} ${cx.toFixed(1)} ${cy.toFixed(1)})" fill="${fill}" opacity="0.88"/>`
+      const big = seededRand(i * 31 + seedBase) > 0.82;
+      const rx = (big ? 6 : 2.4) + seededRand(i * 19 + 7) * (big ? 4 : 3.6);
+      const ry = rx * (0.5 + seededRand(i * 23 + 3) * 0.25);
+      const rot = (isShaded ? -18 : 18) + (seededRand(i * 13) - 0.5) * 24;
+      const grey = seededRand(i * 59 + seedBase) > 0.55;
+      const base = grey
+        ? (isShaded ? '#5f5b55' : '#85807a')
+        : (isShaded ? (i % 2 ? '#5a3a24' : '#6b4730') : (i % 2 ? '#8a6242' : '#9c7553'));
+      const hi = grey ? (isShaded ? '#7a766f' : '#aaa59d') : (isShaded ? '#7c5a3e' : '#b48c66');
+      const tf = `transform="rotate(${rot.toFixed(1)} ${cx.toFixed(1)} ${cy.toFixed(1)})"`;
+      out.push(
+        `<ellipse cx="${cx.toFixed(1)}" cy="${(cy + ry * 0.45).toFixed(1)}" rx="${(rx * 1.05).toFixed(1)}" ry="${ry.toFixed(1)}" ${tf} fill="rgba(20,10,4,0.35)"/>` +
+        `<ellipse cx="${cx.toFixed(1)}" cy="${cy.toFixed(1)}" rx="${rx.toFixed(1)}" ry="${ry.toFixed(1)}" ${tf} fill="${base}"/>` +
+        `<ellipse cx="${(cx - rx * 0.2).toFixed(1)}" cy="${(cy - ry * 0.35).toFixed(1)}" rx="${(rx * 0.6).toFixed(1)}" ry="${(ry * 0.4).toFixed(1)}" ${tf} fill="${hi}" opacity="0.75"/>`
       );
     }
-    return stones.join('');
+
+    // Fine grit specks
+    const specks = Math.min(70, gridSize * 8);
+    for (let i = 0; i < specks; i++) {
+      const t = seededRand(seedBase * 3 + i * 17);
+      const depth = 0.12 + seededRand(seedBase * 5 + i * 29) * 0.85;
+      const x = p0.x + dx * t;
+      const y = p0.y + dy * t + depth * wallDepth;
+      const light = seededRand(i * 7 + seedBase) > 0.5;
+      out.push(`<circle cx="${x.toFixed(1)}" cy="${y.toFixed(1)}" r="${(0.5 + seededRand(i * 3 + seedBase) * 0.8).toFixed(2)}" fill="${light ? 'rgba(210,170,120,0.35)' : 'rgba(25,12,4,0.4)'}"/>`);
+    }
+
+    // Roots threading down from the turf
+    const roots = Math.max(3, Math.round(gridSize * 0.9));
+    for (let i = 0; i < roots; i++) {
+      const t = 0.06 + seededRand(seedBase + i * 97) * 0.88;
+      const x0 = p0.x + dx * t;
+      const y0 = p0.y + dy * t + 4;
+      const len = wallDepth * (0.3 + seededRand(seedBase + i * 61) * 0.55);
+      const sway = (seededRand(seedBase + i * 43) - 0.5) * 10;
+      const col = isShaded ? '#3e2716' : '#5a3b22';
+      out.push(
+        `<path d="M${x0.toFixed(1)},${y0.toFixed(1)} C${(x0 + sway).toFixed(1)},${(y0 + len * 0.35).toFixed(1)} ${(x0 - sway * 0.6).toFixed(1)},${(y0 + len * 0.7).toFixed(1)} ${(x0 + sway * 0.4).toFixed(1)},${(y0 + len).toFixed(1)}" stroke="${col}" stroke-width="${(0.9 + seededRand(i + seedBase) * 0.9).toFixed(2)}" fill="none" stroke-linecap="round" opacity="0.85"/>` +
+        `<path d="M${(x0 + sway * 0.5).toFixed(1)},${(y0 + len * 0.45).toFixed(1)} q${(sway * 0.4).toFixed(1)},4 ${(sway * 0.2 + 3).toFixed(1)},7" stroke="${col}" stroke-width="0.6" fill="none" stroke-linecap="round" opacity="0.7"/>`
+      );
+    }
+
+    // Ambient occlusion right under the turf lip + darkening toward the base
+    out.push(`<path d="M${p0.x.toFixed(1)},${(p0.y + 3).toFixed(1)} L${p1.x.toFixed(1)},${(p1.y + 3).toFixed(1)}" stroke="rgba(15,8,2,0.45)" stroke-width="7" fill="none"/>`);
+    return out.join('');
   }
+
 
   function renderScallopedTurfEdge(pStart, pEnd, isShaded, gridSize, seedBase, exactSegments) {
     const segments = exactSegments || Math.max(10, gridSize * 3);
@@ -169,10 +376,39 @@
     }
     d += ` L ${pEnd.x.toFixed(1)},${(pEnd.y - 2).toFixed(1)} L ${pStart.x.toFixed(1)},${(pStart.y - 2).toFixed(1)} Z`;
     const shadowD = d.replace(/Z$/, '');
-    const fill = isShaded ? '#78b030' : '#96cf43';
+    const fill = isShaded ? '#5f9626' : '#86c23a';
+    const dark = isShaded ? '#4a7a1c' : '#6aa42c';
+    const lite = isShaded ? '#7fb535' : '#a6dc55';
+
+    // Drooping grass blades hanging over the edge
+    let blades = '';
+    const count = Math.round(Math.hypot(dx, dy) / 3.2);
+    for (let i = 0; i < count; i++) {
+      const t = (i + seededRand(seedBase + i * 7)) / count;
+      const x = pStart.x + dx * t;
+      const y = pStart.y + dy * t + 3;
+      const len = 4 + seededRand(seedBase + i * 13) * 7;
+      const lean = (seededRand(seedBase + i * 19) - 0.5) * 4;
+      const col = i % 3 === 0 ? dark : i % 3 === 1 ? fill : lite;
+      blades += `<path d="M${(x - 1).toFixed(1)},${y.toFixed(1)} Q${(x + lean * 0.3).toFixed(1)},${(y + len * 0.6).toFixed(1)} ${(x + lean).toFixed(1)},${(y + len).toFixed(1)} Q${(x + 0.4).toFixed(1)},${(y + len * 0.5).toFixed(1)} ${(x + 1).toFixed(1)},${y.toFixed(1)} Z" fill="${col}"/>`;
+    }
+    // Upright blades along the top crest
+    let crest = '';
+    const cCount = Math.round(Math.hypot(dx, dy) / 4.5);
+    for (let i = 0; i < cCount; i++) {
+      const t = (i + seededRand(seedBase + i * 23)) / cCount;
+      const x = pStart.x + dx * t;
+      const y = pStart.y + dy * t;
+      const h = 2.5 + seededRand(seedBase + i * 31) * 3.5;
+      const lean = (seededRand(seedBase + i * 37) - 0.5) * 3;
+      crest += `<path d="M${(x - 0.8).toFixed(1)},${y.toFixed(1)} L${(x + lean).toFixed(1)},${(y - h).toFixed(1)} L${(x + 0.8).toFixed(1)},${y.toFixed(1)} Z" fill="${i % 2 ? lite : fill}"/>`;
+    }
     return `
-      <path d="${shadowD}" fill="none" stroke="rgba(26,14,6,0.35)" stroke-width="3" transform="translate(0, 2)"/>
+      <path d="${shadowD}" fill="none" stroke="rgba(26,14,6,0.4)" stroke-width="3.5" transform="translate(0, 2.5)"/>
       <path d="${d}" fill="${fill}"/>
+      <path d="${shadowD}" fill="none" stroke="${dark}" stroke-width="1.2" opacity="0.7"/>
+      ${blades}
+      ${crest}
     `;
   }
 
@@ -443,6 +679,162 @@
     });
 
     return { streams, streamTileKeys, streamCellMap };
+  }
+
+  function carveTrailWaypoints(waypoints, N, pondTileKeys) {
+    const path = [];
+    const visited = new Set();
+    const pushPt = (r, c) => {
+      if (r < 0 || r >= N || c < 0 || c >= N) return false;
+      if (pondTileKeys.has(`${r},${c}`)) return false;
+      const key = `${r},${c}`;
+      if (path.length && path[path.length - 1].r === r && path[path.length - 1].c === c) return true;
+      if (visited.has(key)) return false;
+      visited.add(key);
+      path.push({ r, c });
+      return true;
+    };
+
+    for (let i = 0; i < waypoints.length; i++) {
+      const wp = waypoints[i];
+      if (!path.length) {
+        pushPt(wp.r, wp.c);
+        continue;
+      }
+      let cur = path[path.length - 1];
+      let guard = N * 4;
+      while ((cur.r !== wp.r || cur.c !== wp.c) && guard-- > 0) {
+        const dr = wp.r - cur.r;
+        const dc = wp.c - cur.c;
+        const stepR = dr === 0 ? 0 : (dr > 0 ? 1 : -1);
+        const stepC = dc === 0 ? 0 : (dc > 0 ? 1 : -1);
+        const tryMoves = [];
+        if (Math.abs(dr) >= Math.abs(dc)) {
+          if (stepR) tryMoves.push({ r: cur.r + stepR, c: cur.c });
+          if (stepC) tryMoves.push({ r: cur.r, c: cur.c + stepC });
+        } else {
+          if (stepC) tryMoves.push({ r: cur.r, c: cur.c + stepC });
+          if (stepR) tryMoves.push({ r: cur.r + stepR, c: cur.c });
+        }
+        // Detour perpendicular if primary orthogonal steps hit a pond
+        if (stepR !== 0) {
+          tryMoves.push({ r: cur.r, c: cur.c + 1 }, { r: cur.r, c: cur.c - 1 });
+        } else if (stepC !== 0) {
+          tryMoves.push({ r: cur.r + 1, c: cur.c }, { r: cur.r - 1, c: cur.c });
+        }
+        let moved = false;
+        for (let m = 0; m < tryMoves.length; m++) {
+          const cand = tryMoves[m];
+          if (cand.r < 0 || cand.r >= N || cand.c < 0 || cand.c >= N) continue;
+          if (pondTileKeys.has(`${cand.r},${cand.c}`)) continue;
+          if (visited.has(`${cand.r},${cand.c}`)) continue;
+          pushPt(cand.r, cand.c);
+          cur = path[path.length - 1];
+          moved = true;
+          break;
+        }
+        if (!moved) break;
+      }
+    }
+    return path;
+  }
+
+  function buildForestTrails(N, ponds, pondTileKeys) {
+    const candidateWaypoints = [];
+    if (N === 4) {
+      candidateWaypoints.push(
+        { tiles: [{ r: 3, c: 0 }, { r: 3, c: 1 }, { r: 3, c: 2 }, { r: 2, c: 2 }, { r: 1, c: 2 }, { r: 0, c: 2 }], seed: 4201 }
+      );
+    } else if (N === 5) {
+      candidateWaypoints.push(
+        { tiles: [{ r: 4, c: 0 }, { r: 3, c: 0 }, { r: 2, c: 0 }, { r: 2, c: 1 }, { r: 2, c: 2 }, { r: 1, c: 2 }, { r: 0, c: 2 }], seed: 5201 },
+        { tiles: [{ r: 2, c: 2 }, { r: 2, c: 3 }, { r: 2, c: 4 }, { r: 3, c: 4 }], seed: 5202 }
+      );
+    } else if (N === 6) {
+      candidateWaypoints.push(
+        { tiles: [{ r: 5, c: 0 }, { r: 4, c: 0 }, { r: 3, c: 0 }, { r: 2, c: 0 }, { r: 2, c: 1 }, { r: 2, c: 2 }, { r: 2, c: 3 }, { r: 2, c: 4 }, { r: 1, c: 4 }, { r: 0, c: 4 }], seed: 6201 },
+        { tiles: [{ r: 2, c: 2 }, { r: 3, c: 2 }, { r: 4, c: 2 }, { r: 5, c: 2 }], seed: 6202 }
+      );
+    } else if (N === 8) {
+      candidateWaypoints.push(
+        { tiles: [{ r: 7, c: 2 }, { r: 6, c: 2 }, { r: 5, c: 2 }, { r: 4, c: 2 }, { r: 3, c: 2 }, { r: 3, c: 3 }, { r: 3, c: 4 }, { r: 2, c: 4 }, { r: 1, c: 4 }, { r: 0, c: 4 }], seed: 8201 },
+        { tiles: [{ r: 3, c: 4 }, { r: 3, c: 5 }, { r: 4, c: 5 }, { r: 4, c: 6 }, { r: 4, c: 7 }], seed: 8202 },
+        { tiles: [{ r: 6, c: 2 }, { r: 6, c: 1 }, { r: 6, c: 0 }], seed: 8203 }
+      );
+    } else if (N === 10) {
+      candidateWaypoints.push(
+        { tiles: [{ r: 9, c: 1 }, { r: 8, c: 1 }, { r: 7, c: 1 }, { r: 6, c: 1 }, { r: 5, c: 1 }, { r: 4, c: 1 }, { r: 3, c: 1 }, { r: 3, c: 2 }, { r: 3, c: 3 }, { r: 3, c: 4 }, { r: 3, c: 5 }, { r: 3, c: 6 }, { r: 2, c: 6 }, { r: 1, c: 6 }, { r: 0, c: 6 }], seed: 10201 },
+        { tiles: [{ r: 3, c: 6 }, { r: 4, c: 6 }, { r: 5, c: 6 }, { r: 6, c: 6 }, { r: 7, c: 6 }, { r: 7, c: 7 }, { r: 7, c: 8 }, { r: 7, c: 9 }], seed: 10202 },
+        { tiles: [{ r: 6, c: 6 }, { r: 6, c: 5 }, { r: 6, c: 4 }, { r: 6, c: 3 }, { r: 7, c: 3 }, { r: 8, c: 3 }, { r: 9, c: 3 }], seed: 10203 }
+      );
+    } else if (N === 12) {
+      candidateWaypoints.push(
+        { tiles: [{ r: 11, c: 2 }, { r: 10, c: 2 }, { r: 9, c: 2 }, { r: 8, c: 2 }, { r: 7, c: 2 }, { r: 6, c: 2 }, { r: 5, c: 2 }, { r: 4, c: 2 }, { r: 3, c: 2 }, { r: 3, c: 3 }, { r: 3, c: 4 }, { r: 3, c: 5 }, { r: 3, c: 6 }, { r: 3, c: 7 }, { r: 2, c: 7 }, { r: 1, c: 7 }, { r: 0, c: 7 }], seed: 12201 },
+        { tiles: [{ r: 3, c: 7 }, { r: 4, c: 7 }, { r: 5, c: 7 }, { r: 6, c: 7 }, { r: 7, c: 7 }, { r: 8, c: 7 }, { r: 8, c: 8 }, { r: 8, c: 9 }, { r: 8, c: 10 }, { r: 8, c: 11 }], seed: 12202 },
+        { tiles: [{ r: 5, c: 7 }, { r: 5, c: 6 }, { r: 5, c: 5 }, { r: 5, c: 4 }, { r: 5, c: 3 }, { r: 6, c: 3 }, { r: 7, c: 3 }, { r: 8, c: 3 }, { r: 8, c: 4 }, { r: 9, c: 4 }, { r: 10, c: 4 }, { r: 11, c: 4 }], seed: 12203 }
+      );
+    } else {
+      const midR = Math.floor(N / 2);
+      const midC = Math.floor(N / 2);
+      candidateWaypoints.push(
+        { waypoints: [{ r: N - 1, c: 1 }, { r: N - 3, c: 1 }, { r: 3, c: 1 }, { r: 3, c: midC + 1 }, { r: 0, c: midC + 1 }], seed: 14201 },
+        { waypoints: [{ r: 3, c: midC + 1 }, { r: midR + 2, c: midC + 1 }, { r: midR + 2, c: N - 1 }], seed: 14202 },
+        { waypoints: [{ r: midR + 1, c: 1 }, { r: midR + 1, c: midC - 1 }, { r: N - 1, c: midC - 1 }], seed: 14203 }
+      );
+    }
+
+    const trailTileKeys = new Set();
+    const trailCellMap = new Map();
+    const trailHeadEdges = new Set();
+
+    candidateWaypoints.forEach((cand) => {
+      const resolvedTiles = cand.tiles
+        ? cand.tiles.filter((t) => t.r >= 0 && t.r < N && t.c >= 0 && t.c < N && !pondTileKeys.has(`${t.r},${t.c}`))
+        : carveTrailWaypoints(cand.waypoints, N, pondTileKeys);
+      if (resolvedTiles.length < 2) return;
+
+      resolvedTiles.forEach((t, idx) => {
+        const prevRef = idx > 0 ? resolvedTiles[idx - 1] : null;
+        const nextRef = idx < resolvedTiles.length - 1 ? resolvedTiles[idx + 1] : null;
+        const inDir = prevRef ? getStepDir(t, prevRef) : null;
+        const outDir = nextRef ? getStepDir(t, nextRef) : null;
+        const key = `${t.r},${t.c}`;
+        trailTileKeys.add(key);
+
+        let rimEntryDir = null;
+        if (!inDir && idx === 0) {
+          if (t.r === N - 1) rimEntryDir = 'S';
+          else if (t.r === 0) rimEntryDir = 'N';
+          else if (t.c === 0) rimEntryDir = 'W';
+          else if (t.c === N - 1) rimEntryDir = 'E';
+        }
+        let rimExitDir = null;
+        if (!outDir && idx === resolvedTiles.length - 1) {
+          if (t.r === 0) rimExitDir = 'N';
+          else if (t.r === N - 1) rimExitDir = 'S';
+          else if (t.c === N - 1) rimExitDir = 'E';
+          else if (t.c === 0) rimExitDir = 'W';
+        }
+        if (rimEntryDir) trailHeadEdges.add(`${t.r},${t.c},${rimEntryDir}`);
+        if (rimExitDir) trailHeadEdges.add(`${t.r},${t.c},${rimExitDir}`);
+
+        if (!trailCellMap.has(key)) {
+          trailCellMap.set(key, { r: t.r, c: t.c, branches: [] });
+        }
+        trailCellMap.get(key).branches.push({
+          inDir: inDir || rimEntryDir,
+          outDir: outDir || rimExitDir,
+          isRimStart: !inDir && Boolean(rimEntryDir),
+          isRimEnd: !outDir && Boolean(rimExitDir),
+          prevTile: prevRef,
+          nextTile: nextRef,
+          isJunctionBranch: idx === 0 && trailCellMap.get(key).branches.length > 0,
+          seed: cand.seed + idx * 43
+        });
+      });
+    });
+
+    return { trailTileKeys, trailCellMap, trailHeadEdges };
   }
 
   function buildSteplandGrid(N, ponds, streams) {
@@ -1015,6 +1407,196 @@
     `;
   }
 
+  function renderTrailTileSegment(trailCell, cu, cv, level, steplandLevels, centerX, centerY, cosA, sinA, pitch, stepH, isStreamFord, passMode) {
+    const elevPx = level * stepH;
+    const proj = (u, v, yOff = 0) => {
+      const pt = projectIso(u, v, centerX, centerY, cosA, sinA, pitch);
+      return { x: pt.x, y: pt.y - elevPx + yOff };
+    };
+
+    const beds = [];
+    const stones = [];
+    const stepSlabs = [];
+    const tufts = [];
+    const stoneTops = ['#d8d5cc', '#cdcac1', '#e0ddd4', '#c5c1b7'];
+    const stoneSides = ['#9a968d', '#8c887f', '#a19d94', '#837f76'];
+
+    (trailCell.branches || []).forEach((branch, bIdx) => {
+      const inVec = branch.inDir ? STREAM_DIRS[branch.inDir] : null;
+      const outVec = branch.outDir ? STREAM_DIRS[branch.outDir] : null;
+      const p0 = inVec
+        ? { u: cu + inVec.du * (branch.isRimStart ? 0.92 : 1), v: cv + inVec.dv * (branch.isRimStart ? 0.92 : 1) }
+        : { u: cu - (outVec ? outVec.du * 0.16 : 0), v: cv - (outVec ? outVec.dv * 0.16 : 0) };
+      const p2 = outVec
+        ? { u: cu + outVec.du * (branch.isRimEnd ? 0.92 : 1), v: cv + outVec.dv * (branch.isRimEnd ? 0.92 : 1) }
+        : { u: cu - (inVec ? inVec.du * 0.16 : 0), v: cv - (inVec ? inVec.dv * 0.16 : 0) };
+
+      const dx = p2.u - p0.u;
+      const dy = p2.v - p0.v;
+      const dLen = Math.hypot(dx, dy) || 1;
+      const perpU = -dy / dLen;
+      const perpV = dx / dLen;
+      const curveSign = seededRand(branch.seed + 5) >= 0.5 ? 1 : -1;
+      const isOpposite = inVec && outVec && (inVec.dr + outVec.dr === 0 && inVec.dc + outVec.dc === 0);
+      const meanderMag = isOpposite
+        ? (0.14 + seededRand(branch.seed + 7) * 0.08) * curveSign
+        : (0.06 + seededRand(branch.seed + 9) * 0.06) * curveSign;
+      const p1 = {
+        u: (p0.u + p2.u) * 0.5 + perpU * meanderMag,
+        v: (p0.v + p2.v) * 0.5 + perpV * meanderMag
+      };
+
+      const evalCurve = (t) => {
+        const mt = 1 - t;
+        const u = mt * mt * p0.u + 2 * mt * t * p1.u + t * t * p2.u;
+        const v = mt * mt * p0.v + 2 * mt * t * p1.v + t * t * p2.v;
+        const tu = 2 * mt * (p1.u - p0.u) + 2 * t * (p2.u - p1.u);
+        const tv = 2 * mt * (p1.v - p0.v) + 2 * t * (p2.v - p1.v);
+        const tl = Math.hypot(tu, tv) || 1;
+        return { u, v, fu: tu / tl, fv: tv / tl, pu: -tv / tl, pv: tu / tl };
+      };
+
+      if (passMode === 'base' && !isStreamFord) {
+        // Subtle worn mossy-earth track beneath flagstones (never over stream water)
+        const bedSamples = [];
+        for (let k = 0; k <= 6; k++) bedSamples.push(evalCurve(k / 6));
+        const hw = 0.105;
+        const lPts = bedSamples.map((s) => {
+          const p = proj(s.u + s.pu * hw, s.v + s.pv * hw, 0);
+          return `${p.x.toFixed(1)},${p.y.toFixed(1)}`;
+        });
+        const rPts = bedSamples.slice().reverse().map((s) => {
+          const p = proj(s.u - s.pu * hw, s.v - s.pv * hw, 0);
+          return `${p.x.toFixed(1)},${p.y.toFixed(1)}`;
+        });
+        beds.push(`<path d="M ${lPts.join(' L ')} L ${rPts.join(' L ')} Z" fill="#7c7352" opacity="0.24"/>`);
+      }
+
+      const drawFlagstones = (passMode === 'base' && !isStreamFord) || (passMode === 'ford' && isStreamFord);
+      if (drawFlagstones) {
+        const tPositions = isStreamFord
+          ? [0.16, 0.50, 0.84]
+          : (branch.isJunctionBranch ? [0.46, 0.78] : [0.15, 0.45, 0.76]);
+
+        tPositions.forEach((tPos, sIdx) => {
+          const stSeed = branch.seed + sIdx * 67 + bIdx * 13;
+          const cPt = evalCurve(tPos);
+          const latJitter = isStreamFord ? 0 : (seededRand(stSeed + 3) - 0.5) * 0.055;
+          const su = cPt.u + cPt.pu * latJitter;
+          const sv = cPt.v + cPt.pv * latJitter;
+          const rAlong = (isStreamFord ? 0.095 : 0.088) + seededRand(stSeed + 11) * 0.025;
+          const rCross = (isStreamFord ? 0.115 : 0.105) + seededRand(stSeed + 17) * 0.028;
+
+          const topPts = [];
+          const sidePts = [];
+          const hiPts = [];
+          const verts = 7;
+          const stoneThick = isStreamFord ? 1.8 : 1.3;
+          for (let vIdx = 0; vIdx < verts; vIdx++) {
+            const ang = (vIdx / verts) * Math.PI * 2 + seededRand(stSeed + 23) * 0.4;
+            const wob = 0.84 + seededRand(stSeed + 31 + vIdx * 7) * 0.30;
+            const du = (cPt.fu * Math.cos(ang) * rAlong + cPt.pu * Math.sin(ang) * rCross) * wob;
+            const dv = (cPt.fv * Math.cos(ang) * rAlong + cPt.pv * Math.sin(ang) * rCross) * wob;
+            const ptTop = proj(su + du, sv + dv, isStreamFord ? -0.3 : -0.15);
+            topPts.push(`${ptTop.x.toFixed(1)},${ptTop.y.toFixed(1)}`);
+            sidePts.push(`${ptTop.x.toFixed(1)},${(ptTop.y + stoneThick).toFixed(1)}`);
+            if (vIdx < 4) {
+              const ptHi = proj(su + du * 0.52 - 0.015, sv + dv * 0.52 - 0.015, isStreamFord ? -0.45 : -0.3);
+              hiPts.push(`${ptHi.x.toFixed(1)},${ptHi.y.toFixed(1)}`);
+            }
+          }
+          const toneIdx = Math.floor(seededRand(stSeed + 41) * stoneTops.length);
+          const topCol = stoneTops[toneIdx];
+          const sideCol = stoneSides[toneIdx];
+
+          stones.push(
+            `<polygon points="${sidePts.join(' ')}" fill="${sideCol}" stroke="#445424" stroke-width="0.65" stroke-linejoin="round"/>` +
+            `<polygon points="${topPts.join(' ')}" fill="${topCol}" stroke="rgba(72,82,52,0.55)" stroke-width="0.55" stroke-linejoin="round"/>` +
+            `<polygon points="${hiPts.join(' ')}" fill="#eeebe3" opacity="0.48"/>`
+          );
+
+          if (!isStreamFord && seededRand(stSeed + 53) > 0.32) {
+            const side = seededRand(stSeed + 59) > 0.5 ? 1 : -1;
+            const gPt = proj(su + cPt.pu * (rCross * 1.05 * side), sv + cPt.pv * (rCross * 1.05 * side), 0);
+            tufts.push(
+              `<g transform="translate(${gPt.x.toFixed(1)}, ${gPt.y.toFixed(1)}) scale(0.58)">${grassTuft(stSeed + 61, 4, 5.2, ['#4f8a1f', '#6ca82a', '#8ac440'])}</g>`
+            );
+          }
+        });
+      }
+
+      // Stone step slabs where trail steps down an interior terrace riser
+      if (passMode === 'base' && outVec && branch.nextTile && steplandLevels[branch.nextTile.r]) {
+        const nextLevel = steplandLevels[branch.nextTile.r][branch.nextTile.c];
+        if (level > nextLevel) {
+          const nyScreen = outVec.nu * sinA + outVec.nv * cosA;
+          if (nyScreen > 0.005) {
+            const dropPx = (level - nextLevel) * stepH;
+            const stepMidY = dropPx * 0.52;
+            const eL = proj(p2.u + outVec.pu * 0.13, p2.v + outVec.pv * 0.13, stepMidY);
+            const eR = proj(p2.u - outVec.pu * 0.13, p2.v - outVec.pv * 0.13, stepMidY);
+            const fL = proj(p2.u + outVec.pu * 0.13 + outVec.nu * 0.11, p2.v + outVec.pv * 0.13 + outVec.nv * 0.11, stepMidY);
+            const fR = proj(p2.u - outVec.pu * 0.13 + outVec.nu * 0.11, p2.v - outVec.pv * 0.13 + outVec.nv * 0.11, stepMidY);
+            const topSlab = `${eL.x.toFixed(1)},${eL.y.toFixed(1)} ${eR.x.toFixed(1)},${eR.y.toFixed(1)} ${fR.x.toFixed(1)},${fR.y.toFixed(1)} ${fL.x.toFixed(1)},${fL.y.toFixed(1)}`;
+            const frontLip = `${fL.x.toFixed(1)},${fL.y.toFixed(1)} ${fR.x.toFixed(1)},${fR.y.toFixed(1)} ${fR.x.toFixed(1)},${(fR.y + 2.4).toFixed(1)} ${fL.x.toFixed(1)},${(fL.y + 2.4).toFixed(1)}`;
+            stepSlabs.push(
+              `<polygon points="${frontLip}" fill="#7f7b72"/>` +
+              `<polygon points="${topSlab}" fill="#cfccc3" stroke="#5d5a52" stroke-width="0.5"/>`
+            );
+          }
+        }
+      }
+    });
+
+    if (!beds.length && !stones.length && !stepSlabs.length) return '';
+    return `
+      <g class="iso-forest-trail" pointer-events="none">
+        ${beds.join('')}
+        ${stepSlabs.join('')}
+        ${stones.join('')}
+        ${tufts.join('')}
+      </g>
+    `;
+  }
+
+
+  // Per-tile grass texture: soft colour patches, short blade strokes and sun-facing sheen,
+  // so the checkerboard reads as a natural meadow rather than flat tiles.
+  function renderTileTexture(r, c, N, elevPx, u0, v0, centerX, centerY, cosA, sinA, pitch, level) {
+    const seed = r * 211 + c * 157 + N * 13;
+    const pt = (u, v) => {
+      const p = projectIso(u0 + u, v0 + v, centerX, centerY, cosA, sinA, pitch);
+      return { x: p.x, y: p.y - elevPx };
+    };
+    let out = '';
+    // Mottled light/dark patches
+    for (let i = 0; i < 3; i++) {
+      const p = pt(0.2 + seededRand(seed + i * 5) * 0.6, 0.2 + seededRand(seed + i * 9) * 0.6);
+      const dark = seededRand(seed + i * 17) > 0.5;
+      const rx = 6 + seededRand(seed + i * 3) * 9;
+      out += `<ellipse cx="${p.x.toFixed(1)}" cy="${p.y.toFixed(1)}" rx="${rx.toFixed(1)}" ry="${(rx * pitch).toFixed(1)}" fill="${dark ? 'rgba(46,92,14,0.16)' : 'rgba(230,255,170,0.14)'}"/>`;
+    }
+    // Short grass strokes
+    const strokes = 9;
+    let d1 = '', d2 = '';
+    for (let i = 0; i < strokes; i++) {
+      const p = pt(0.1 + seededRand(seed + i * 31) * 0.8, 0.1 + seededRand(seed + i * 37) * 0.8);
+      const h = 2 + seededRand(seed + i * 41) * 2.6;
+      const lean = (seededRand(seed + i * 43) - 0.5) * 2.4;
+      const seg = `M${p.x.toFixed(1)},${p.y.toFixed(1)} l${lean.toFixed(1)},${(-h).toFixed(1)}`;
+      if (i % 2) d1 += seg; else d2 += seg;
+    }
+    out += `<path d="${d1}" stroke="rgba(52,100,16,0.55)" stroke-width="0.9" stroke-linecap="round" fill="none"/>`;
+    out += `<path d="${d2}" stroke="rgba(220,250,150,0.5)" stroke-width="0.8" stroke-linecap="round" fill="none"/>`;
+    // Higher terraces catch a touch more sun
+    if (level > 0) {
+      const a = pt(0, 0), b = pt(1, 0), cc = pt(1, 1), dd = pt(0, 1);
+      out += `<polygon points="${a.x.toFixed(1)},${a.y.toFixed(1)} ${b.x.toFixed(1)},${b.y.toFixed(1)} ${cc.x.toFixed(1)},${cc.y.toFixed(1)} ${dd.x.toFixed(1)},${dd.y.toFixed(1)}" fill="rgba(255,250,200,${(0.03 * level).toFixed(2)})"/>`;
+    }
+    return out;
+  }
+
+
   function computePlatformGeometry(N, items, state) {
     const diamondW = N * TILE_W;
     const diamondH = N * TILE_H;
@@ -1033,6 +1615,7 @@
     const orderedItems = items.slice();
     const { ponds, pondTileKeys } = buildForestPonds(N, orderedItems.length);
     const { streams, streamTileKeys, streamCellMap } = buildForestStreams(N, ponds, pondTileKeys);
+    const { trailTileKeys, trailCellMap, trailHeadEdges } = buildForestTrails(N, ponds, pondTileKeys);
     const steplandLevels = buildSteplandGrid(N, ponds, streams);
     const allSlots = buildTileSlots(N);
     const slots = allSlots.filter((s) => !pondTileKeys.has(`${s.r},${s.c}`));
@@ -1041,6 +1624,19 @@
     orderedItems.forEach((item, idx) => {
       const slot = treeSlots[idx % treeSlots.length];
       occupiedMap.set(`${slot.r},${slot.c}`, { item, idx });
+    });
+
+    // Edge lookup for quick stream-rim avoidance when placing outer perimeter stones
+    const streamBorderEdges = new Set();
+    streams.forEach((st) => {
+      st.tiles.forEach((t, idx) => {
+        if (idx === 0 || idx === st.tiles.length - 1) {
+          if (t.r === 0) streamBorderEdges.add(`${t.r},${t.c},N`);
+          if (t.r === N - 1) streamBorderEdges.add(`${t.r},${t.c},S`);
+          if (t.c === 0) streamBorderEdges.add(`${t.r},${t.c},W`);
+          if (t.c === N - 1) streamBorderEdges.add(`${t.r},${t.c},E`);
+        }
+      });
     });
 
     // 4 platform corners in clockwise grid order (base level = 0)
@@ -1208,7 +1804,8 @@
       const isSelected = occ && state.selectedIdx === occ.idx;
 
       tilesMarkup.push(
-        `<polygon points="${polyPts}" fill="${fill}" stroke="rgba(255,255,255,0.08)" stroke-width="0.6"/>`
+        `<polygon points="${polyPts}" fill="${fill}" stroke="rgba(40,70,10,0.10)" stroke-width="0.6"/>` +
+        renderTileTexture(r, c, N, elevPx, u0, v0, centerX, centerY, cosA, sinA, pitch, level)
       );
       if (isSelected) {
         tilesMarkup.push(
@@ -1217,15 +1814,88 @@
       }
 
       const streamCell = streamCellMap.get(`${r},${c}`);
+      const trailCell = trailCellMap.get(`${r},${c}`);
+      const isStreamTile = Boolean(streamCell);
+
+      if (trailCell && !isStreamTile) {
+        tilesMarkup.push(
+          renderTrailTileSegment(trailCell, cu, cv, level, steplandLevels, centerX, centerY, cosA, sinA, pitch, stepH, false, 'base')
+        );
+      }
+
       if (streamCell) {
         tilesMarkup.push(
           renderStreamTileSegment(streamCell, cu, cv, level, steplandLevels, half, centerX, centerY, cosA, sinA, pitch, stepH)
         );
       }
 
+      if (trailCell && isStreamTile) {
+        tilesMarkup.push(
+          renderTrailTileSegment(trailCell, cu, cv, level, steplandLevels, centerX, centerY, cosA, sinA, pitch, stepH, true, 'ford')
+        );
+      }
+
       const trigPonds = pondsAtTriggerTile.get(`${r},${c}`);
       if (trigPonds) {
         tilesMarkup.push(`<g pointer-events="none">${trigPonds.join('')}</g>`);
+      }
+
+      // Stones & boulder clusters IN the forest (corner pockets away from trunks & trails)
+      const cellKey = `${r},${c}`;
+      const isPond = pondTileKeys.has(cellKey);
+      const isTrail = trailTileKeys.has(cellKey);
+      if (!isPond && !isTrail) {
+        const stoneSeed = r * 173 + c * 257 + N * 41;
+        const stoneRoll = seededRand(stoneSeed);
+        const interiorThresh = N <= 6 ? 0.34 : (occ ? 0.25 : 0.22);
+        if (stoneRoll < interiorThresh) {
+          const cornerIdx = Math.floor(seededRand(stoneSeed + 19) * 4);
+          const cornerOffsets = [[-0.35, -0.35], [0.35, -0.35], [0.35, 0.35], [-0.35, 0.35]];
+          const [offU, offV] = cornerOffsets[cornerIdx];
+          const sPt = projectIso(cu + offU, cv + offV, centerX, centerY, cosA, sinA, pitch);
+          const kind = isStreamTile ? 1 : Math.floor(seededRand(stoneSeed + 29) * 3);
+          const sc = (occ ? 0.48 : 0.60) + seededRand(stoneSeed + 37) * 0.20;
+          tilesMarkup.push(
+            `<g class="iso-forest-stone" transform="translate(${sPt.x.toFixed(1)}, ${(sPt.y - elevPx).toFixed(1)})" pointer-events="none">${renderBoulderCluster(kind, sc, stoneSeed + 5)}</g>`
+          );
+        }
+      }
+
+      // Stones & granite/cobble clusters AROUND the outer forest rim
+      if (!isPond) {
+        const borderSpecs = [];
+        if (r === 0) borderSpecs.push({ dir: 'N', du: 0, dv: -0.44, nu: 0, nv: -1, tu: 1, tv: 0 });
+        if (c === N - 1) borderSpecs.push({ dir: 'E', du: 0.44, dv: 0, nu: 1, nv: 0, tu: 0, tv: 1 });
+        if (r === N - 1) borderSpecs.push({ dir: 'S', du: 0, dv: 0.44, nu: 0, nv: 1, tu: -1, tv: 0 });
+        if (c === 0) borderSpecs.push({ dir: 'W', du: -0.44, dv: 0, nu: -1, nv: 0, tu: 0, tv: -1 });
+
+        borderSpecs.forEach((bs, bIdx) => {
+          const edgeTag = `${r},${c},${bs.dir}`;
+          if (streamBorderEdges.has(edgeTag) || trailHeadEdges.has(edgeTag)) return;
+          const rimSeed = r * 313 + c * 419 + bIdx * 89 + N * 17;
+          const isCornerTile = (r === 0 || r === N - 1) && (c === 0 || c === N - 1);
+          const rimRoll = seededRand(rimSeed);
+          const threshold = isCornerTile ? 0.72 : 0.48;
+          if (rimRoll > threshold) return;
+
+          const along = (seededRand(rimSeed + 11) - 0.5) * (isCornerTile ? 0.16 : 0.42);
+          const rimPt = projectIso(cu + bs.du + bs.tu * along, cv + bs.dv + bs.tv * along, centerX, centerY, cosA, sinA, pitch);
+          const rx = rimPt.x.toFixed(1);
+          const ry = (rimPt.y - elevPx).toFixed(1);
+          const nyScreen = bs.nu * sinA + bs.nv * cosA;
+          const isFrontRim = nyScreen > 0.005;
+
+          const stoneSvg = (rimRoll < (isCornerTile ? 0.45 : 0.24))
+            ? renderBoulderCluster(Math.floor(seededRand(rimSeed + 23) * 3), (isCornerTile ? 0.74 : 0.56) + seededRand(rimSeed + 31) * 0.28, rimSeed + 7)
+            : renderRimPebbles(rimSeed + 13, 0.85 + seededRand(rimSeed + 37) * 0.35);
+
+          const wrapped = `<g class="iso-rim-stone" transform="translate(${rx}, ${ry})" pointer-events="none">${stoneSvg}</g>`;
+          if (isFrontRim) {
+            terrainPropsMarkup.push(wrapped);
+          } else {
+            tilesMarkup.push(wrapped);
+          }
+        });
       }
 
       const baseCenterPt = projectIso(cu, cv, centerX, centerY, cosA, sinA, pitch);
@@ -1244,7 +1914,7 @@
           zIdx,
           isSelected
         });
-      } else if (!pondTileKeys.has(`${r},${c}`) && !streamTileKeys.has(`${r},${c}`)) {
+      } else if (!isPond && !isStreamTile && !isTrail) {
         const propSvg = renderTerrainProp(r * 97 + c * 193 + N * 31);
         if (propSvg) {
           terrainPropsMarkup.push(
@@ -1414,12 +2084,16 @@
 
   const SVG_STATIC_DEFS = `
     <linearGradient id="isoSoilGradL" x1="0" y1="0" x2="0" y2="1">
-      <stop offset="0%" stop-color="#865b3c"/>
-      <stop offset="100%" stop-color="#694328"/>
+      <stop offset="0%" stop-color="#7a5236"/>
+      <stop offset="35%" stop-color="#8d6243"/>
+      <stop offset="70%" stop-color="#6b4429"/>
+      <stop offset="100%" stop-color="#3f2716"/>
     </linearGradient>
     <linearGradient id="isoSoilGradR" x1="0" y1="0" x2="0" y2="1">
-      <stop offset="0%" stop-color="#634027"/>
-      <stop offset="100%" stop-color="#482c18"/>
+      <stop offset="0%" stop-color="#553621"/>
+      <stop offset="35%" stop-color="#644029"/>
+      <stop offset="70%" stop-color="#4a2e1a"/>
+      <stop offset="100%" stop-color="#2a190c"/>
     </linearGradient>
     <linearGradient id="isoPondWaterGrad" x1="0" y1="0" x2="0" y2="1">
       <stop offset="0%" stop-color="#4cc9e0"/>
@@ -1432,6 +2106,9 @@
     </radialGradient>
     <filter id="isoIslandShadowBlur" x="-15%" y="-15%" width="130%" height="130%">
       <feGaussianBlur stdDeviation="12"/>
+    </filter>
+    <filter id="isoContactShadowBlur" x="-10%" y="-30%" width="120%" height="160%">
+      <feGaussianBlur stdDeviation="4"/>
     </filter>
   `;
 
@@ -1806,7 +2483,7 @@
                 ${geom.clipDefs}
               </defs>
 
-              <polygon class="iso-island-shadow" points="${geom.shadowPts}" fill="rgba(7, 22, 16, 0.45)" filter="url(#isoIslandShadowBlur)"/>
+              <polygon class="iso-island-shadow" points="${geom.shadowPts}" fill="rgba(7, 22, 16, 0.38)" filter="url(#isoIslandShadowBlur)"/>
 
               <g class="iso-walls-layer">${geom.wallsMarkup}</g>
 
