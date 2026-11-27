@@ -23,7 +23,9 @@
     'jacaranda',
     'kenjo',
     'lauka',
-    'totola'
+    'totola',
+    'panch-aunle',
+    'yarsagumba'
   ];
 
   // Build canonical NEPAL_PLANTS array
@@ -46,6 +48,25 @@
   }).filter(Boolean);
 
   const EXACT_PLANT_ALIASES = {
+    'yarsagumba': 'yarsagumba',
+    'yarchagumba': 'yarsagumba',
+    'yarshagumba': 'yarsagumba',
+    'yarsagumba (caterpillar fungus)': 'yarsagumba',
+    'caterpillar fungus': 'yarsagumba',
+    'ophiocordyceps sinensis': 'yarsagumba',
+    'cordyceps sinensis': 'yarsagumba',
+    'cordyceps': 'yarsagumba',
+    'यार्सागुम्बा': 'yarsagumba',
+    'यार्चागुम्बा': 'yarsagumba',
+    'panch aunle': 'panch-aunle',
+    'panchaunle': 'panch-aunle',
+    'panch-aunle': 'panch-aunle',
+    'panch aunle (himalayan marsh orchid)': 'panch-aunle',
+    'himalayan marsh orchid': 'panch-aunle',
+    'marsh orchid': 'panch-aunle',
+    'dactylorhiza hatagirea': 'panch-aunle',
+    'पाँच औंले': 'panch-aunle',
+    'पाँचऔंले': 'panch-aunle',
     'totola': 'totola',
     'totola (indian trumpet flower)': 'totola',
     'indian trumpet flower': 'totola',
@@ -133,6 +154,8 @@
   };
 
   const ID_TO_SLUG = {
+    44: 'yarsagumba',
+    43: 'panch-aunle',
     42: 'totola',
     41: 'lauka',
     40: 'kenjo',
