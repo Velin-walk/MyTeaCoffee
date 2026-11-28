@@ -1,5 +1,5 @@
-const SHELL_CACHE = 'studyflow-shell-v1';
-const RUNTIME_CACHE = 'studyflow-runtime-v1';
+const SHELL_CACHE = 'studyflow-shell-v2';
+const RUNTIME_CACHE = 'studyflow-runtime-v2';
 
 const APP_SHELL_URLS = [
   '/',

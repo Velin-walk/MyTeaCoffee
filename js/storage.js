@@ -56,12 +56,42 @@ function setBackendErrorState(isError, message) {
 }
 window.setBackendErrorState = setBackendErrorState;
 
-async function fetchBackendJson(queryString) {
-  const base = (typeof getEffectiveWebAppUrl === 'function') ? getEffectiveWebAppUrl() : (window.WEB_APP_URL || '/api/data');
-  const url = (typeof buildApiUrl === 'function')
-    ? buildApiUrl(base, queryString)
-    : base + (queryString ? ((base.indexOf('?') === -1 ? '?' : '&') + queryString.replace(/^\?/, '')) : '');
-  const res = await fetch(url);
+const _inFlightBackendRequests = new Map();
+
+function _cloneBackendPayload(data) {
+  if (data === null || typeof data !== 'object') return data;
+  try {
+    if (typeof structuredClone === 'function') return structuredClone(data);
+  } catch (e) {}
+  try {
+    return JSON.parse(JSON.stringify(data));
+  } catch (e) {
+    return data;
+  }
+}
+
+function _normalizeBackendDedupKey(baseUrl, queryString) {
+  const cleanQuery = String(queryString || '')
+    .replace(/^\?/, '')
+    .split('&')
+    .filter(part => part && !/^_t=/.test(part))
+    .sort()
+    .join('&');
+  return `${baseUrl}::${cleanQuery}`;
+}
+
+function _buildSameOriginProxyUrl(baseUrl, queryString) {
+  const cleanQuery = String(queryString || '').replace(/^\?/, '');
+  let proxyUrl = '/api/data';
+  if (typeof baseUrl === 'string' && /^https?:\/\//i.test(baseUrl)) {
+    proxyUrl += `?customUrl=${encodeURIComponent(baseUrl)}`;
+  }
+  if (!cleanQuery) return proxyUrl;
+  return proxyUrl + (proxyUrl.indexOf('?') === -1 ? '?' : '&') + cleanQuery;
+}
+
+async function _executeBackendFetch(targetUrl) {
+  const res = await fetch(targetUrl);
   if (!res.ok) {
     let errText = `Backend HTTP ${res.status}`;
     try {
@@ -70,20 +100,74 @@ async function fetchBackendJson(queryString) {
         errText = errBody.message || errBody.error;
       }
     } catch (e) {}
-    setBackendErrorState(true, `Backend unavailable (${res.status}) — cached data may be shown.`);
-    throw new Error(errText);
+    const httpErr = new Error(errText);
+    httpErr.status = res.status;
+    httpErr.isHttpError = true;
+    throw httpErr;
   }
   const data = await res.json();
   if (data && !Array.isArray(data) && typeof data === 'object' && data.error) {
-    setBackendErrorState(true, `Backend error: ${data.error}`);
-    throw new Error(data.message || data.error);
+    const apiErr = new Error(data.message || data.error);
+    apiErr.isApiError = true;
+    throw apiErr;
   }
-  if (!res.headers || !res.headers.get('X-Proxy-Cache')) {
-    setBackendErrorState(false);
-  } else {
-    setBackendErrorState(true, 'Using stale proxy cache — Google Sheets unreachable.');
+  return { res, data };
+}
+
+async function fetchBackendJson(queryString) {
+  const base = (typeof getEffectiveWebAppUrl === 'function') ? getEffectiveWebAppUrl() : (window.WEB_APP_URL || '/api/data');
+  const url = (typeof buildApiUrl === 'function')
+    ? buildApiUrl(base, queryString)
+    : base + (queryString ? ((base.indexOf('?') === -1 ? '?' : '&') + queryString.replace(/^\?/, '')) : '');
+
+  const dedupKey = _normalizeBackendDedupKey(base, queryString);
+  if (_inFlightBackendRequests.has(dedupKey)) {
+    const sharedData = await _inFlightBackendRequests.get(dedupKey);
+    return _cloneBackendPayload(sharedData);
   }
-  return data;
+
+  const requestPromise = (async () => {
+    let result;
+    try {
+      result = await _executeBackendFetch(url);
+    } catch (firstErr) {
+      // Do not retry HTTP 4xx/5xx or explicit API errors; only retry transient network failures
+      if (firstErr && (firstErr.isHttpError || firstErr.isApiError || firstErr.name === 'AbortError')) {
+        setBackendErrorState(true, firstErr.isHttpError
+          ? `Backend unavailable (${firstErr.status}) — cached data may be shown.`
+          : `Backend error: ${firstErr.message}`);
+        throw firstErr;
+      }
+
+      // Brief backoff retry, falling back to same-origin /api/data proxy if primary was cross-origin
+      await new Promise(resolve => setTimeout(resolve, 300));
+      const fallbackUrl = /^https?:\/\//i.test(url) ? _buildSameOriginProxyUrl(base, queryString) : url;
+      try {
+        result = await _executeBackendFetch(fallbackUrl);
+      } catch (retryErr) {
+        setBackendErrorState(true, 'Backend unreachable — showing cached data.');
+        throw retryErr;
+      }
+    }
+
+    const { res, data } = result;
+    if (!res.headers || !res.headers.get('X-Proxy-Cache')) {
+      setBackendErrorState(false);
+    } else {
+      setBackendErrorState(true, 'Using stale proxy cache — Google Sheets unreachable.');
+    }
+    return data;
+  })();
+
+  _inFlightBackendRequests.set(dedupKey, requestPromise);
+  try {
+    const resolved = await requestPromise;
+    return _cloneBackendPayload(resolved);
+  } finally {
+    if (_inFlightBackendRequests.get(dedupKey) === requestPromise) {
+      _inFlightBackendRequests.delete(dedupKey);
+    }
+  }
 }
 window.fetchBackendJson = fetchBackendJson;
 
@@ -271,7 +355,7 @@ window.fetchBackendJson = fetchBackendJson;
         if (Array.isArray(newData)) saveToIndexedDB('watchData', newData);
         updateWatchDisplay(newData);
         loadMasterChronometer();
-      }).catch(err => console.error("Watch error:", err));
+      }).catch(err => console.warn("Watch refresh skipped:", err && err.message ? err.message : err));
     }
 
     async function loadPlannerWithCache() {

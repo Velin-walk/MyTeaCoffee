@@ -447,23 +447,19 @@ function getDayHoursFromStats(dateObj) {
   return 0;
 }
 
-async function loadCalendarData() {
-  try {
-    const allData = await fetchBackendJson('view=Daily');
-    if (!allData || !Array.isArray(allData) || allData.length <= 1) return;
+function applyCalendarDailyRows(allData) {
+  calendarStats = {};
+  const now = new Date();
+  const currentYear = now.getFullYear();
+  const years = new Set([currentYear]);
 
-    calendarStats = {};
-    const now = new Date();
-    const currentYear = now.getFullYear();
-    const years = new Set([currentYear]);
-
+  if (Array.isArray(allData) && allData.length > 1) {
     for (let i = 1; i < allData.length; i++) {
       const row = allData[i];
-      const rawDateStr = row[0];
+      const rawDateStr = row && row[0];
       if (!rawDateStr) continue;
 
       const parsedDate = parseSessionDate(rawDateStr);
-
       const parsedYear = parsedDate.getFullYear();
       if (!isNaN(parsedYear)) years.add(parsedYear);
 
@@ -479,28 +475,67 @@ async function loadCalendarData() {
       calendarStats[fullKey] = dailyTotal;
       calendarStats[rawDateStr] = dailyTotal;
     }
+  } else {
+    try {
+      const forestHistory = (typeof safeGetJsonStorage === 'function')
+        ? safeGetJsonStorage('nepalForestHistory', [], Array.isArray)
+        : (JSON.parse(localStorage.getItem('nepalForestHistory') || '[]') || []);
+      if (Array.isArray(forestHistory)) {
+        forestHistory.forEach(item => {
+          if (!item || !item.timestamp) return;
+          const d = new Date(item.timestamp);
+          if (isNaN(d.getTime())) return;
+          years.add(d.getFullYear());
+          const key = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+          const hrs = (Number(item.minutes) || 25) / 60;
+          calendarStats[key] = (calendarStats[key] || 0) + hrs;
+        });
+      }
+    } catch (e) {}
+  }
 
-    // Populate year dropdown dynamically with current and recorded years
-    const yearSelect = document.getElementById('yearSelect');
-    if (yearSelect) {
-      yearSelect.innerHTML = '';
-      Array.from(years).sort().reverse().forEach(year => {
-        const option = document.createElement('option');
-        option.value = year;
-        option.textContent = year;
-        yearSelect.appendChild(option);
-      });
-      yearSelect.value = currentYear;
+  // Populate year dropdown dynamically with current and recorded years
+  const yearSelect = document.getElementById('yearSelect');
+  if (yearSelect) {
+    yearSelect.innerHTML = '';
+    Array.from(years).sort().reverse().forEach(year => {
+      const option = document.createElement('option');
+      option.value = year;
+      option.textContent = year;
+      yearSelect.appendChild(option);
+    });
+    yearSelect.value = currentYear;
+  }
+
+  const monthSelect = document.getElementById('monthSelect');
+  if (monthSelect) {
+    monthSelect.value = now.getMonth();
+  }
+
+  updateCalendar();
+}
+
+async function loadCalendarData() {
+  let cachedDaily = null;
+  try {
+    if (typeof getFromIndexedDB === 'function') {
+      cachedDaily = await getFromIndexedDB('dailyData');
+      if (Array.isArray(cachedDaily) && cachedDaily.length > 1) {
+        applyCalendarDailyRows(cachedDaily);
+      }
     }
-
-    const monthSelect = document.getElementById('monthSelect');
-    if (monthSelect) {
-      monthSelect.value = now.getMonth();
+    const allData = await fetchBackendJson('view=Daily');
+    if (Array.isArray(allData) && allData.length > 1) {
+      if (typeof saveToIndexedDB === 'function') saveToIndexedDB('dailyData', allData);
+      applyCalendarDailyRows(allData);
+    } else if (!cachedDaily) {
+      applyCalendarDailyRows([]);
     }
-
-    updateCalendar();
   } catch (error) {
-    console.error('Calendar error:', error);
+    console.warn('Calendar refresh fallback:', error && error.message ? error.message : error);
+    if (!cachedDaily) {
+      applyCalendarDailyRows([]);
+    }
   }
 }
 
@@ -815,19 +850,25 @@ function loadHourlyDist() {
       document.getElementById('scheduleContainer').innerHTML = html;
     }
 
-    function loadMasterChronometer() {
+    async function loadMasterChronometer() {
       const temporalRing = document.getElementById('masterTemporalRing');
       const goalRing = document.getElementById('masterGoalRing');
       const themeColors = getThemeColors();
       const colors = [themeColors.primary, themeColors.success, themeColors.danger, themeColors.warning, '#8B4513', themeColors.calEvent];
       const timestamp = Date.now();
+      const cachedWatch = (typeof getFromIndexedDB === 'function')
+        ? await getFromIndexedDB('watchData').catch(() => null)
+        : null;
       Promise.all([
-        fetchBackendJson(`action=getWatchData&_t=${timestamp}`).catch(() => []),
-        fetchBackendJson(`action=getGoalData&_t=${timestamp}`).catch(() => ({ current: 0, goal: 4 }))
+        fetchBackendJson(`action=getWatchData&_t=${timestamp}`).catch(() => (Array.isArray(cachedWatch) ? cachedWatch : [])),
+        fetchBackendJson(`action=getGoalData&_t=${timestamp}`).catch(() => ({ current: 0, goal: parseFloat(document.getElementById('goalInput')?.value) || 4 }))
       ]).then(([rawSessions, goalData]) => {
+        const effectiveRaw = (Array.isArray(rawSessions) && rawSessions.length > 0)
+          ? rawSessions
+          : (Array.isArray(cachedWatch) ? cachedWatch : []);
         const sessions = (typeof mergeContinuousSessions === 'function')
-          ? mergeContinuousSessions(rawSessions)
-          : (Array.isArray(rawSessions) ? rawSessions : []);
+          ? mergeContinuousSessions(effectiveRaw)
+          : (Array.isArray(effectiveRaw) ? effectiveRaw : []);
         if (temporalRing) temporalRing.innerHTML = ''; 
         if (goalRing) goalRing.innerHTML = '';
         const dailyGoal = (goalData && goalData.goal) || 4;
@@ -915,132 +956,148 @@ function loadHourlyDist() {
       }).catch(e => console.warn("Chronometer Update fallback:", e));
     }
 
-    function loadActualStudySessions() {
-      fetchBackendJson('action=getWatchData').then(rawSessions => {
-        const sessions = (typeof mergeContinuousSessions === 'function')
-          ? mergeContinuousSessions(rawSessions)
-          : (Array.isArray(rawSessions) ? rawSessions : []);
-        const container = document.getElementById('actualContainer');
-        if (!container) return;
+    function renderActualStudySessionsList(rawSessions) {
+      const sessions = (typeof mergeContinuousSessions === 'function')
+        ? mergeContinuousSessions(rawSessions)
+        : (Array.isArray(rawSessions) ? rawSessions : []);
+      const container = document.getElementById('actualContainer');
+      if (!container) return;
 
-        const sessionsToUse = (sessions && sessions.length > 0) ? sessions : getShadowSessionsForDay();
-        const isShadowMode = (!sessions || sessions.length === 0);
+      const sessionsToUse = (sessions && sessions.length > 0) ? sessions : getShadowSessionsForDay();
+      const isShadowMode = (!sessions || sessions.length === 0);
 
-        sessionsToUse.sort((a, b) => a.start - b.start);
-        let totalHours = 0, totalBreakMinutes = 0;
-        let html = '<div style="font-size: 12px; line-height: 2;">';
-        sessionsToUse.forEach((sess, idx) => {
-          totalHours += sess.hrs;
-          const startHour = Math.floor(sess.start);
-          const startMin = Math.round((sess.start % 1) * 60);
-          const startTime = `${startHour.toString().padStart(2, '0')}:${startMin.toString().padStart(2, '0')}`;
-          const durationHours = Math.floor(sess.hrs);
-          const durationMin = Math.round((sess.hrs % 1) * 60);
-          const durationStr = durationHours > 0 ? `${durationHours}h ${durationMin}m` : `${durationMin}m`;
-          const badgeLabel = isShadowMode ? 'Shadow' : 'Study';
-          const badgeStyle = isShadowMode ? 'background: var(--text-tertiary); opacity: 0.85;' : 'background: var(--primary);';
+      sessionsToUse.sort((a, b) => a.start - b.start);
+      let totalHours = 0, totalBreakMinutes = 0;
+      let html = '<div style="font-size: 12px; line-height: 2;">';
+      sessionsToUse.forEach((sess, idx) => {
+        totalHours += sess.hrs;
+        const startHour = Math.floor(sess.start);
+        const startMin = Math.round((sess.start % 1) * 60);
+        const startTime = `${startHour.toString().padStart(2, '0')}:${startMin.toString().padStart(2, '0')}`;
+        const durationHours = Math.floor(sess.hrs);
+        const durationMin = Math.round((sess.hrs % 1) * 60);
+        const durationStr = durationHours > 0 ? `${durationHours}h ${durationMin}m` : `${durationMin}m`;
+        const badgeLabel = isShadowMode ? 'Shadow' : 'Study';
+        const badgeStyle = isShadowMode ? 'background: var(--text-tertiary); opacity: 0.85;' : 'background: var(--primary);';
 
-          html += `<div style="display: flex; align-items: center; gap: 8px; padding: 8px; background: var(--input-bg); border-radius: 6px; ${isShadowMode ? 'border: 1px dashed var(--border-color);' : ''}">
-            <span style="font-weight: 600; color: var(--primary); min-width: 50px;">${startTime}</span>
-            <span style="${badgeStyle} color: white; padding: 4px 8px; border-radius: 4px; font-size: 10px; font-weight: 600;">${badgeLabel}</span>
-            <span style="color: var(--text-secondary); min-width: 70px;">${durationStr}</span>`;
-          if (idx < sessionsToUse.length - 1) {
-            const gap = sessionsToUse[idx + 1].start - (sess.start + sess.hrs);
-            if (gap > 0) {
-              const breakMin = Math.round(gap * 60);
-              totalBreakMinutes += breakMin;
-              html += `<span style="color: var(--text-tertiary); margin: 0 4px;">→</span>
-                <span style="background: var(--warning); opacity: 0.75; color: white; padding: 4px 8px; border-radius: 4px; font-size: 10px; font-weight: 600;">Break</span>
-                <span style="color: var(--warning); font-weight: 600;">${breakMin}m</span>`;
-            }
+        html += `<div style="display: flex; align-items: center; gap: 8px; padding: 8px; background: var(--input-bg); border-radius: 6px; ${isShadowMode ? 'border: 1px dashed var(--border-color);' : ''}">
+          <span style="font-weight: 600; color: var(--primary); min-width: 50px;">${startTime}</span>
+          <span style="${badgeStyle} color: white; padding: 4px 8px; border-radius: 4px; font-size: 10px; font-weight: 600;">${badgeLabel}</span>
+          <span style="color: var(--text-secondary); min-width: 70px;">${durationStr}</span>`;
+        if (idx < sessionsToUse.length - 1) {
+          const gap = sessionsToUse[idx + 1].start - (sess.start + sess.hrs);
+          if (gap > 0) {
+            const breakMin = Math.round(gap * 60);
+            totalBreakMinutes += breakMin;
+            html += `<span style="color: var(--text-tertiary); margin: 0 4px;">→</span>
+              <span style="background: var(--warning); opacity: 0.75; color: white; padding: 4px 8px; border-radius: 4px; font-size: 10px; font-weight: 600;">Break</span>
+              <span style="color: var(--warning); font-weight: 600;">${breakMin}m</span>`;
           }
-          html += `</div>`;
-        });
-        html += '</div>';
-        container.innerHTML = html;
-        document.getElementById('actualTotalHours').innerText = formatHours(totalHours) + (isShadowMode ? ' (Shadow)' : '');  
-        document.getElementById('actualSessionCount').innerText = sessionsToUse.length;
-        document.getElementById('actualBreakTime').innerText = Math.round(totalBreakMinutes) + 'm';
-      }).catch(err => {
-        const shadowSessions = getShadowSessionsForDay();
-        const container = document.getElementById('actualContainer');
-        if (container) {
-          let html = '<div style="font-size: 12px; line-height: 2;">';
-          let totalHours = 0;
-          shadowSessions.forEach(s => {
-            totalHours += s.hrs;
-            html += `<div style="display: flex; align-items: center; gap: 8px; padding: 8px; background: var(--input-bg); border-radius: 6px; border: 1px dashed var(--border-color);">
-              <span style="font-weight: 600; color: var(--primary); min-width: 50px;">09:00</span>
-              <span style="background: var(--text-tertiary); color: white; padding: 4px 8px; border-radius: 4px; font-size: 10px;">Shadow</span>
-              <span style="color: var(--text-secondary);">${formatHours(s.hrs)}</span>
-            </div>`;
-          });
-          html += '</div>';
-          container.innerHTML = html;
+        }
+        html += `</div>`;
+      });
+      html += '</div>';
+      container.innerHTML = html;
+      const totalEl = document.getElementById('actualTotalHours');
+      const countEl = document.getElementById('actualSessionCount');
+      const breakEl = document.getElementById('actualBreakTime');
+      if (totalEl) totalEl.innerText = formatHours(totalHours) + (isShadowMode ? ' (Shadow)' : '');
+      if (countEl) countEl.innerText = sessionsToUse.length;
+      if (breakEl) breakEl.innerText = Math.round(totalBreakMinutes) + 'm';
+    }
+
+    async function loadActualStudySessions() {
+      const cachedWatch = (typeof getFromIndexedDB === 'function')
+        ? await getFromIndexedDB('watchData').catch(() => null)
+        : null;
+      if (Array.isArray(cachedWatch) && cachedWatch.length > 0) {
+        renderActualStudySessionsList(cachedWatch);
+      }
+      fetchBackendJson('action=getWatchData').then(rawSessions => {
+        if (Array.isArray(rawSessions) && typeof saveToIndexedDB === 'function') {
+          saveToIndexedDB('watchData', rawSessions);
+        }
+        renderActualStudySessionsList(rawSessions);
+      }).catch(() => {
+        if (!Array.isArray(cachedWatch) || cachedWatch.length === 0) {
+          renderActualStudySessionsList([]);
         }
       });
     }
 
-    function loadDailyProgressChart() {
+    function renderDailyProgressChart(rawTodayWatch, projectionData) {
       const themeColors = getThemeColors();
+      const todayWatch = (typeof mergeContinuousSessions === 'function')
+        ? mergeContinuousSessions(rawTodayWatch)
+        : (Array.isArray(rawTodayWatch) ? rawTodayWatch : []);
+
+      let todayByHour = {}, todayStartHour = 24;
+      const activeSessions = (todayWatch && todayWatch.length > 0) ? todayWatch : getShadowSessionsForDay();
+
+      let cumulativeHours = 0;
+      activeSessions.forEach(sess => {
+        const startHour = Math.floor(sess.start);
+        if (startHour < todayStartHour) todayStartHour = startHour;
+        cumulativeHours += sess.hrs;
+        const endHour = Math.ceil(sess.start + sess.hrs);
+        for (let h = startHour; h < endHour && h < 24; h++) {
+          if (!todayByHour[h] || todayByHour[h] < cumulativeHours) todayByHour[h] = cumulativeHours;
+        }
+      });
+
+      let pastByHour = {}, pastStartHour = 24;
+      let pastRunningTotal = 0;
+      if (Array.isArray(projectionData) && projectionData.length === 24) {
+        projectionData.forEach((val, h) => {
+          const num = typeof val === 'number' ? val : parseFloat(val) || 0;
+          pastRunningTotal += num;
+          if (num > 0 && pastStartHour === 24) pastStartHour = h;
+          pastByHour[h] = pastRunningTotal;
+        });
+      }
+
+      const startHour = Math.min(todayStartHour < 24 ? todayStartHour : 8, pastStartHour < 24 ? pastStartHour : 8);
+      const endHour = 24;
+      let chartData = [['Hour', 'Today', '7-Day Avg']];
+      let lastTodayVal = null, lastAvgVal = null;
+      for (let h = startHour; h < endHour; h++) {
+        const hourLabel = h.toString().padStart(2, '0') + ':00';
+        const todayVal = todayByHour[h] !== undefined ? todayByHour[h] : lastTodayVal;
+        const avgVal = pastByHour[h] !== undefined ? parseFloat(pastByHour[h].toFixed(2)) : (lastAvgVal || (h * 0.3));
+        if (todayVal !== null) lastTodayVal = todayVal;
+        if (avgVal !== null) lastAvgVal = avgVal;
+        chartData.push([hourLabel, todayVal, avgVal]);
+      }
+      whenGoogleChartsLoaded(() => {
+        const el = document.getElementById('dailyProgressChart');
+        if (!el) return;
+        const table = google.visualization.arrayToDataTable(chartData);
+        const options = {
+          legend: { position: 'bottom' }, pointSize: 4, lineWidth: 2, colors: [themeColors.primary, themeColors.warning],
+          backgroundColor: 'transparent', chartArea: { width: '85%', height: '70%' },
+          hAxis: { textStyle: { fontSize: 10, color: themeColors.warning } },
+          vAxis: { textStyle: { fontSize: 10, color: themeColors.warning } }
+        };
+        new google.visualization.LineChart(el).draw(table, options);
+      });
+    }
+
+    async function loadDailyProgressChart() {
+      const cachedWatch = (typeof getFromIndexedDB === 'function')
+        ? await getFromIndexedDB('watchData').catch(() => null)
+        : null;
+      if (Array.isArray(cachedWatch) && cachedWatch.length > 0) {
+        renderDailyProgressChart(cachedWatch, []);
+      }
       Promise.all([
-        fetchBackendJson('action=getWatchData').catch(() => []),
+        fetchBackendJson('action=getWatchData').catch(() => (Array.isArray(cachedWatch) ? cachedWatch : [])),
         fetchBackendJson('action=getProjectionData').catch(() => [])
       ]).then(([rawTodayWatch, projectionData]) => {
-        const todayWatch = (typeof mergeContinuousSessions === 'function')
-          ? mergeContinuousSessions(rawTodayWatch)
-          : (Array.isArray(rawTodayWatch) ? rawTodayWatch : []);
-
-        let todayByHour = {}, todayStartHour = 24;
-        const activeSessions = (todayWatch && todayWatch.length > 0) ? todayWatch : getShadowSessionsForDay();
-
-        let cumulativeHours = 0;
-        activeSessions.forEach(sess => {
-          const startHour = Math.floor(sess.start);
-          if (startHour < todayStartHour) todayStartHour = startHour;
-          cumulativeHours += sess.hrs;
-          const endHour = Math.ceil(sess.start + sess.hrs);
-          for (let h = startHour; h < endHour && h < 24; h++) {
-            if (!todayByHour[h] || todayByHour[h] < cumulativeHours) todayByHour[h] = cumulativeHours;
-          }
-        });
-
-        let pastByHour = {}, pastStartHour = 24;
-        let pastRunningTotal = 0;
-        if (Array.isArray(projectionData) && projectionData.length === 24) {
-          projectionData.forEach((val, h) => {
-            const num = typeof val === 'number' ? val : parseFloat(val) || 0;
-            pastRunningTotal += num;
-            if (num > 0 && pastStartHour === 24) pastStartHour = h;
-            pastByHour[h] = pastRunningTotal;
-          });
-        }
-
-        const startHour = Math.min(todayStartHour < 24 ? todayStartHour : 8, pastStartHour < 24 ? pastStartHour : 8);
-        const endHour = 24;
-        let chartData = [['Hour', 'Today', '7-Day Avg']];
-        let lastTodayVal = null, lastAvgVal = null;
-        for (let h = startHour; h < endHour; h++) {
-          const hourLabel = h.toString().padStart(2, '0') + ':00';
-          const todayVal = todayByHour[h] !== undefined ? todayByHour[h] : lastTodayVal;
-          const avgVal = pastByHour[h] !== undefined ? parseFloat(pastByHour[h].toFixed(2)) : (lastAvgVal || (h * 0.3));
-          if (todayVal !== null) lastTodayVal = todayVal;
-          if (avgVal !== null) lastAvgVal = avgVal;
-          chartData.push([hourLabel, todayVal, avgVal]);
-        }
-        whenGoogleChartsLoaded(() => {
-          const el = document.getElementById('dailyProgressChart');
-          if (!el) return;
-          const table = google.visualization.arrayToDataTable(chartData);
-          const options = {
-            legend: { position: 'bottom' }, pointSize: 4, lineWidth: 2, colors: [themeColors.primary, themeColors.warning],
-            backgroundColor: 'transparent', chartArea: { width: '85%', height: '70%' },
-            hAxis: { textStyle: { fontSize: 10, color: themeColors.warning } },
-            vAxis: { textStyle: { fontSize: 10, color: themeColors.warning } }
-          };
-          new google.visualization.LineChart(el).draw(table, options);
-        });
-      }).catch(err => console.error('Daily progress chart error:', err));
+        renderDailyProgressChart(rawTodayWatch, projectionData);
+      }).catch(err => {
+        console.warn('Daily progress chart fallback:', err && err.message ? err.message : err);
+        renderDailyProgressChart(Array.isArray(cachedWatch) ? cachedWatch : [], []);
+      });
     }
 
     function initCardControls() {
@@ -1106,68 +1163,84 @@ function loadHourlyDist() {
       }, { offset: Number.NEGATIVE_INFINITY }).element;
     }
 
-    function loadWeeklySessionsChart() {
+    function renderWeeklySessionsChart(data) {
+      const rowMap = new Map();
+      if (Array.isArray(data) && data.length > 0) {
+        for (let i = 1; i < data.length; i++) {
+          if (data[i] && data[i][0]) rowMap.set(data[i][0], data[i]);
+        }
+      }
+      const now = new Date();
+      const last7CalendarDays = [];
+      for (let d = 6; d >= 0; d--) {
+        const dt = new Date(now);
+        dt.setDate(now.getDate() - d);
+        last7CalendarDays.push(dt);
+      }
+      const themeColors = getThemeColors();
+      const dayColors = ['#4285f4', '#34a853', '#fbbc05', '#ea4335', '#9b59b6', '#16a085', '#e74c3c'];
+      const daySessionsData = last7CalendarDays.map((dt, dayIdx) => {
+        const dateStr = dt.toLocaleDateString('en-US', { month: 'short', day: '2-digit' });
+        const dayName = dt.toLocaleDateString('en-US', { weekday: 'short' });
+        const row = rowMap.get(dateStr);
+        const sessions = [];
+        if (row) {
+          for (let j = 1; j < row.length; j += 3) {
+            const hours = row[j];
+            if (typeof hours === 'number' && hours > 0) sessions.push(parseFloat(hours.toFixed(2)));
+          }
+        }
+        if (sessions.length === 0) {
+          sessions.push(1.5, 2.0); // Shadow sessions
+        }
+        return { dayName, dateStr, dayIdx, sessions };
+      });
+      let maxSessions = Math.max(...daySessionsData.map(d => d.sessions.length));
+      if (maxSessions === 0) maxSessions = 1;
+
+      const chartData = [['Session']];
+      daySessionsData.forEach(day => { chartData[0].push(day.dayName); });
+      for (let sessionNum = 0; sessionNum < maxSessions; sessionNum++) {
+        const row = ['S' + (sessionNum + 1)];
+        daySessionsData.forEach(dayData => { row.push(dayData.sessions[sessionNum] !== undefined ? dayData.sessions[sessionNum] : 1.5); });
+        chartData.push(row);
+      }
+      whenGoogleChartsLoaded(() => {
+        const el = document.getElementById('weeklySessionsChart');
+        if (!el) return;
+        const dataTable = google.visualization.arrayToDataTable(chartData);
+        const options = {
+          title: '', legend: { position: 'bottom', textStyle: { fontSize: 11, color: themeColors.text } },
+          backgroundColor: 'transparent', chartArea: { width: '85%', height: '75%', top: 20, bottom: 50 },
+          pointSize: 5, lineWidth: 2.5, curveType: 'function', colors: dayColors,
+          vAxis: { title: 'Hours per Session', titleTextStyle: { fontSize: 11, italic: false, bold: true, color: themeColors.primary }, gridlines: { color: 'rgba(0,0,0,0.05)' }, minorGridlines: { color: 'transparent' }, textStyle: { fontSize: 10, color: themeColors.text }, baselineColor: 'transparent' },
+          hAxis: { title: 'Session Number', titleTextStyle: { fontSize: 11, italic: false, bold: true, color: themeColors.primary }, textStyle: { fontSize: 10, color: themeColors.primary }, gridlines: { color: 'transparent' }, baselineColor: 'transparent' },
+          animation: { startup: true, duration: 800, easing: 'out' }
+        };
+        const chart = new google.visualization.LineChart(el);
+        chart.draw(dataTable, options);
+      });
+    }
+
+    async function loadWeeklySessionsChart() {
+      const cachedPlanner = (typeof getFromIndexedDB === 'function')
+        ? await getFromIndexedDB('plannerData').catch(() => null)
+        : null;
+      if (Array.isArray(cachedPlanner) && cachedPlanner.length > 0) {
+        renderWeeklySessionsChart(cachedPlanner);
+      }
       fetchBackendJson('action=getPlannerData')
         .then(data => {
-          const rowMap = new Map();
-          if (Array.isArray(data) && data.length > 0) {
-            for (let i = 1; i < data.length; i++) {
-              if (data[i] && data[i][0]) rowMap.set(data[i][0], data[i]);
-            }
+          if (Array.isArray(data) && typeof saveToIndexedDB === 'function') {
+            saveToIndexedDB('plannerData', data);
           }
-          const now = new Date();
-          const last7CalendarDays = [];
-          for (let d = 6; d >= 0; d--) {
-            const dt = new Date(now);
-            dt.setDate(now.getDate() - d);
-            last7CalendarDays.push(dt);
-          }
-          const themeColors = getThemeColors();
-          const dayColors = ['#4285f4', '#34a853', '#fbbc05', '#ea4335', '#9b59b6', '#16a085', '#e74c3c'];
-          const daySessionsData = last7CalendarDays.map((dt, dayIdx) => {
-            const dateStr = dt.toLocaleDateString('en-US', { month: 'short', day: '2-digit' });
-            const dayName = dt.toLocaleDateString('en-US', { weekday: 'short' });
-            const row = rowMap.get(dateStr);
-            const sessions = [];
-            if (row) {
-              for (let j = 1; j < row.length; j += 3) {
-                const hours = row[j];
-                if (typeof hours === 'number' && hours > 0) sessions.push(parseFloat(hours.toFixed(2)));
-              }
-            }
-            if (sessions.length === 0) {
-              sessions.push(1.5, 2.0); // Shadow sessions
-            }
-            return { dayName, dateStr, dayIdx, sessions };
-          });
-          let maxSessions = Math.max(...daySessionsData.map(d => d.sessions.length));
-          if (maxSessions === 0) maxSessions = 1;
-
-          const chartData = [['Session']];
-          daySessionsData.forEach(day => { chartData[0].push(day.dayName); });
-          for (let sessionNum = 0; sessionNum < maxSessions; sessionNum++) {
-            const row = ['S' + (sessionNum + 1)];
-            daySessionsData.forEach(dayData => { row.push(dayData.sessions[sessionNum] !== undefined ? dayData.sessions[sessionNum] : 1.5); });
-            chartData.push(row);
-          }
-          whenGoogleChartsLoaded(() => {
-            const el = document.getElementById('weeklySessionsChart');
-            if (!el) return;
-            const dataTable = google.visualization.arrayToDataTable(chartData);
-            const options = {
-              title: '', legend: { position: 'bottom', textStyle: { fontSize: 11, color: themeColors.text } },
-              backgroundColor: 'transparent', chartArea: { width: '85%', height: '75%', top: 20, bottom: 50 },
-              pointSize: 5, lineWidth: 2.5, curveType: 'function', colors: dayColors,
-              vAxis: { title: 'Hours per Session', titleTextStyle: { fontSize: 11, italic: false, bold: true, color: themeColors.primary }, gridlines: { color: 'rgba(0,0,0,0.05)' }, minorGridlines: { color: 'transparent' }, textStyle: { fontSize: 10, color: themeColors.text }, baselineColor: 'transparent' },
-              hAxis: { title: 'Session Number', titleTextStyle: { fontSize: 11, italic: false, bold: true, color: themeColors.primary }, textStyle: { fontSize: 10, color: themeColors.primary }, gridlines: { color: 'transparent' }, baselineColor: 'transparent' },
-              animation: { startup: true, duration: 800, easing: 'out' }
-            };
-            const chart = new google.visualization.LineChart(el);
-            chart.draw(dataTable, options);
-          });
+          renderWeeklySessionsChart(data);
         })
         .catch(err => {
-          console.error('Weekly sessions chart error:', err);
+          console.warn('Weekly sessions chart fallback:', err && err.message ? err.message : err);
+          if (!Array.isArray(cachedPlanner) || cachedPlanner.length === 0) {
+            renderWeeklySessionsChart([]);
+          }
         });
     }
 
@@ -1194,67 +1267,85 @@ function updateRealTimeClock() {
 setInterval(updateRealTimeClock, 1000);
 updateRealTimeClock();
 
-function loadActiveHoursChart() {
-  fetchBackendJson('action=getWatchData').then(rawSessions => {
-    const sessions = (typeof mergeContinuousSessions === 'function')
-      ? mergeContinuousSessions(rawSessions)
-      : (Array.isArray(rawSessions) ? rawSessions : []);
-    
-    const activeSessions = (sessions && sessions.length > 0) ? sessions : getShadowSessionsForDay();
-    const isShadowActive = (!sessions || sessions.length === 0);
+function renderActiveHoursChart(rawSessions) {
+  const sessions = (typeof mergeContinuousSessions === 'function')
+    ? mergeContinuousSessions(rawSessions)
+    : (Array.isArray(rawSessions) ? rawSessions : []);
 
-    let minHour = 24, maxHour = 0;
-    activeSessions.forEach(sess => {
-      if (typeof sess.hrs !== 'number' || sess.hrs <= 0) return;
-      minHour = Math.min(minHour, Math.floor(sess.start));
-      maxHour = Math.max(maxHour, Math.ceil(sess.start + sess.hrs));
-    });
-    if (minHour === 24) { minHour = 8; maxHour = 18; }
+  const activeSessions = (sessions && sessions.length > 0) ? sessions : getShadowSessionsForDay();
+  const isShadowActive = (!sessions || sessions.length === 0);
 
-    const hourlyStudy = {};
-    for (let h = minHour; h < maxHour; h++) hourlyStudy[h] = 0;
+  let minHour = 24, maxHour = 0;
+  activeSessions.forEach(sess => {
+    if (typeof sess.hrs !== 'number' || sess.hrs <= 0) return;
+    minHour = Math.min(minHour, Math.floor(sess.start));
+    maxHour = Math.max(maxHour, Math.ceil(sess.start + sess.hrs));
+  });
+  if (minHour === 24) { minHour = 8; maxHour = 18; }
 
-    activeSessions.forEach(sess => {
-      if (typeof sess.hrs !== 'number' || sess.hrs <= 0) return;
-      for (let h = minHour; h < maxHour; h++) {
-        const overlap = Math.min(sess.start + sess.hrs, h + 1) - Math.max(sess.start, h);
-        if (overlap > 0) hourlyStudy[h] += overlap;
-      }
-    });
+  const hourlyStudy = {};
+  for (let h = minHour; h < maxHour; h++) hourlyStudy[h] = 0;
 
-    const themeColors = getThemeColors();
-    const mid = 12; // Split at noon
-
-    function drawChart(containerId, fromHour, toHour) {
-      const chartData = [['Hour', 'Hours', { role: 'style' }]];
-      const barCount = toHour - fromHour;
-      for (let h = fromHour; h < toHour; h++) {
-        const hrs = parseFloat((hourlyStudy[h] || 0).toFixed(1));
-        const colorStyle = isShadowActive
-          ? (hrs > 0 ? 'rgba(252, 76, 2, 0.45)' : 'rgba(0,0,0,0.06)')
-          : (hrs > 0 ? '#FC4C02' : 'rgba(0,0,0,0.1)');
-        chartData.push([String(h).padStart(2, '0') + ':00', hrs > 0 ? hrs : 0.5, `color: ${colorStyle}`]);
-      }
-      whenGoogleChartsLoaded(() => {
-        const el = document.getElementById(containerId);
-        if (!el) return;
-        const dataTable = google.visualization.arrayToDataTable(chartData);
-        new google.visualization.ColumnChart(el).draw(dataTable, {
-          legend: 'none',
-          backgroundColor: 'transparent',
-          chartArea: { left: 30, top: 5, right: 5, bottom: 22, width: '92%', height: '78%' },
-          bar: { groupWidth: barCount > 8 ? '55%' : '70%' },
-          vAxis: { textPosition: 'none', gridlines: { color: 'rgba(0,0,0,0.04)' }, baselineColor: 'transparent' },
-          hAxis: { textStyle: { fontSize: 8, color: themeColors.text }, slantedText: barCount > 6, slantedTextAngle: 30, showTextEvery: barCount > 10 ? 2 : 1, gridlines: { color: 'transparent' } },
-          animation: { startup: true, duration: 500, easing: 'out' }
-        });
-      });
+  activeSessions.forEach(sess => {
+    if (typeof sess.hrs !== 'number' || sess.hrs <= 0) return;
+    for (let h = minHour; h < maxHour; h++) {
+      const overlap = Math.min(sess.start + sess.hrs, h + 1) - Math.max(sess.start, h);
+      if (overlap > 0) hourlyStudy[h] += overlap;
     }
+  });
 
-    drawChart('activeHoursChartAM', minHour, Math.min(maxHour, mid));
-    drawChart('activeHoursChartPM', Math.max(minHour, mid), maxHour);
+  const themeColors = getThemeColors();
+  const mid = 12; // Split at noon
 
-  }).catch(err => console.error('Active hours error:', err));
+  function drawChart(containerId, fromHour, toHour) {
+    const chartData = [['Hour', 'Hours', { role: 'style' }]];
+    const barCount = toHour - fromHour;
+    for (let h = fromHour; h < toHour; h++) {
+      const hrs = parseFloat((hourlyStudy[h] || 0).toFixed(1));
+      const colorStyle = isShadowActive
+        ? (hrs > 0 ? 'rgba(252, 76, 2, 0.45)' : 'rgba(0,0,0,0.06)')
+        : (hrs > 0 ? '#FC4C02' : 'rgba(0,0,0,0.1)');
+      chartData.push([String(h).padStart(2, '0') + ':00', hrs > 0 ? hrs : 0.5, `color: ${colorStyle}`]);
+    }
+    whenGoogleChartsLoaded(() => {
+      const el = document.getElementById(containerId);
+      if (!el) return;
+      const dataTable = google.visualization.arrayToDataTable(chartData);
+      new google.visualization.ColumnChart(el).draw(dataTable, {
+        legend: 'none',
+        backgroundColor: 'transparent',
+        chartArea: { left: 30, top: 5, right: 5, bottom: 22, width: '92%', height: '78%' },
+        bar: { groupWidth: barCount > 8 ? '55%' : '70%' },
+        vAxis: { textPosition: 'none', gridlines: { color: 'rgba(0,0,0,0.04)' }, baselineColor: 'transparent' },
+        hAxis: { textStyle: { fontSize: 8, color: themeColors.text }, slantedText: barCount > 6, slantedTextAngle: 30, showTextEvery: barCount > 10 ? 2 : 1, gridlines: { color: 'transparent' } },
+        animation: { startup: true, duration: 500, easing: 'out' }
+      });
+    });
+  }
+
+  drawChart('activeHoursChartAM', minHour, Math.min(maxHour, mid));
+  drawChart('activeHoursChartPM', Math.max(minHour, mid), maxHour);
+}
+
+async function loadActiveHoursChart() {
+  const cachedWatch = (typeof getFromIndexedDB === 'function')
+    ? await getFromIndexedDB('watchData').catch(() => null)
+    : null;
+  if (Array.isArray(cachedWatch) && cachedWatch.length > 0) {
+    renderActiveHoursChart(cachedWatch);
+  }
+  try {
+    const rawSessions = await fetchBackendJson('action=getWatchData');
+    if (Array.isArray(rawSessions) && typeof saveToIndexedDB === 'function') {
+      saveToIndexedDB('watchData', rawSessions);
+    }
+    renderActiveHoursChart(rawSessions);
+  } catch (err) {
+    console.warn('Active hours refresh fallback:', err && err.message ? err.message : err);
+    if (!Array.isArray(cachedWatch) || cachedWatch.length === 0) {
+      renderActiveHoursChart([]);
+    }
+  }
 }
 
 // ============= MULTI-DAY SESSIONS TIMELINE (CHRONOLOGY) =============

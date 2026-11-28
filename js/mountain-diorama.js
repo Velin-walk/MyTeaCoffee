@@ -8,6 +8,12 @@
 
   const DEFAULT_YAW = -0.58; // Classic SW approach looking up Western Cwm toward Everest Pyramid
   const DEFAULT_PITCH = 0.50;
+  const DEFAULT_TARGET_ELE_M = 6200;
+  const BASE_SCALE_PX_PER_KM = 64;
+  const MIN_ZOOM = 0.55;
+  const MAX_ZOOM = 6.0;
+  const MIN_PITCH = 0.15;
+  const MAX_PITCH = 0.98;
   const SUMMIT_LON = 86.92524027674324;
   const SUMMIT_LAT = 27.988071283640686;
   const M_PER_LAT = 111320;
@@ -439,18 +445,66 @@
     };
   }
 
-  // Project metric (mx, my, eleM) into canvas screen coordinates
-  function makeProjector(svgW, svgH, yaw, pitch, scalePxPerKm) {
+  function clampNumber(val, min, max) {
+    return Math.max(min, Math.min(max, val));
+  }
+
+  function clampTargetMx(mx) {
+    return clampNumber(mx, MIN_MX, MAX_MX);
+  }
+
+  function clampTargetMy(my) {
+    return clampNumber(my, MIN_MY, MAX_MY);
+  }
+
+  function clampPitch(pitch) {
+    return clampNumber(pitch, MIN_PITCH, MAX_PITCH);
+  }
+
+  function clampZoom(zoom) {
+    return clampNumber(zoom, MIN_ZOOM, MAX_ZOOM);
+  }
+
+  function normalizeAngle(rad) {
+    let a = rad % (Math.PI * 2);
+    if (a > Math.PI) a -= Math.PI * 2;
+    if (a < -Math.PI) a += Math.PI * 2;
+    return a;
+  }
+
+  // Project metric (mx, my, eleM) into canvas screen coordinates around camera target
+  function makeProjector(viewW, viewH, stateOrYaw, pitchArg, scaleArg) {
+    let yaw;
+    let pitch;
+    let scalePxPerKm;
+    let targetMx = CENTER_MX;
+    let targetMy = CENTER_MY;
+    let targetEleM = DEFAULT_TARGET_ELE_M;
+
+    if (typeof stateOrYaw === 'object' && stateOrYaw !== null) {
+      yaw = stateOrYaw.yaw;
+      pitch = stateOrYaw.pitch;
+      scalePxPerKm = BASE_SCALE_PX_PER_KM * (stateOrYaw.zoom || 1);
+      targetMx = typeof stateOrYaw.targetMx === 'number' ? stateOrYaw.targetMx : CENTER_MX;
+      targetMy = typeof stateOrYaw.targetMy === 'number' ? stateOrYaw.targetMy : CENTER_MY;
+      targetEleM = typeof stateOrYaw.targetEleM === 'number' ? stateOrYaw.targetEleM : DEFAULT_TARGET_ELE_M;
+    } else {
+      yaw = stateOrYaw;
+      pitch = pitchArg;
+      scalePxPerKm = scaleArg || BASE_SCALE_PX_PER_KM;
+    }
+
     const cosA = Math.cos(yaw);
     const sinA = Math.sin(yaw);
-    const centerX = svgW * 0.5;
-    const centerY = svgH * 0.56;
-    const vertScale = (1.14 - pitch * 0.28) * scalePxPerKm * 1.18;
+    const centerX = viewW * 0.5;
+    const centerY = viewH * 0.49;
+    const tiltCos = Math.sqrt(Math.max(0.05, 1 - pitch * pitch));
+    const vertScale = scalePxPerKm * tiltCos * 1.32;
 
     return function project(mx, my, eleM) {
-      const u = (mx - CENTER_MX) / 1000;
-      const v = -(my - CENTER_MY) / 1000; // flip north-up so +North points away from viewer when yaw=0
-      const zKm = (eleM - BASE_ELE_M) / 1000;
+      const u = (mx - targetMx) / 1000;
+      const v = -(my - targetMy) / 1000; // flip north-up so +North points away from viewer when yaw=0
+      const zKm = (eleM - targetEleM) / 1000;
       const rotX = u * cosA - v * sinA;
       const depth = u * sinA + v * cosA;
       return {
@@ -459,6 +513,86 @@
         depth
       };
     };
+  }
+
+  function screenToWorldAtEle(viewW, viewH, state, cx, cy, planeEleM) {
+    const scale = BASE_SCALE_PX_PER_KM * (state.zoom || 1);
+    const cosA = Math.cos(state.yaw);
+    const sinA = Math.sin(state.yaw);
+    const centerX = viewW * 0.5;
+    const centerY = viewH * 0.49;
+    const tiltCos = Math.sqrt(Math.max(0.05, 1 - state.pitch * state.pitch));
+    const vertScale = scale * tiltCos * 1.32;
+    const targetEleM = typeof state.targetEleM === 'number' ? state.targetEleM : DEFAULT_TARGET_ELE_M;
+    const ele = typeof planeEleM === 'number' ? planeEleM : targetEleM;
+    const zKm = (ele - targetEleM) / 1000;
+    const rotX = (cx - centerX) / scale;
+    const depth = ((cy - centerY) + zKm * vertScale) / (scale * Math.max(0.12, state.pitch));
+    const u = rotX * cosA + depth * sinA;
+    const v = -rotX * sinA + depth * cosA;
+    return {
+      mx: state.targetMx + u * 1000,
+      my: state.targetMy - v * 1000,
+      eleM: ele
+    };
+  }
+
+  function setTargetForPointAtScreen(viewW, viewH, state, worldPt, cx, cy) {
+    const scale = BASE_SCALE_PX_PER_KM * (state.zoom || 1);
+    const cosA = Math.cos(state.yaw);
+    const sinA = Math.sin(state.yaw);
+    const centerX = viewW * 0.5;
+    const centerY = viewH * 0.49;
+    const tiltCos = Math.sqrt(Math.max(0.05, 1 - state.pitch * state.pitch));
+    const vertScale = scale * tiltCos * 1.32;
+    const targetEleM = typeof state.targetEleM === 'number' ? state.targetEleM : DEFAULT_TARGET_ELE_M;
+    const zKm = (worldPt.eleM - targetEleM) / 1000;
+    const rotX = (cx - centerX) / scale;
+    const depth = ((cy - centerY) + zKm * vertScale) / (scale * Math.max(0.12, state.pitch));
+    const u = rotX * cosA + depth * sinA;
+    const v = -rotX * sinA + depth * cosA;
+    state.targetMx = clampTargetMx(worldPt.mx - u * 1000);
+    state.targetMy = clampTargetMy(worldPt.my + v * 1000);
+  }
+
+  function pickTerrainAtScreen(model, viewW, viewH, state, cx, cy) {
+    if (!model || !model.triangles || !model.triangles.length) return null;
+    const project = makeProjector(viewW, viewH, state);
+    let bestHit = null;
+    let bestDepth = -Infinity;
+
+    for (let i = 0; i < model.triangles.length; i++) {
+      const tri = model.triangles[i];
+      const pa = project(tri.a.mx, tri.a.my, tri.a.eleM);
+      const pb = project(tri.b.mx, tri.b.my, tri.b.eleM);
+      const pc = project(tri.c.mx, tri.c.my, tri.c.eleM);
+
+      const minX = Math.min(pa.x, pb.x, pc.x);
+      const maxX = Math.max(pa.x, pb.x, pc.x);
+      if (cx < minX || cx > maxX) continue;
+      const minY = Math.min(pa.y, pb.y, pc.y);
+      const maxY = Math.max(pa.y, pb.y, pc.y);
+      if (cy < minY || cy > maxY) continue;
+
+      const denom = (pb.y - pc.y) * (pa.x - pc.x) + (pc.x - pb.x) * (pa.y - pc.y);
+      if (Math.abs(denom) < 1e-6) continue;
+      const w1 = ((pb.y - pc.y) * (cx - pc.x) + (pc.x - pb.x) * (cy - pc.y)) / denom;
+      const w2 = ((pc.y - pa.y) * (cx - pc.x) + (pa.x - pc.x) * (cy - pc.y)) / denom;
+      const w3 = 1 - w1 - w2;
+      if (w1 < -0.005 || w2 < -0.005 || w3 < -0.005) continue;
+
+      const hitDepth = w1 * pa.depth + w2 * pb.depth + w3 * pc.depth;
+      if (hitDepth > bestDepth) {
+        bestDepth = hitDepth;
+        bestHit = {
+          mx: w1 * tri.a.mx + w2 * tri.b.mx + w3 * tri.c.mx,
+          my: w1 * tri.a.my + w2 * tri.b.my + w3 * tri.c.my,
+          eleM: w1 * tri.a.eleM + w2 * tri.b.eleM + w3 * tri.c.eleM,
+          depth: hitDepth
+        };
+      }
+    }
+    return bestHit;
   }
 
   function shadeFacetColor(tri) {
@@ -525,8 +659,7 @@
     ctx.scale(dpr, dpr);
     ctx.clearRect(0, 0, viewW, viewH);
 
-    const scalePxPerKm = 68;
-    const project = makeProjector(viewW, viewH, state.yaw, state.pitch, scalePxPerKm);
+    const project = makeProjector(viewW, viewH, state);
 
     // 1. Soft floating diorama drop shadow beneath plinth
     const cornersBottom = [
@@ -779,6 +912,7 @@
 
     // 5. Position interactive HTML/SVG camp pins & climber pin cleanly in 3D projected coordinates
     if (overlay) {
+      const isVisiblePt = (p) => p.x >= -14 && p.x <= viewW + 14 && p.y >= -14 && p.y <= viewH + 14;
       const pinEls = overlay.querySelectorAll('.iso-camp-pin');
       pinEls.forEach((btn) => {
         const idx = parseInt(btn.getAttribute('data-camp-idx'), 10);
@@ -787,6 +921,9 @@
         const p = project(camp.mx, camp.my, camp.eleM + 26);
         btn.style.left = `${((p.x / viewW) * 100).toFixed(4)}%`;
         btn.style.top = `${((p.y / viewH) * 100).toFixed(4)}%`;
+        const vis = isVisiblePt(p);
+        btn.style.opacity = vis ? '1' : '0';
+        btn.style.pointerEvents = vis ? 'auto' : 'none';
         btn.style.zIndex = String(Math.round(50 + (p.depth + 8) * 10) + (idx === state.selectedCampIdx ? 100 : 0));
       });
 
@@ -794,6 +931,8 @@
       if (climberPin && climberPt && projectedClimber) {
         climberPin.style.left = `${((projectedClimber.x / viewW) * 100).toFixed(4)}%`;
         climberPin.style.top = `${((projectedClimber.y / viewH) * 100).toFixed(4)}%`;
+        const vis = isVisiblePt(projectedClimber);
+        climberPin.style.opacity = vis ? '1' : '0';
         climberPin.style.zIndex = String(Math.round(220 + (projectedClimber.depth + 8) * 10));
         const tag = climberPin.querySelector('.iso-climber-tag');
         if (tag) {
@@ -811,10 +950,10 @@
     if (!st) {
       st = {
         zoom: 1.0,
-        panX: 0,
-        panY: 0,
-        interactionMode: 'rotate',
-        manualMode: false,
+        targetMx: CENTER_MX,
+        targetMy: CENTER_MY,
+        targetEleM: DEFAULT_TARGET_ELE_M,
+        interactionMode: 'pan', // Google Earth default: left-drag Moves, right/shift/ctrl-drag Rotates & Tilts
         yaw: DEFAULT_YAW,
         pitch: DEFAULT_PITCH,
         selectedCampIdx: 7, // Default highlight Peak, or stepped by user
@@ -827,6 +966,8 @@
         isPinching: false,
         pinchCooldownUntil: 0,
         rafPending: false,
+        flyRafId: 0,
+        inertiaRafId: 0,
         model: null,
         onSelectCamp: null
       };
@@ -835,28 +976,31 @@
     return st;
   }
 
-  function getEffectiveMode(state) {
-    if (state.manualMode) return state.interactionMode;
-    return state.zoom > 1.02 ? 'pan' : 'rotate';
+  function cancelCameraAnimations(state) {
+    const caf = (typeof cancelAnimationFrame === 'function') ? cancelAnimationFrame : clearTimeout;
+    if (state.flyRafId) {
+      caf(state.flyRafId);
+      state.flyRafId = 0;
+    }
+    if (state.inertiaRafId) {
+      caf(state.inertiaRafId);
+      state.inertiaRafId = 0;
+    }
   }
 
-  function clampCameraPan(container, state, rawX, rawY, targetZoom) {
-    const z = typeof targetZoom === 'number' ? targetZoom : state.zoom;
-    if (z <= 1.02 && !(state.manualMode && state.interactionMode === 'pan')) {
-      return { x: 0, y: 0 };
-    }
-    const viewport = container.querySelector('.iso-stage-viewport');
-    const scaler = container.querySelector('.iso-mountain-scaler');
-    if (!viewport || !scaler) return { x: rawX, y: rawY };
-    const vw = viewport.clientWidth || 320;
-    const vh = viewport.clientHeight || 240;
-    const sw = scaler.offsetWidth || vw;
-    const sh = scaler.offsetHeight || vh;
-    const maxX = sw * z > vw ? (sw * z - vw) * 0.5 + 24 : Math.max(24, (vw - sw * z) * 0.35);
-    const maxY = sh * z > vh ? (sh * z - vh) * 0.5 + 20 : Math.max(16, (vh - sh * z) * 0.25);
+  function getEffectiveMode(state) {
+    return state.interactionMode === 'rotate' ? 'rotate' : 'pan';
+  }
+
+  function getCanvasCoordsFromClient(container, clientX, clientY) {
+    const canvas = container.querySelector('.iso-mountain-canvas');
+    if (!canvas) return { cx: 460, cy: 284.2 };
+    const rect = canvas.getBoundingClientRect();
+    const w = rect.width || 920;
+    const h = rect.height || 580;
     return {
-      x: Math.max(-maxX, Math.min(maxX, rawX)),
-      y: Math.max(-maxY, Math.min(maxY, rawY))
+      cx: ((clientX - rect.left) / w) * 920,
+      cy: ((clientY - rect.top) / h) * 580
     };
   }
 
@@ -875,66 +1019,134 @@
       const active = btn.getAttribute('data-view-preset') === state.activePreset;
       btn.classList.toggle('is-active', active);
     });
+    const compassDial = container.querySelector('.iso-compass-dial');
+    if (compassDial) {
+      const deg = (state.yaw * 180) / Math.PI;
+      compassDial.style.transform = `rotate(${deg.toFixed(2)}deg)`;
+    }
     const viewport = container.querySelector('.iso-stage-viewport');
     if (viewport) {
-      viewport.style.cursor = effectiveMode === 'pan' ? 'move' : 'grab';
-      viewport.style.touchAction = (effectiveMode === 'pan' || state.zoom > 1.02) ? 'none' : 'pan-y';
+      viewport.style.cursor = effectiveMode === 'pan' ? 'grab' : 'grab';
+      viewport.style.touchAction = 'none';
     }
-  }
-
-  function applyCameraTransform(container, state) {
-    const clamped = clampCameraPan(container, state, state.panX, state.panY, state.zoom);
-    state.panX = clamped.x;
-    state.panY = clamped.y;
-    const scaler = container.querySelector('.iso-mountain-scaler');
-    if (scaler) {
-      scaler.style.transform = `translate3d(${state.panX.toFixed(2)}px, ${state.panY.toFixed(2)}px, 0) scale(${state.zoom.toFixed(4)})`;
-    }
-    syncCameraToolbarUI(container, state);
   }
 
   function setCameraZoom(container, state, rawNextZoom, focalClientX, focalClientY) {
     const oldZoom = state.zoom;
-    const nextZoom = Math.max(0.5, Math.min(3.5, Number(rawNextZoom.toFixed(3))));
-    if (nextZoom === oldZoom && state.zoom <= 1.02) {
-      applyCameraTransform(container, state);
-      return;
+    const nextZoom = Number(clampZoom(rawNextZoom).toFixed(3));
+    if (Math.abs(nextZoom - oldZoom) < 0.001) return;
+
+    let anchorPt = null;
+    let cx = 460;
+    let cy = 284.2;
+    if (typeof focalClientX === 'number' && typeof focalClientY === 'number') {
+      const coords = getCanvasCoordsFromClient(container, focalClientX, focalClientY);
+      cx = coords.cx;
+      cy = coords.cy;
+      anchorPt = (state.model && pickTerrainAtScreen(state.model, 920, 580, state, cx, cy))
+        || screenToWorldAtEle(920, 580, state, cx, cy, state.targetEleM);
     }
 
-    let nextPanX = state.panX;
-    let nextPanY = state.panY;
+    state.zoom = nextZoom;
 
-    if (nextZoom <= 1.02) {
-      if (!state.manualMode) state.interactionMode = 'rotate';
-      if (!state.manualMode || state.interactionMode === 'rotate') {
-        nextPanX = 0;
-        nextPanY = 0;
-      }
-    } else {
-      if (!state.manualMode) state.interactionMode = 'pan';
-      if (typeof focalClientX === 'number' && typeof focalClientY === 'number') {
-        const scaler = container.querySelector('.iso-mountain-scaler');
-        if (scaler) {
-          const rect = scaler.getBoundingClientRect();
-          const baseCenterX = rect.left + rect.width * 0.5 - state.panX;
-          const baseCenterY = rect.top + rect.height * 0.5 - state.panY;
-          const fx = focalClientX - baseCenterX;
-          const fy = focalClientY - baseCenterY;
-          const ratio = nextZoom / oldZoom;
-          nextPanX = fx - (fx - state.panX) * ratio;
-          nextPanY = fy - (fy - state.panY) * ratio;
-        }
+    if (anchorPt) {
+      setTargetForPointAtScreen(920, 580, state, anchorPt, cx, cy);
+    }
+
+    syncCameraToolbarUI(container, state);
+    renderMountainCanvasAndPins(container, state.model, state);
+  }
+
+  function flyToCamera(container, state, target, durationMs) {
+    cancelCameraAnimations(state);
+    const dur = Math.max(120, durationMs || 380);
+    const startYaw = state.yaw;
+    const endYaw = typeof target.yaw === 'number' ? startYaw + normalizeAngle(target.yaw - startYaw) : startYaw;
+    const startPitch = state.pitch;
+    const endPitch = typeof target.pitch === 'number' ? clampPitch(target.pitch) : startPitch;
+    const startZoom = state.zoom;
+    const endZoom = typeof target.zoom === 'number' ? clampZoom(target.zoom) : startZoom;
+    const startMx = state.targetMx;
+    const endMx = typeof target.targetMx === 'number' ? clampTargetMx(target.targetMx) : startMx;
+    const startMy = state.targetMy;
+    const endMy = typeof target.targetMy === 'number' ? clampTargetMy(target.targetMy) : startMy;
+    const startEle = state.targetEleM;
+    const endEle = typeof target.targetEleM === 'number' ? target.targetEleM : startEle;
+
+    const raf = (typeof requestAnimationFrame === 'function') ? requestAnimationFrame : (fn) => setTimeout(() => fn(Date.now()), 16);
+    const nowFn = () => (typeof performance !== 'undefined' && performance.now ? performance.now() : Date.now());
+    const t0 = nowFn();
+
+    const step = (ts) => {
+      const t = Math.min(1, (ts - t0) / dur);
+      const ease = 1 - Math.pow(1 - t, 3);
+      state.yaw = startYaw + (endYaw - startYaw) * ease;
+      state.pitch = startPitch + (endPitch - startPitch) * ease;
+      state.zoom = startZoom + (endZoom - startZoom) * ease;
+      state.targetMx = startMx + (endMx - startMx) * ease;
+      state.targetMy = startMy + (endMy - startMy) * ease;
+      state.targetEleM = startEle + (endEle - startEle) * ease;
+
+      syncCameraToolbarUI(container, state);
+      renderMountainCanvasAndPins(container, state.model, state);
+
+      if (t < 1) {
+        state.flyRafId = raf(step);
       } else {
-        const ratio = nextZoom / oldZoom;
-        nextPanX = state.panX * ratio;
-        nextPanY = state.panY * ratio;
+        state.flyRafId = 0;
+        state.yaw = normalizeAngle(endYaw);
+        syncCameraToolbarUI(container, state);
       }
-    }
+    };
+    state.flyRafId = raf(step);
+  }
 
-    state.zoom = Number(nextZoom.toFixed(2));
-    state.panX = nextPanX;
-    state.panY = nextPanY;
-    applyCameraTransform(container, state);
+  function startCameraInertia(container, state, mode, vxPxPerSec, vyPxPerSec) {
+    const speed = Math.hypot(vxPxPerSec, vyPxPerSec);
+    if (speed < 45) return;
+    cancelCameraAnimations(state);
+
+    const raf = (typeof requestAnimationFrame === 'function') ? requestAnimationFrame : (fn) => setTimeout(() => fn(Date.now()), 16);
+    const nowFn = () => (typeof performance !== 'undefined' && performance.now ? performance.now() : Date.now());
+    let lastTs = nowFn();
+    let vx = Math.max(-1800, Math.min(1800, vxPxPerSec));
+    let vy = Math.max(-1800, Math.min(1800, vyPxPerSec));
+
+    const step = (ts) => {
+      const dt = Math.min(0.05, Math.max(0.004, (ts - lastTs) / 1000));
+      lastTs = ts;
+      const dx = vx * dt;
+      const dy = vy * dt;
+
+      if (mode === 'rotate') {
+        state.yaw -= dx * 0.0068;
+        state.pitch = clampPitch(state.pitch + dy * 0.0034);
+        state.activePreset = '';
+      } else {
+        const scale = BASE_SCALE_PX_PER_KM * (state.zoom || 1);
+        const cosA = Math.cos(state.yaw);
+        const sinA = Math.sin(state.yaw);
+        const dRotX = -dx / scale;
+        const dDepth = -dy / (scale * Math.max(0.18, state.pitch));
+        const du = dRotX * cosA + dDepth * sinA;
+        const dv = -dRotX * sinA + dDepth * cosA;
+        state.targetMx = clampTargetMx(state.targetMx + du * 1000);
+        state.targetMy = clampTargetMy(state.targetMy - dv * 1000);
+      }
+
+      syncCameraToolbarUI(container, state);
+      renderMountainCanvasAndPins(container, state.model, state);
+
+      const decay = Math.pow(0.0015, dt);
+      vx *= decay;
+      vy *= decay;
+      if (Math.hypot(vx, vy) > 18) {
+        state.inertiaRafId = raf(step);
+      } else {
+        state.inertiaRafId = 0;
+      }
+    };
+    state.inertiaRafId = raf(step);
   }
 
   function updateInspectorBar(container, state) {
@@ -995,53 +1207,103 @@
       });
     }
 
+    // Suppress context menu on viewport so Right-drag orbits cleanly like Google Earth
+    container.addEventListener('contextmenu', (e) => {
+      if (e.target.closest('.iso-stage-viewport')) {
+        e.preventDefault();
+      }
+    });
+
     container.addEventListener('wheel', (e) => {
       const inViewport = Boolean(e.target.closest('.iso-stage-viewport'));
       if (!inViewport) return;
-      if (!state.scrollZoomActive && !e.ctrlKey) return;
+      if (!state.scrollZoomActive && !e.ctrlKey && !e.metaKey) return;
       if (e.deltaY === 0) return;
       e.preventDefault();
-      const nextZoom = e.ctrlKey
-        ? state.zoom * Math.exp(-e.deltaY * 0.01)
-        : state.zoom + (e.deltaY < 0 ? 0.2 : -0.2);
-      setCameraZoom(container, state, nextZoom, e.clientX, e.clientY);
+      cancelCameraAnimations(state);
+      const factor = e.ctrlKey || e.metaKey
+        ? Math.exp(-e.deltaY * 0.01)
+        : Math.exp(-e.deltaY * 0.0022);
+      setCameraZoom(container, state, state.zoom * factor, e.clientX, e.clientY);
     }, { passive: false });
 
     let activeTouchMode = null;
     let pinchStartDist = 0;
     let pinchStartZoom = 1;
+    let pinchStartAngle = 0;
+    let pinchStartYaw = 0;
+    let pinchTwistUnlocked = false;
+    let pinchAnchorPt = null;
     let touchStartX = 0;
     let touchStartY = 0;
-    let touchStartPanX = 0;
-    let touchStartPanY = 0;
     let touchStartYaw = 0;
     let touchStartPitch = 0;
+    let touchGrabPt = null;
+    let touchPrevX = 0;
+    let touchPrevY = 0;
+    let touchPrevTime = 0;
+    let touchVelX = 0;
+    let touchVelY = 0;
+
     let pointerDragActive = false;
-    let pointerMode = 'rotate';
+    let pointerMode = 'pan';
     let dragStartX = 0;
     let dragStartY = 0;
-    let dragStartPanX = 0;
-    let dragStartPanY = 0;
     let dragStartYaw = 0;
     let dragStartPitch = 0;
+    let dragGrabPt = null;
+    let dragPrevX = 0;
+    let dragPrevY = 0;
+    let dragPrevTime = 0;
+    let dragVelX = 0;
+    let dragVelY = 0;
+
+    const nowMs = () => (typeof performance !== 'undefined' && performance.now ? performance.now() : Date.now());
+
+    const reanchorOrbitPivot = () => {
+      if (!state.model) return;
+      const centerHit = pickTerrainAtScreen(state.model, 920, 580, state, 460, 284.2);
+      if (centerHit) {
+        state.targetMx = clampTargetMx(centerHit.mx);
+        state.targetMy = clampTargetMy(centerHit.my);
+        state.targetEleM = centerHit.eleM;
+      }
+    };
 
     container.addEventListener('pointerdown', (e) => {
       if (e.pointerType === 'touch') return;
-      if (e.button !== 0) return;
+      if (e.button !== 0 && e.button !== 1 && e.button !== 2) return;
       if (e.target.closest('button')) return;
       const viewport = e.target.closest('.iso-stage-viewport');
       if (!viewport) return;
 
+      cancelCameraAnimations(state);
       state.scrollZoomActive = true;
       pointerDragActive = true;
       state.isDragging = false;
-      pointerMode = getEffectiveMode(state);
+
+      const baseMode = getEffectiveMode(state);
+      const isSecondaryOrbit = e.button === 2 || e.button === 1 || e.shiftKey || e.ctrlKey || e.metaKey || e.altKey;
+      pointerMode = isSecondaryOrbit ? (baseMode === 'pan' ? 'rotate' : 'pan') : baseMode;
+
       dragStartX = e.clientX;
       dragStartY = e.clientY;
-      dragStartPanX = state.panX;
-      dragStartPanY = state.panY;
-      dragStartYaw = state.yaw;
-      dragStartPitch = state.pitch;
+      dragPrevX = e.clientX;
+      dragPrevY = e.clientY;
+      dragPrevTime = nowMs();
+      dragVelX = 0;
+      dragVelY = 0;
+
+      if (pointerMode === 'rotate') {
+        reanchorOrbitPivot();
+        dragStartYaw = state.yaw;
+        dragStartPitch = state.pitch;
+      } else {
+        const { cx, cy } = getCanvasCoordsFromClient(container, e.clientX, e.clientY);
+        dragGrabPt = (state.model && pickTerrainAtScreen(state.model, 920, 580, state, cx, cy))
+          || screenToWorldAtEle(920, 580, state, cx, cy, state.targetEleM);
+      }
+
       viewport.style.cursor = 'grabbing';
       try { viewport.setPointerCapture(e.pointerId); } catch (err) {}
     });
@@ -1052,13 +1314,23 @@
       const dy = e.clientY - dragStartY;
       if (Math.abs(dx) > 4 || Math.abs(dy) > 4) state.isDragging = true;
 
-      if (pointerMode === 'pan') {
-        state.panX = dragStartPanX + dx;
-        state.panY = dragStartPanY + dy;
-        applyCameraTransform(container, state);
+      const tNow = nowMs();
+      const dt = Math.max(0.004, (tNow - dragPrevTime) / 1000);
+      const instVx = (e.clientX - dragPrevX) / dt;
+      const instVy = (e.clientY - dragPrevY) / dt;
+      dragVelX = dragVelX * 0.45 + instVx * 0.55;
+      dragVelY = dragVelY * 0.45 + instVy * 0.55;
+      dragPrevX = e.clientX;
+      dragPrevY = e.clientY;
+      dragPrevTime = tNow;
+
+      if (pointerMode === 'pan' && dragGrabPt) {
+        const { cx, cy } = getCanvasCoordsFromClient(container, e.clientX, e.clientY);
+        setTargetForPointAtScreen(920, 580, state, dragGrabPt, cx, cy);
+        scheduleRedraw(container, state);
       } else {
-        state.yaw = dragStartYaw + dx * 0.0085;
-        state.pitch = Math.max(0.22, Math.min(0.95, dragStartPitch + dy * 0.0042));
+        state.yaw = dragStartYaw - dx * 0.0072;
+        state.pitch = clampPitch(dragStartPitch + dy * 0.0038);
         state.activePreset = '';
         syncCameraToolbarUI(container, state);
         scheduleRedraw(container, state);
@@ -1068,35 +1340,76 @@
     const endPointerDrag = () => {
       if (!pointerDragActive) return;
       pointerDragActive = false;
+      const modeUsed = pointerMode;
+      const staleMs = nowMs() - dragPrevTime;
       syncCameraToolbarUI(container, state);
+      if (state.isDragging && staleMs < 90) {
+        startCameraInertia(container, state, modeUsed, dragVelX, dragVelY);
+      }
       setTimeout(() => { state.isDragging = false; }, 40);
     };
     container.addEventListener('pointerup', endPointerDrag);
     container.addEventListener('pointercancel', endPointerDrag);
 
+    // Google Earth double-click: fly & zoom into clicked 3D terrain point
+    container.addEventListener('dblclick', (e) => {
+      const viewport = e.target.closest('.iso-stage-viewport');
+      if (!viewport || e.target.closest('button')) return;
+      const { cx, cy } = getCanvasCoordsFromClient(container, e.clientX, e.clientY);
+      const hit = (state.model && pickTerrainAtScreen(state.model, 920, 580, state, cx, cy))
+        || screenToWorldAtEle(920, 580, state, cx, cy, state.targetEleM);
+      flyToCamera(container, state, {
+        targetMx: hit.mx,
+        targetMy: hit.my,
+        targetEleM: hit.eleM,
+        zoom: clampZoom(state.zoom * 1.65)
+      }, 360);
+    });
+
     const getTouchDist = (t1, t2) => Math.hypot(t2.clientX - t1.clientX, t2.clientY - t1.clientY);
+    const getTouchAngle = (t1, t2) => Math.atan2(t2.clientY - t1.clientY, t2.clientX - t1.clientX);
 
     container.addEventListener('touchstart', (e) => {
       const viewport = e.target.closest('.iso-stage-viewport');
       if (!viewport) return;
+      cancelCameraAnimations(state);
+
       if (e.touches.length === 2) {
         activeTouchMode = 'pinch';
         state.isPinching = true;
-        pinchStartDist = getTouchDist(e.touches[0], e.touches[1]);
+        pinchStartDist = Math.max(10, getTouchDist(e.touches[0], e.touches[1]));
         pinchStartZoom = state.zoom;
+        pinchStartAngle = getTouchAngle(e.touches[0], e.touches[1]);
+        pinchStartYaw = state.yaw;
+        pinchTwistUnlocked = false;
+        const midX = (e.touches[0].clientX + e.touches[1].clientX) * 0.5;
+        const midY = (e.touches[0].clientY + e.touches[1].clientY) * 0.5;
+        const { cx, cy } = getCanvasCoordsFromClient(container, midX, midY);
+        pinchAnchorPt = (state.model && pickTerrainAtScreen(state.model, 920, 580, state, cx, cy))
+          || screenToWorldAtEle(920, 580, state, cx, cy, state.targetEleM);
         e.preventDefault();
         return;
       }
       if (e.touches.length === 1 && !e.target.closest('button')) {
-        const mode = getEffectiveMode(state);
-        activeTouchMode = mode === 'pan' ? 'pan' : 'rotate';
+        activeTouchMode = getEffectiveMode(state);
         state.isDragging = false;
         touchStartX = e.touches[0].clientX;
         touchStartY = e.touches[0].clientY;
-        touchStartPanX = state.panX;
-        touchStartPanY = state.panY;
-        touchStartYaw = state.yaw;
-        touchStartPitch = state.pitch;
+        touchPrevX = touchStartX;
+        touchPrevY = touchStartY;
+        touchPrevTime = nowMs();
+        touchVelX = 0;
+        touchVelY = 0;
+
+        if (activeTouchMode === 'rotate') {
+          reanchorOrbitPivot();
+          touchStartYaw = state.yaw;
+          touchStartPitch = state.pitch;
+        } else {
+          const { cx, cy } = getCanvasCoordsFromClient(container, touchStartX, touchStartY);
+          touchGrabPt = (state.model && pickTerrainAtScreen(state.model, 920, 580, state, cx, cy))
+            || screenToWorldAtEle(920, 580, state, cx, cy, state.targetEleM);
+        }
       }
     }, { passive: false });
 
@@ -1104,26 +1417,50 @@
       if (activeTouchMode === 'pinch' && e.touches.length === 2) {
         e.preventDefault();
         const dist = getTouchDist(e.touches[0], e.touches[1]);
+        const angle = getTouchAngle(e.touches[0], e.touches[1]);
+        const midX = (e.touches[0].clientX + e.touches[1].clientX) * 0.5;
+        const midY = (e.touches[0].clientY + e.touches[1].clientY) * 0.5;
+        const { cx, cy } = getCanvasCoordsFromClient(container, midX, midY);
+
         if (pinchStartDist > 0) {
-          const midX = (e.touches[0].clientX + e.touches[1].clientX) * 0.5;
-          const midY = (e.touches[0].clientY + e.touches[1].clientY) * 0.5;
-          setCameraZoom(container, state, pinchStartZoom * (dist / pinchStartDist), midX, midY);
+          state.zoom = clampZoom(pinchStartZoom * (dist / pinchStartDist));
         }
+        const deltaAngle = normalizeAngle(angle - pinchStartAngle);
+        if (pinchTwistUnlocked || Math.abs(deltaAngle) > 0.14) {
+          pinchTwistUnlocked = true;
+          state.yaw = pinchStartYaw - deltaAngle;
+          state.activePreset = '';
+        }
+        if (pinchAnchorPt) {
+          setTargetForPointAtScreen(920, 580, state, pinchAnchorPt, cx, cy);
+        }
+        syncCameraToolbarUI(container, state);
+        scheduleRedraw(container, state);
         return;
       }
       if ((activeTouchMode === 'pan' || activeTouchMode === 'rotate') && e.touches.length === 1) {
-        const dx = e.touches[0].clientX - touchStartX;
-        const dy = e.touches[0].clientY - touchStartY;
+        e.preventDefault();
+        const tx = e.touches[0].clientX;
+        const ty = e.touches[0].clientY;
+        const dx = tx - touchStartX;
+        const dy = ty - touchStartY;
         if (Math.abs(dx) > 5 || Math.abs(dy) > 5) state.isDragging = true;
-        if (activeTouchMode === 'pan') {
-          e.preventDefault();
-          state.panX = touchStartPanX + dx;
-          state.panY = touchStartPanY + dy;
-          applyCameraTransform(container, state);
-        } else if (Math.abs(dx) > Math.abs(dy) || state.isDragging) {
-          e.preventDefault();
-          state.yaw = touchStartYaw + dx * 0.009;
-          state.pitch = Math.max(0.22, Math.min(0.95, touchStartPitch + dy * 0.0042));
+
+        const tNow = nowMs();
+        const dt = Math.max(0.004, (tNow - touchPrevTime) / 1000);
+        touchVelX = touchVelX * 0.45 + ((tx - touchPrevX) / dt) * 0.55;
+        touchVelY = touchVelY * 0.45 + ((ty - touchPrevY) / dt) * 0.55;
+        touchPrevX = tx;
+        touchPrevY = ty;
+        touchPrevTime = tNow;
+
+        if (activeTouchMode === 'pan' && touchGrabPt) {
+          const { cx, cy } = getCanvasCoordsFromClient(container, tx, ty);
+          setTargetForPointAtScreen(920, 580, state, touchGrabPt, cx, cy);
+          scheduleRedraw(container, state);
+        } else {
+          state.yaw = touchStartYaw - dx * 0.0078;
+          state.pitch = clampPitch(touchStartPitch + dy * 0.0038);
           state.activePreset = '';
           syncCameraToolbarUI(container, state);
           scheduleRedraw(container, state);
@@ -1135,6 +1472,8 @@
       if (state.isPinching) {
         state.isPinching = false;
         state.pinchCooldownUntil = Date.now() + 260;
+      } else if ((activeTouchMode === 'pan' || activeTouchMode === 'rotate') && state.isDragging && (nowMs() - touchPrevTime) < 90) {
+        startCameraInertia(container, state, activeTouchMode, touchVelX, touchVelY);
       }
       activeTouchMode = null;
       setTimeout(() => { state.isDragging = false; }, 60);
@@ -1172,9 +1511,7 @@
 
     const zoomPct = Math.round(state.zoom * 100);
     const effectiveMode = getEffectiveMode(state);
-    const viewportTouchAction = (effectiveMode === 'pan' || state.zoom > 1.02) ? 'none' : 'pan-y';
-    const viewportCursor = effectiveMode === 'pan' ? 'move' : 'grab';
-    const scalerStyle = `transform:translate3d(${state.panX.toFixed(2)}px, ${state.panY.toFixed(2)}px, 0) scale(${state.zoom.toFixed(4)});`;
+    const compassDeg = (state.yaw * 180) / Math.PI;
 
     const campPinsHtml = model.camps.map((c, idx) => `
       <button type="button"
@@ -1209,19 +1546,27 @@
               <button type="button" class="iso-preset-btn ${state.activePreset === 'top' ? 'is-active' : ''}" data-view-preset="top">Top-Down</button>
             </div>
             <div class="iso-mode-controls" role="group" aria-label="Interaction mode">
-              <button type="button" class="iso-mode-btn ${effectiveMode === 'rotate' ? 'is-active' : ''}" data-interaction-mode="rotate" aria-pressed="${effectiveMode === 'rotate'}">Rotate</button>
-              <button type="button" class="iso-mode-btn ${effectiveMode === 'pan' ? 'is-active' : ''}" data-interaction-mode="pan" aria-pressed="${effectiveMode === 'pan'}">Move</button>
+              <button type="button" class="iso-mode-btn ${effectiveMode === 'pan' ? 'is-active' : ''}" data-interaction-mode="pan" aria-pressed="${effectiveMode === 'pan'}" title="Drag to move across terrain (Right-drag or Shift+drag rotates)">Move</button>
+              <button type="button" class="iso-mode-btn ${effectiveMode === 'rotate' ? 'is-active' : ''}" data-interaction-mode="rotate" aria-pressed="${effectiveMode === 'rotate'}" title="Drag to rotate and tilt around center">Rotate</button>
             </div>
             <div class="iso-zoom-controls" role="group" aria-label="Mountain zoom controls">
               <button type="button" class="iso-zoom-btn" data-zoom-delta="-0.2" aria-label="Zoom out">−</button>
-              <button type="button" class="iso-zoom-btn iso-zoom-reset" data-zoom-reset="1" aria-label="Reset zoom">${zoomPct}%</button>
+              <button type="button" class="iso-zoom-btn iso-zoom-reset" data-zoom-reset="1" aria-label="Reset view" title="Reset zoom and camera view">${zoomPct}%</button>
               <button type="button" class="iso-zoom-btn" data-zoom-delta="0.2" aria-label="Zoom in">+</button>
             </div>
           </div>
         </div>
 
-        <div class="iso-stage-viewport" style="cursor:${viewportCursor};user-select:none;touch-action:${viewportTouchAction};">
-          <div class="iso-mountain-scaler" style="${scalerStyle}">
+        <div class="iso-stage-viewport" style="cursor:grab;user-select:none;touch-action:none;">
+          <button type="button" class="iso-compass-btn" title="North Compass (click for North-up or reset view)" aria-label="Compass reset North">
+            <svg class="iso-compass-dial" viewBox="0 0 32 32" style="transform:rotate(${compassDeg.toFixed(2)}deg)">
+              <circle cx="16" cy="16" r="13.5" fill="none" stroke="rgba(148,197,255,0.28)" stroke-width="1"/>
+              <polygon points="16,4.5 19.2,16 16,13.8 12.8,16" fill="#ef4444"/>
+              <polygon points="16,27.5 19.2,16 16,18.2 12.8,16" fill="rgba(226,232,240,0.75)"/>
+              <text x="16" y="10.2" text-anchor="middle" font-size="6.2" font-weight="800" fill="#ffffff">N</text>
+            </svg>
+          </button>
+          <div class="iso-mountain-scaler">
             <canvas class="iso-mountain-canvas" width="920" height="580" role="img" aria-label="3D topographic Mount Everest expedition trail diorama"></canvas>
             <div class="iso-camps-overlay">${campPinsHtml}${climberPinHtml}</div>
           </div>
@@ -1249,26 +1594,61 @@
         const preset = btn.getAttribute('data-view-preset');
         state.activePreset = preset;
         if (preset === 'classic') {
-          state.yaw = DEFAULT_YAW;
-          state.pitch = DEFAULT_PITCH;
+          flyToCamera(container, state, {
+            yaw: DEFAULT_YAW,
+            pitch: DEFAULT_PITCH,
+            zoom: 1.0,
+            targetMx: CENTER_MX,
+            targetMy: CENTER_MY,
+            targetEleM: DEFAULT_TARGET_ELE_M
+          }, 360);
         } else if (preset === 'south') {
-          state.yaw = 0.25;
-          state.pitch = 0.44;
+          flyToCamera(container, state, {
+            yaw: 0.25,
+            pitch: 0.44,
+            zoom: 1.0,
+            targetMx: CENTER_MX,
+            targetMy: CENTER_MY,
+            targetEleM: DEFAULT_TARGET_ELE_M
+          }, 360);
         } else if (preset === 'top') {
-          state.yaw = 0.0;
-          state.pitch = 0.94;
+          flyToCamera(container, state, {
+            yaw: 0.0,
+            pitch: 0.96,
+            zoom: 1.0,
+            targetMx: CENTER_MX,
+            targetMy: CENTER_MY,
+            targetEleM: DEFAULT_TARGET_ELE_M
+          }, 360);
         }
-        syncCameraToolbarUI(container, state);
-        renderMountainCanvasAndPins(container, model, state);
       });
     });
+
+    const compassBtn = container.querySelector('.iso-compass-btn');
+    if (compassBtn) {
+      compassBtn.addEventListener('click', () => {
+        if (Math.abs(normalizeAngle(state.yaw)) > 0.06) {
+          state.activePreset = '';
+          flyToCamera(container, state, { yaw: 0 }, 340);
+        } else {
+          state.activePreset = 'classic';
+          flyToCamera(container, state, {
+            yaw: DEFAULT_YAW,
+            pitch: DEFAULT_PITCH,
+            zoom: 1.0,
+            targetMx: CENTER_MX,
+            targetMy: CENTER_MY,
+            targetEleM: DEFAULT_TARGET_ELE_M
+          }, 380);
+        }
+      });
+    }
 
     container.querySelectorAll('.iso-mode-btn').forEach((btn) => {
       btn.addEventListener('click', () => {
         const nextMode = btn.getAttribute('data-interaction-mode');
         if (nextMode === 'rotate' || nextMode === 'pan') {
           state.interactionMode = nextMode;
-          state.manualMode = true;
           syncCameraToolbarUI(container, state);
         }
       });
@@ -1277,15 +1657,19 @@
     container.querySelectorAll('.iso-zoom-btn').forEach((btn) => {
       btn.addEventListener('click', () => {
         if (btn.dataset.zoomReset) {
-          state.zoom = 1.0;
-          state.panX = 0;
-          state.panY = 0;
-          state.manualMode = false;
-          state.interactionMode = 'rotate';
-          applyCameraTransform(container, state);
+          state.activePreset = 'classic';
+          flyToCamera(container, state, {
+            yaw: DEFAULT_YAW,
+            pitch: DEFAULT_PITCH,
+            zoom: 1.0,
+            targetMx: CENTER_MX,
+            targetMy: CENTER_MY,
+            targetEleM: DEFAULT_TARGET_ELE_M
+          }, 340);
         } else {
           const delta = parseFloat(btn.dataset.zoomDelta || '0');
-          setCameraZoom(container, state, state.zoom + delta);
+          cancelCameraAnimations(state);
+          setCameraZoom(container, state, state.zoom * (delta > 0 ? 1.25 : 0.8));
         }
       });
     });

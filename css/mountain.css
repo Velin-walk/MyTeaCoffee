@@ -450,7 +450,40 @@
       display: flex;
       align-items: center;
       justify-content: center;
-      touch-action: pan-y;
+      touch-action: none;
+    }
+
+    .iso-compass-btn {
+      position: absolute;
+      top: 14px;
+      right: 14px;
+      z-index: 320;
+      width: 42px;
+      height: 42px;
+      border-radius: 999px;
+      border: 1px solid rgba(148, 197, 255, 0.34);
+      background: rgba(10, 19, 36, 0.72);
+      backdrop-filter: blur(6px);
+      color: #f8fafc;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      box-shadow: 0 4px 14px rgba(0, 0, 0, 0.38);
+      transition: border-color 0.15s ease, background 0.15s ease, transform 0.15s ease;
+    }
+
+    .iso-compass-btn:hover {
+      border-color: rgba(125, 211, 252, 0.75);
+      background: rgba(15, 29, 54, 0.88);
+      transform: scale(1.05);
+    }
+
+    .iso-compass-dial {
+      width: 32px;
+      height: 32px;
+      display: block;
+      transition: transform 0.04s linear;
     }
 
     .iso-mountain-scaler {
@@ -458,7 +491,6 @@
       width: 100%;
       max-width: 880px;
       margin: 0 auto;
-      transform-origin: 50% 50%;
     }
 
     .iso-mountain-canvas {

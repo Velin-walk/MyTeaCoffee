@@ -15,12 +15,7 @@
     desc: "Protected high-altitude Himalayan terrestrial orchid (Dactylorhiza hatagirea, literally 'Five Fingers'), famed for its palmate five-fingered underground tuberous root and dense upright spikes of magenta-purple speckled blossoms framed by slender leafy bracts.",
     stages: {
       sprout: `
-        <!-- Underground alpine soil cutaway -->
-        <path d="M22 69 Q50 67 78 69 C80 81 70 92 50 93 C30 92 20 81 22 69 Z" fill="#4e342e" opacity="0.88"/>
-        <path d="M26 70 Q50 68 74 70 C74 79 65 89 50 90 C35 89 26 79 26 70 Z" fill="#3e2723" opacity="0.72"/>
-        <path d="M20 69 Q50 66.5 80 69" stroke="#689f38" stroke-width="2" stroke-linecap="round" fill="none"/>
-
-        <!-- Young underground 5-fingered palmate tuber root -->
+        <!-- Young 5-fingered palmate tuber root -->
         <path d="M47 67 Q50 69 53 67 L52 72 L48 72 Z" fill="#795548"/>
         <path d="M48 72 C43 72 37 75 34 79 C36 80 41 78 46 75 C44 79 42 83 41 86 C43 87 46 83 48 77 C48.5 82 48.5 87 49.5 90 C51 90 51.5 83 52 77 C54 81 56 85 57.5 86 C59 85 57 79 54 75 C59 77 63 80 65 81 C66 79 61 73 52 72 Z" fill="#dbb47c" stroke="#9e7442" stroke-width="0.65" stroke-linejoin="round"/>
         <path d="M49.5 74 L49.5 88 M46.5 74 L36 78 M53.5 74 L63 79" stroke="#f0d5a8" stroke-width="0.6" stroke-linecap="round" opacity="0.7" fill="none"/>
@@ -32,12 +27,7 @@
         <path d="M49 65 L35 51 M51 65 L65 51 M50 66 L50 43" stroke="#c5e1a5" stroke-width="0.65" fill="none" opacity="0.75"/>
       `,
       growing: `
-        <!-- Underground alpine soil cutaway -->
-        <path d="M18 69 Q50 66.5 82 69 C84 84 72 95 50 96 C28 95 16 84 18 69 Z" fill="#4e342e" opacity="0.9"/>
-        <path d="M23 70 Q50 68 77 70 C77 82 67 92 50 93 C33 92 23 82 23 70 Z" fill="#3e2723" opacity="0.75"/>
-        <path d="M16 69 Q50 66 84 69" stroke="#558b2f" stroke-width="2.2" stroke-linecap="round" fill="none"/>
-
-        <!-- Underground 5-fingered palmate tuberous root -->
+        <!-- 5-fingered palmate tuberous root -->
         <path d="M47 67 L47.5 72.5 Q50 74 52.5 72.5 L53 67 Z" fill="#6d4c41"/>
         <path d="M47.5 70 L42 69 M52.5 70.5 L58 69.5" stroke="#c8a06d" stroke-width="1.2" stroke-linecap="round" fill="none"/>
         <path d="M47.5 72.5 C41 73 33 77 29 82 C31 84 37 80 44 76 C41 81 38 86 37 89 C39.5 90 43 85 47 78 C48 84 48 90 49 94 C51 94 52 85 52.5 78 C55 83 57 88 59 90 C61 89 58 82 55 76 C61 79 66 83 68 86 C70 84 65 76 52.5 72.5 Z" fill="#ddb67e" stroke="#966c3b" stroke-width="0.7" stroke-linejoin="round"/>
@@ -68,21 +58,8 @@
         <path d="M46 28 L42 22 M54 26 L58 20 M50 18 L47 12" stroke="#689f38" stroke-width="1" stroke-linecap="round"/>
       `,
       mature: `
-        <!-- ================= UNDERGROUND ALPINE SOIL CROSS-SECTION ================= -->
-        <path d="M16 68 Q50 65.5 84 68 C87 84 74 96.5 50 97.5 C26 96.5 13 84 16 68 Z" fill="#4e342e" opacity="0.92"/>
-        <path d="M21 69.5 Q50 67.5 79 69.5 C80 83 68 94 50 95 C32 94 20 83 21 69.5 Z" fill="#3e2723" opacity="0.8"/>
-        <!-- Subtle soil pebbles/specks -->
-        <g fill="#6d4c41" opacity="0.55">
-          <circle cx="28" cy="76" r="1.1"/><circle cx="71" cy="75" r="1.2"/>
-          <circle cx="33" cy="87" r="0.9"/><circle cx="64" cy="90" r="1"/>
-          <circle cx="43" cy="91" r="0.8"/><circle cx="58" cy="77" r="0.8"/>
-        </g>
-        <!-- Mossy grass ground line separating stem & underground root -->
-        <path d="M14 68 Q50 65 86 68" stroke="#558b2f" stroke-width="2.4" stroke-linecap="round" fill="none"/>
-        <path d="M17 67.6 Q50 64.6 83 67.6" stroke="#7cb342" stroke-width="1" stroke-linecap="round" fill="none" opacity="0.8"/>
-
-        <!-- ================= ICONIC 5-FINGERED UNDERGROUND TUBER ROOT (पाँच औंले) ================= -->
-        <!-- Fibrous stem sheath collar at soil entry (matches reference photo) -->
+        <!-- ================= ICONIC 5-FINGERED TUBER ROOT (पाँच औंले) ================= -->
+        <!-- Fibrous stem sheath collar -->
         <path d="M46.5 65.5 L47 72 Q50 73.5 53 72 L53.5 65.5 Z" fill="#6d4c41" stroke="#4e342e" stroke-width="0.5"/>
         <path d="M48 66 L48 71 M51.5 66 L51.5 71" stroke="#8d6e63" stroke-width="0.65"/>
         <!-- Upper collar lateral rootlets -->
@@ -108,18 +85,13 @@
           C70 81.2 63.5 74.8 53 71.5
           Z"
           fill="#dfb980" stroke="#966c3b" stroke-width="0.75" stroke-linejoin="round"/>
-        <!-- Dimensional highlights & earthy sandy specks on the 5 fingers -->
+        <!-- Dimensional highlights on the 5 fingers -->
         <g stroke="#f5deb3" stroke-width="0.85" stroke-linecap="round" fill="none" opacity="0.78">
           <path d="M45 73.5 Q36 77 30 80.5"/>
           <path d="M45.5 76 Q40.5 82 36.5 87"/>
           <path d="M49.2 75 Q48.8 85 48.3 94"/>
           <path d="M53.2 75.5 Q56.5 82 59 87.5"/>
           <path d="M55 73.5 Q64 78 69.5 87.5"/>
-        </g>
-        <g fill="#795548" opacity="0.45">
-          <circle cx="48" cy="76" r="0.55"/><circle cx="51" cy="74" r="0.55"/>
-          <circle cx="38" cy="77" r="0.5"/><circle cx="48.5" cy="84" r="0.5"/>
-          <circle cx="62" cy="79" r="0.55"/><circle cx="67" cy="84" r="0.5"/>
         </g>
 
         <!-- ================= ABOVE-GROUND GREEN STEM & SHEATHING LEAVES ================= -->
@@ -262,12 +234,7 @@
         <ellipse cx="50" cy="5.6" rx="1.2" ry="1.5" fill="#9c27b0"/>
       `,
       withered: `
-        <!-- Underground dry soil cutaway -->
-        <path d="M18 69 Q50 67 82 69 C84 84 72 95.5 50 96.5 C28 95.5 16 84 18 69 Z" fill="#4e342e" opacity="0.88"/>
-        <path d="M23 70 Q50 68.5 77 70 C77 82 67 92.5 50 93.5 C33 92.5 23 82 23 70 Z" fill="#3e2723" opacity="0.72"/>
-        <path d="M16 69 Q50 66.5 84 69" stroke="#795548" stroke-width="2" stroke-linecap="round" fill="none"/>
-
-        <!-- Dried shrivelled 5-fingered underground tuber root -->
+        <!-- Dried shrivelled 5-fingered tuber root -->
         <path d="M47 67 L47.5 72 Q50 73.5 52.5 72 L53 67 Z" fill="#5d4037"/>
         <path d="M47.5 72 C42 73 35 76 30 80 C29 81.5 31 82.2 33 81.5 C37 80 41 77.5 44.5 76 C41.5 80 38 84.5 36.5 87 C36 88.2 37.8 89 39 88 C42 85.5 44.5 81.5 47 77.5 C47.5 83 47 89.5 47 93.5 C47 95 49.2 95 49.5 93.5 C50 89 51 83 51.8 77.5 C54 81.8 56 86 57.5 88.5 C58.5 89.5 60 88.5 59.5 87 C58.5 83.8 56.5 79.5 54 76 C59.5 78 65 82.5 67.5 88 C68.5 89 70 88 69.5 86.5 C68 80 62 74.5 52.5 72 Z" fill="#b89872" stroke="#6d4c41" stroke-width="0.7" stroke-linejoin="round"/>
 
