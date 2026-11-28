@@ -97,7 +97,7 @@
 
       <div class="climber-progress-strip">
         <div class="climber-progress-head">
-          <span id="climberProgressHeadline">Base Camp Staging · 0% to Summit (8,849 m)</span>
+          <span id="climberProgressHeadline">Base Camp Staging · 0% of Round Trip (29.5h↑ / 14.5h↓)</span>
           <span id="climberLiveTimerBadge" class="climber-live-badge" style="display:none;">
             <span class="climber-live-dot" aria-hidden="true"></span>
             <span id="climberLiveTimerText">Timer Active</span>
@@ -107,8 +107,8 @@
           <div id="climberProgressFill" class="climber-progress-fill"></div>
         </div>
         <div class="climber-progress-meta">
-          <span id="climberProgressSub">Log focus sessions in Study Charts or Nepal Forest to ascend toward Peak.</span>
-          <span id="climberTargetSummary">Goal: 50h for Summit</span>
+          <span id="climberProgressSub">Log focus sessions in Study Charts or Nepal Forest to climb &amp; descend Everest.</span>
+          <span id="climberTargetSummary">Goal: 44h Round Trip (29.5h↑ + 14.5h↓)</span>
         </div>
       </div>
 
@@ -121,13 +121,14 @@
         </div>
 
         <div class="exp-pill-group">
-          <label for="summitGoalHoursSelect" class="exp-control-label">Summit Target:</label>
+          <label for="summitGoalHoursSelect" class="exp-control-label">Round-Trip Target:</label>
           <select id="summitGoalHoursSelect" class="exp-target-select" onchange="setSummitTargetHours(this.value)">
             <option value="2">2 hours</option>
             <option value="4">4 hours</option>
             <option value="10">10 hours</option>
             <option value="25">25 hours</option>
-            <option value="50" selected>50 hours</option>
+            <option value="44" selected>44 hours (South Col Avg)</option>
+            <option value="50">50 hours</option>
             <option value="100">100 hours</option>
             <option value="200">200 hours</option>
           </select>

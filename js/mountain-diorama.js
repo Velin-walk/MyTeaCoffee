@@ -936,7 +936,9 @@
         climberPin.style.zIndex = String(Math.round(220 + (projectedClimber.depth + 8) * 10));
         const tag = climberPin.querySelector('.iso-climber-tag');
         if (tag) {
-          const prefix = state.climberProgress >= 0.999 ? 'Summit' : 'Climber';
+          const prefix = state.climberProgress >= 0.999
+            ? 'Summit'
+            : (state.climberDescending ? 'Descending' : 'Climber');
           tag.textContent = `${prefix} · ${Math.round(climberPt.eleM).toLocaleString()}m`;
         }
       }
@@ -959,6 +961,7 @@
         selectedCampIdx: 7, // Default highlight Peak, or stepped by user
         climberProgress: 0,
         climberActive: false,
+        climberDescending: false,
         activePreset: 'classic',
         scrollZoomActive: false,
         eventsBound: false,
@@ -1506,6 +1509,9 @@
     if (typeof options.climberActive === 'boolean') {
       state.climberActive = options.climberActive;
     }
+    if (typeof options.climberDescending === 'boolean') {
+      state.climberDescending = options.climberDescending;
+    }
 
     bindStageInteractions(container, state);
 
@@ -1717,6 +1723,9 @@
     state.climberProgress = p;
     if (opts && typeof opts.isActive === 'boolean') {
       state.climberActive = opts.isActive;
+    }
+    if (opts && typeof opts.isDescent === 'boolean') {
+      state.climberDescending = opts.isDescent;
     }
     if (!state.model) return null;
     renderMountainCanvasAndPins(container, state.model, state);
