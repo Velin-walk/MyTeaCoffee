@@ -1,0 +1,943 @@
+    :root {
+      --primary: #2563eb;
+      --primary-hover: #1d4ed8;
+      --success: #16a34a;
+      --danger: #dc2626;
+      --warning: #d97706;
+      --bg: #F4F7F6;
+      --text: #202124;
+      --card-bg: #FFFFFF;
+      --card-shadow: 0 4px 16px rgba(0, 0, 0, 0.08);
+      --border-color: #E0E0E0;
+      --input-border: #D0D0D0;
+      --input-bg: #F9FAF9;
+      --button-bg: #E8F0FE;
+      --button-text: #1d4ed8;
+      --text-secondary: #5F6368;
+      --text-tertiary: #80868B;
+    }
+
+    body.theme-paper {
+      --primary: #8B7355; --success: #6B5344; --danger: #A0522D; --warning: #CD853F;
+      --bg: #F5E6D3; --text: #3E2723; --card-bg: #FFF8DC; --card-shadow: 0 4px 8px rgba(0,0,0,0.1);
+      --border-color: rgba(139, 115, 85, 0.2); --input-border: #D2B48C; --input-bg: #FFFAF0;
+      --button-bg: #F0E68C; --button-text: #654321; --text-secondary: #5D4037; --text-tertiary: #8B7355;
+    }
+    body.theme-blackboard {
+      --primary: #FFD700; --success: #90EE90; --danger: #FF6B6B; --warning: #FFB6C1;
+      --bg: #1A1A1A; --text: #FFFFFF; --card-bg: #2D2D2D; --card-shadow: 0 4px 12px rgba(0,0,0,0.4);
+      --border-color: rgba(255, 215, 0, 0.2); --input-border: #FFD700; --input-bg: #3D3D3D;
+      --button-bg: #404040; --button-text: #FFD700; --text-secondary: #BFBFBF; --text-tertiary: #909090;
+    }
+    body.theme-sketch {
+      --primary: #4A4A4A; --success: #5A5A5A; --danger: #3A3A3A; --warning: #6A6A6A;
+      --bg: #ECECEC; --text: #1A1A1A; --card-bg: #F5F5F5; --card-shadow: 0 3px 8px rgba(0, 0, 0, 0.15);
+      --border-color: rgba(74, 74, 74, 0.15); --input-border: #BFBFBF; --input-bg: #FAFAFA;
+      --button-bg: #E0E0E0; --button-text: #4A4A4A; --text-secondary: #5A5A5A; --text-tertiary: #8A8A8A;
+    }
+    body.theme-galaxy {
+      --primary: #00D4FF; --success: #00FF88; --danger: #FF006E; --warning: #FFB703;
+      --bg: #0a0e27; --text: #E0E7FF; --card-bg: #16213E; --card-shadow: 0 8px 16px rgba(0, 212, 255, 0.15);
+      --border-color: rgba(0, 212, 255, 0.2); --input-border: #00D4FF; --input-bg: #1a2847;
+      --button-bg: #1F2937; --button-text: #00D4FF; --text-secondary: #9CA3AF; --text-tertiary: #6B7280;
+    }
+    body.theme-forest {
+      --primary: #4CAF50; --success: #81C784; --danger: #E57373; --warning: #FFB74D;
+      --bg: #132A13; --text: #ECF39E; --card-bg: #1D3A1D; --card-shadow: 0 8px 20px rgba(0,0,0,0.4);
+      --border-color: rgba(129, 199, 132, 0.25); --input-border: #81C784; --input-bg: #163216;
+      --button-bg: #2D5016; --button-text: #ECF39E; --text-secondary: #A3B18A; --text-tertiary: #7F8E6A;
+    }
+    body.theme-cyberpunk {
+      --primary: #FF006E; --success: #00F5FF; --danger: #FF006E; --warning: #FFBE0B;
+      --bg: #0D0221; --text: #FFFFFF; --card-bg: #1A0033; --card-shadow: 0 0 20px rgba(255, 0, 110, 0.3);
+      --border-color: rgba(255, 0, 110, 0.5); --input-border: #FF006E; --input-bg: #240046;
+      --button-bg: #3A0061; --button-text: #00F5FF; --text-secondary: #B5179E; --text-tertiary: #7209B7;
+    }
+    body.theme-ocean {
+      --primary: #0077BE; --success: #00D9FF; --danger: #FF6B6B; --warning: #FFA502;
+      --bg: #0A1929; --text: #E3F2FD; --card-bg: #132F4C; --card-shadow: 0 6px 16px rgba(0, 119, 190, 0.2);
+      --border-color: rgba(0, 217, 255, 0.15); --input-border: #0077BE; --input-bg: #0D2440;
+      --button-bg: #1565A0; --button-text: #00D9FF; --text-secondary: #90CAF9; --text-tertiary: #64B5F6;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    html {
+      overflow-x: hidden;
+      max-width: 100%;
+      touch-action: manipulation;
+      -webkit-text-size-adjust: 100%;
+      overscroll-behavior-x: none;
+    }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      transition: background 0.3s ease, color 0.3s ease;
+      overflow-x: hidden;
+      max-width: 100%;
+      touch-action: manipulation;
+      -webkit-tap-highlight-color: transparent;
+      overscroll-behavior-x: none;
+    }
+
+    header.top-header {
+      position: sticky;
+      top: 0;
+      z-index: 100;
+      background: var(--card-bg);
+      border-bottom: 1px solid var(--border-color);
+      padding: 8px 14px;
+      min-height: 48px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 10px;
+      flex-wrap: nowrap;
+    }
+
+    .header-nav-group {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      flex-shrink: 0;
+    }
+
+    .header-back-link {
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      min-height: 34px;
+      padding: 0 8px;
+      border-radius: 8px;
+      border: 1px solid var(--border-color);
+      background: var(--input-bg);
+      color: var(--text-secondary);
+      font-size: 12.5px;
+      font-weight: 600;
+      text-decoration: none;
+      white-space: nowrap;
+      flex-shrink: 0;
+      transition: color 0.15s ease, border-color 0.15s ease;
+    }
+
+    .header-back-link:hover {
+      color: var(--text);
+      border-color: var(--primary);
+    }
+
+    .header-title {
+      font-size: 15px;
+      font-weight: 700;
+      color: var(--text);
+      letter-spacing: -0.01em;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      min-width: 0;
+    }
+
+    .header-controls {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      flex-shrink: 0;
+    }
+
+    .theme-select-minimal {
+      height: 36px;
+      padding: 0 8px;
+      border-radius: 8px;
+      border: 1px solid var(--border-color);
+      background: var(--input-bg);
+      color: var(--text);
+      font-size: 12.5px;
+      font-weight: 600;
+      cursor: pointer;
+      outline: none;
+      max-width: 112px;
+    }
+
+    .header-btn {
+      height: 36px;
+      padding: 0 10px;
+      border-radius: 8px;
+      border: 1px solid var(--border-color);
+      background: var(--input-bg);
+      color: var(--text);
+      font-size: 12.5px;
+      font-weight: 600;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+      white-space: nowrap;
+    }
+
+    .header-btn:hover {
+      border-color: var(--primary);
+    }
+
+    @media (max-width: 640px) {
+      .header-btn-label {
+        display: none;
+      }
+      .header-btn {
+        padding: 0 9px;
+      }
+    }
+
+    main.mountain-main-container {
+      flex: 1;
+      width: 100%;
+      max-width: 960px;
+      margin: 0 auto;
+      padding: 16px 16px 36px;
+      display: flex;
+      flex-direction: column;
+      gap: 18px;
+    }
+
+    /* Expedition Header & Stats Strip */
+    .expedition-overview-card {
+      background: var(--card-bg);
+      border: 1px solid var(--border-color);
+      border-radius: 18px;
+      padding: 16px 18px;
+      box-shadow: var(--card-shadow);
+      display: flex;
+      flex-direction: column;
+      gap: 14px;
+    }
+
+    .expedition-head-row {
+      display: flex;
+      align-items: flex-start;
+      justify-content: space-between;
+      flex-wrap: wrap;
+      gap: 10px;
+    }
+
+    .expedition-title-group {
+      display: flex;
+      flex-direction: column;
+      gap: 3px;
+    }
+
+    .expedition-kicker {
+      font-size: 11px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      color: var(--primary);
+    }
+
+    .expedition-heading {
+      font-size: 20px;
+      font-weight: 800;
+      color: var(--text);
+      letter-spacing: -0.02em;
+    }
+
+    .expedition-sub {
+      font-size: 13px;
+      color: var(--text-secondary);
+    }
+
+    .expedition-stats-grid {
+      display: grid;
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+      gap: 10px;
+    }
+
+    @media (max-width: 640px) {
+      .expedition-stats-grid {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+      }
+    }
+
+    .exp-stat-box {
+      background: var(--input-bg);
+      border: 1px solid var(--border-color);
+      border-radius: 12px;
+      padding: 10px 12px;
+    }
+
+    .exp-stat-label {
+      font-size: 11px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      color: var(--text-tertiary);
+    }
+
+    .exp-stat-val {
+      font-size: 17px;
+      font-weight: 800;
+      color: var(--text);
+      margin-top: 2px;
+      font-variant-numeric: tabular-nums;
+    }
+
+    /* 3D Mountain Diorama Stage (matches forest-diorama stage DNA) */
+    .iso-mountain-stage {
+      display: flex;
+      flex-direction: column;
+      border-radius: 18px;
+      background:
+        radial-gradient(circle at 50% 24%, rgba(125, 178, 232, 0.24), transparent 62%),
+        linear-gradient(180deg, #1b2f4e 0%, #101d32 54%, #09111f 100%);
+      border: 1px solid rgba(148, 197, 255, 0.2);
+      overflow: hidden;
+      color: #f0f6ff;
+      box-shadow: 0 12px 30px rgba(8, 16, 32, 0.28);
+    }
+
+    .iso-stage-toolbar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      flex-wrap: wrap;
+      gap: 10px;
+      padding: 10px 14px;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+      background: rgba(8, 16, 30, 0.34);
+    }
+
+    .iso-stage-summary {
+      font-size: 13px;
+      font-weight: 600;
+      color: rgba(226, 238, 255, 0.88);
+      font-variant-numeric: tabular-nums;
+      display: flex;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 6px;
+    }
+
+    .iso-summary-count {
+      font-weight: 800;
+      color: #ffffff;
+    }
+
+    .iso-toolbar-actions {
+      display: flex;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 8px;
+    }
+
+    .iso-preset-controls {
+      display: inline-flex;
+      align-items: center;
+      gap: 2px;
+      background: rgba(7, 14, 28, 0.42);
+      border: 1px solid rgba(255, 255, 255, 0.14);
+      border-radius: 10px;
+      padding: 2px;
+    }
+
+    .iso-preset-btn {
+      height: 30px;
+      padding: 0 9px;
+      border: none;
+      border-radius: 8px;
+      background: transparent;
+      color: rgba(224, 242, 254, 0.8);
+      font-size: 11.5px;
+      font-weight: 700;
+      cursor: pointer;
+      white-space: nowrap;
+      transition: background 0.15s ease, color 0.15s ease;
+    }
+
+    .iso-preset-btn:hover {
+      background: rgba(255, 255, 255, 0.1);
+      color: #ffffff;
+    }
+
+    .iso-preset-btn.is-active {
+      background: rgba(56, 189, 248, 0.25);
+      color: #ffffff;
+      box-shadow: inset 0 0 0 1px rgba(125, 211, 252, 0.45);
+    }
+
+    .iso-mode-controls {
+      display: inline-flex;
+      align-items: center;
+      gap: 2px;
+      background: rgba(7, 14, 28, 0.42);
+      border: 1px solid rgba(255, 255, 255, 0.14);
+      border-radius: 10px;
+      padding: 2px;
+    }
+
+    .iso-mode-btn {
+      height: 30px;
+      padding: 0 10px;
+      border: none;
+      border-radius: 8px;
+      background: transparent;
+      color: rgba(224, 242, 254, 0.78);
+      font-size: 12px;
+      font-weight: 700;
+      cursor: pointer;
+      white-space: nowrap;
+      transition: background 0.15s ease, color 0.15s ease;
+    }
+
+    .iso-mode-btn:hover {
+      background: rgba(255, 255, 255, 0.1);
+      color: #ffffff;
+    }
+
+    .iso-mode-btn.is-active {
+      background: rgba(56, 189, 248, 0.25);
+      color: #ffffff;
+      box-shadow: inset 0 0 0 1px rgba(125, 211, 252, 0.45);
+    }
+
+    .iso-zoom-controls {
+      display: inline-flex;
+      align-items: center;
+      gap: 2px;
+      background: rgba(7, 14, 28, 0.42);
+      border: 1px solid rgba(255, 255, 255, 0.14);
+      border-radius: 10px;
+      padding: 2px;
+    }
+
+    .iso-zoom-btn {
+      min-width: 32px;
+      height: 30px;
+      padding: 0 8px;
+      border: none;
+      border-radius: 8px;
+      background: transparent;
+      color: #f0f9ff;
+      font-size: 14px;
+      font-weight: 700;
+      font-variant-numeric: tabular-nums;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      transition: background 0.15s ease;
+    }
+
+    .iso-zoom-btn:hover {
+      background: rgba(255, 255, 255, 0.14);
+    }
+
+    .iso-zoom-reset {
+      font-size: 12px;
+      min-width: 44px;
+    }
+
+    .iso-stage-viewport {
+      position: relative;
+      width: 100%;
+      overflow: hidden;
+      padding: 8px 10px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      touch-action: pan-y;
+    }
+
+    .iso-mountain-scaler {
+      position: relative;
+      width: 100%;
+      max-width: 880px;
+      margin: 0 auto;
+      transform-origin: 50% 50%;
+    }
+
+    .iso-mountain-canvas {
+      display: block;
+      width: 100%;
+      height: auto;
+      user-select: none;
+    }
+
+    .iso-camps-overlay {
+      position: absolute;
+      inset: 0;
+      pointer-events: none;
+    }
+
+    .iso-camp-pin {
+      position: absolute;
+      transform: translate(-50%, -100%);
+      pointer-events: auto;
+      cursor: pointer;
+      background: none;
+      border: none;
+      padding: 0;
+      display: inline-flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 2px;
+      outline: none;
+      transition: transform 0.15s ease, filter 0.15s ease;
+    }
+
+    .iso-camp-pin:hover,
+    .iso-camp-pin.is-selected {
+      transform: translate(-50%, -106%) scale(1.08);
+      filter: drop-shadow(0 3px 8px rgba(0, 0, 0, 0.6));
+    }
+
+    .iso-camp-label {
+      background: rgba(12, 22, 40, 0.88);
+      color: #f8fafc;
+      border: 1px solid rgba(148, 197, 255, 0.38);
+      border-radius: 6px;
+      padding: 2px 6px;
+      font-size: 10px;
+      font-weight: 700;
+      white-space: nowrap;
+      line-height: 1.25;
+      letter-spacing: 0.01em;
+      box-shadow: 0 2px 6px rgba(0, 0, 0, 0.35);
+    }
+
+    .iso-camp-pin.is-selected .iso-camp-label {
+      background: #ea580c;
+      border-color: #fed7aa;
+      color: #ffffff;
+    }
+
+    .iso-camp-pin.is-peak .iso-camp-label {
+      background: rgba(185, 28, 28, 0.92);
+      border-color: #fde68a;
+    }
+
+    .iso-camp-stem {
+      width: 1.5px;
+      height: 8px;
+      background: rgba(255, 255, 255, 0.78);
+    }
+
+    .iso-camp-dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 999px;
+      background: #fb923c;
+      border: 1.5px solid #ffffff;
+      box-shadow: 0 1px 4px rgba(0, 0, 0, 0.45);
+    }
+
+    .iso-camp-pin.is-selected .iso-camp-dot {
+      background: #facc15;
+      width: 10px;
+      height: 10px;
+    }
+
+    .iso-inspector-bar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      flex-wrap: wrap;
+      gap: 10px 16px;
+      padding: 12px 16px;
+      border-top: 1px solid rgba(255, 255, 255, 0.1);
+      background: rgba(8, 16, 30, 0.44);
+      font-size: 13px;
+    }
+
+    .iso-inspector-primary {
+      display: flex;
+      flex-direction: column;
+      gap: 2px;
+      min-width: 0;
+      flex: 1;
+    }
+
+    .iso-inspector-title-row {
+      display: flex;
+      align-items: baseline;
+      flex-wrap: wrap;
+      gap: 8px;
+    }
+
+    .iso-inspector-name {
+      font-size: 15px;
+      font-weight: 800;
+      color: #ffffff;
+    }
+
+    .iso-inspector-alt {
+      font-size: 12.5px;
+      font-weight: 700;
+      color: #7dd3fc;
+      font-variant-numeric: tabular-nums;
+    }
+
+    .iso-inspector-desc {
+      font-size: 12px;
+      color: rgba(226, 238, 255, 0.78);
+    }
+
+    .iso-inspector-actions {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      flex-wrap: wrap;
+    }
+
+    .iso-inspector-coords {
+      font-size: 11.5px;
+      font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+      color: rgba(226, 238, 255, 0.72);
+    }
+
+    .iso-step-btn {
+      height: 32px;
+      padding: 0 11px;
+      border-radius: 8px;
+      border: 1px solid rgba(148, 197, 255, 0.3);
+      background: rgba(255, 255, 255, 0.08);
+      color: #f8fafc;
+      font-size: 12px;
+      font-weight: 700;
+      cursor: pointer;
+      transition: background 0.15s ease;
+    }
+
+    .iso-step-btn:hover:not(:disabled) {
+      background: rgba(56, 189, 248, 0.25);
+    }
+
+    .iso-step-btn:disabled {
+      opacity: 0.38;
+      cursor: default;
+    }
+
+    /* 2D Synchronized Elevation Profile */
+    .elevation-profile-card {
+      background: var(--card-bg);
+      border: 1px solid var(--border-color);
+      border-radius: 18px;
+      padding: 16px 18px;
+      box-shadow: var(--card-shadow);
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+
+    .section-header-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      flex-wrap: wrap;
+      gap: 8px;
+    }
+
+    .section-title {
+      font-size: 15px;
+      font-weight: 800;
+      color: var(--text);
+    }
+
+    .section-hint {
+      font-size: 12px;
+      color: var(--text-secondary);
+    }
+
+    .elevation-profile-svg {
+      width: 100%;
+      height: auto;
+      display: block;
+    }
+
+    .camp-list-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(210px, 1fr));
+      gap: 10px;
+    }
+
+    .camp-stage-card {
+      background: var(--input-bg);
+      border: 1px solid var(--border-color);
+      border-radius: 12px;
+      padding: 11px 13px;
+      text-align: left;
+      cursor: pointer;
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+      transition: border-color 0.15s ease, transform 0.15s ease;
+    }
+
+    .camp-stage-card:hover {
+      border-color: var(--primary);
+      transform: translateY(-1px);
+    }
+
+    .camp-stage-card.is-selected {
+      border-color: #ea580c;
+      box-shadow: inset 0 0 0 1px #ea580c;
+    }
+
+    .camp-card-top {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 6px;
+    }
+
+    .camp-card-name {
+      font-size: 13.5px;
+      font-weight: 800;
+      color: var(--text);
+    }
+
+    .camp-card-ele {
+      font-size: 12px;
+      font-weight: 700;
+      color: var(--primary);
+      font-variant-numeric: tabular-nums;
+    }
+
+    .camp-card-meta {
+      font-size: 11.5px;
+      color: var(--text-secondary);
+      font-variant-numeric: tabular-nums;
+    }
+
+    @media (max-width: 640px) {
+      main.mountain-main-container {
+        padding: 12px 12px 28px;
+      }
+      .iso-stage-toolbar {
+        padding: 10px 12px;
+      }
+      .iso-camp-label {
+        font-size: 9px;
+        padding: 1px 4px;
+      }
+    }
+
+    body.is-fullscreen header.top-header {
+      display: none;
+    }
+
+    body.is-fullscreen main.mountain-main-container {
+      padding-top: 10px;
+      max-width: 100%;
+    }
+
+    /* Live Climber Progress Controls & Bar */
+    .expedition-controls-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      flex-wrap: wrap;
+      gap: 10px;
+      padding-top: 4px;
+      border-top: 1px solid var(--border-color);
+    }
+
+    .exp-pill-group {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      flex-wrap: wrap;
+    }
+
+    .exp-control-label {
+      font-size: 11.5px;
+      font-weight: 700;
+      color: var(--text-secondary);
+      margin-right: 2px;
+    }
+
+    .exp-pill-btn {
+      height: 30px;
+      padding: 0 11px;
+      border-radius: 999px;
+      border: 1px solid var(--border-color);
+      background: var(--input-bg);
+      color: var(--text-secondary);
+      font-size: 12px;
+      font-weight: 700;
+      cursor: pointer;
+      transition: all 0.15s ease;
+    }
+
+    .exp-pill-btn:hover {
+      border-color: var(--primary);
+      color: var(--text);
+    }
+
+    .exp-pill-btn.active {
+      background: var(--primary);
+      border-color: var(--primary);
+      color: #ffffff;
+    }
+
+    .exp-target-select {
+      height: 30px;
+      padding: 0 10px;
+      border-radius: 8px;
+      border: 1px solid var(--border-color);
+      background: var(--input-bg);
+      color: var(--text);
+      font-size: 12px;
+      font-weight: 700;
+      cursor: pointer;
+      outline: none;
+    }
+
+    .climber-progress-strip {
+      background: var(--input-bg);
+      border: 1px solid var(--border-color);
+      border-radius: 12px;
+      padding: 11px 14px;
+      display: flex;
+      flex-direction: column;
+      gap: 7px;
+    }
+
+    .climber-progress-head {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      flex-wrap: wrap;
+      gap: 6px;
+      font-size: 12.5px;
+      font-weight: 700;
+      color: var(--text);
+    }
+
+    .climber-live-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+      font-size: 11px;
+      font-weight: 800;
+      color: #ea580c;
+      background: rgba(234, 88, 12, 0.12);
+      border: 1px solid rgba(234, 88, 12, 0.35);
+      border-radius: 999px;
+      padding: 2px 8px;
+    }
+
+    .climber-live-dot {
+      width: 6px;
+      height: 6px;
+      border-radius: 999px;
+      background: #ea580c;
+      animation: climberPulse 1.4s ease-in-out infinite;
+    }
+
+    @keyframes climberPulse {
+      0%, 100% { opacity: 1; transform: scale(1); }
+      50% { opacity: 0.45; transform: scale(1.3); }
+    }
+
+    .climber-progress-track {
+      width: 100%;
+      height: 8px;
+      border-radius: 999px;
+      background: var(--border-color);
+      overflow: hidden;
+    }
+
+    .climber-progress-fill {
+      height: 100%;
+      width: 0%;
+      border-radius: 999px;
+      background: linear-gradient(90deg, #f97316, #facc15);
+      transition: width 0.35s ease;
+    }
+
+    .climber-progress-meta {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      flex-wrap: wrap;
+      gap: 6px;
+      font-size: 11.5px;
+      color: var(--text-secondary);
+      font-variant-numeric: tabular-nums;
+    }
+
+    /* Live Climber Pin Overlay on 3D Diorama */
+    .iso-climber-pin {
+      position: absolute;
+      transform: translate(-50%, -100%);
+      pointer-events: none;
+      display: inline-flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 2px;
+      transition: left 0.25s ease-out, top 0.25s ease-out;
+    }
+
+    .iso-climber-tag {
+      background: linear-gradient(135deg, #facc15, #f97316);
+      color: #111827;
+      border: 1.5px solid #ffffff;
+      border-radius: 999px;
+      padding: 2px 8px;
+      font-size: 10px;
+      font-weight: 800;
+      white-space: nowrap;
+      box-shadow: 0 3px 10px rgba(0, 0, 0, 0.5);
+    }
+
+    .iso-climber-marker {
+      width: 11px;
+      height: 11px;
+      border-radius: 999px;
+      background: #facc15;
+      border: 2px solid #ffffff;
+      box-shadow: 0 0 0 4px rgba(250, 204, 21, 0.32), 0 2px 6px rgba(0, 0, 0, 0.5);
+    }
+
+    /* Milestone Camp Status Badges */
+    .camp-stage-card.is-reached {
+      border-color: rgba(22, 163, 74, 0.45);
+    }
+
+    .camp-stage-card.is-next {
+      border-color: rgba(249, 115, 22, 0.65);
+    }
+
+    .camp-status-badge {
+      display: inline-flex;
+      align-items: center;
+      align-self: flex-start;
+      margin-top: 3px;
+      padding: 2px 7px;
+      border-radius: 999px;
+      font-size: 10.5px;
+      font-weight: 700;
+      font-variant-numeric: tabular-nums;
+    }
+
+    .camp-status-reached {
+      background: rgba(22, 163, 74, 0.14);
+      color: var(--success);
+    }
+
+    .camp-status-next {
+      background: rgba(249, 115, 22, 0.14);
+      color: #ea580c;
+    }
+
+    .camp-status-locked {
+      background: var(--border-color);
+      color: var(--text-tertiary);
+    }
+

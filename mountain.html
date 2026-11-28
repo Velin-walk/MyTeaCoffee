@@ -1,0 +1,158 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+  <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+  <meta http-equiv="Pragma" content="no-cache">
+  <meta http-equiv="Expires" content="0">
+  <title>Mountain | Mount Everest Expedition</title>
+  <meta name="description" content="Geometrically accurate 3D Mount Everest South Col expedition diorama built from GPS coordinates.">
+  <link rel="manifest" href="/manifest.json">
+  <link rel="icon" type="image/png" sizes="192x192" href="/icon-192.png">
+  <link rel="apple-touch-icon" href="/apple-touch-icon.png">
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="theme-color" content="#101d32">
+  <script>
+    window.alert = function(msg) {
+      console.log('[Notice]', msg);
+      const toast = document.createElement('div');
+      toast.textContent = msg;
+      toast.style.cssText = 'position:fixed;bottom:24px;left:50%;transform:translateX(-50%);background:#1f2937;color:#fff;padding:10px 18px;border-radius:8px;z-index:99999;font-size:13px;font-weight:600;box-shadow:0 6px 16px rgba(0,0,0,0.25);transition:opacity 0.3s;pointer-events:none;';
+      document.body.appendChild(toast);
+      setTimeout(() => {
+        toast.style.opacity = '0';
+        setTimeout(() => { if (toast.parentNode) toast.parentNode.removeChild(toast); }, 300);
+      }, 2500);
+    };
+  </script>
+  <link rel="stylesheet" href="/css/mountain.css">
+  <link rel="stylesheet" href="/css/quotes.css">
+</head>
+<body>
+  <header class="top-header">
+    <div class="header-nav-group">
+      <a href="/" class="header-back-link" title="Back to Study Charts">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"/></svg>
+        <span>Charts</span>
+      </a>
+      <a href="/forest.html" class="header-back-link" title="Nepal Forest">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2L6 10h3l-4 7h14l-4-7h3L12 2z"/><path d="M12 17v5"/></svg>
+        <span>Forest</span>
+      </a>
+    </div>
+
+    <h1 class="header-title">Mountain · Everest</h1>
+
+    <div class="header-controls">
+      <select id="mountainThemeSelect" class="theme-select-minimal" onchange="changeMountainTheme(this.value)" aria-label="Theme">
+        <option value="default">Light</option>
+        <option value="theme-paper">Old Paper</option>
+        <option value="theme-blackboard">Blackboard</option>
+        <option value="theme-sketch">Pencil Sketch</option>
+        <option value="theme-galaxy">Galaxy</option>
+        <option value="theme-forest">Forest</option>
+        <option value="theme-cyberpunk">Cyberpunk</option>
+        <option value="theme-ocean">Ocean</option>
+      </select>
+
+      <button class="header-btn" onclick="toggleMountainFullscreen()" id="btnMountainFullscreen" title="Fullscreen Mode" aria-label="Fullscreen Mode">
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M8 3H5a2 2 0 0 0-2 2v3m18 0V5a2 2 0 0 0-2-2h-3m0 18h3a2 2 0 0 0 2-2v-3M3 16v3a2 2 0 0 0 2 2h3"/></svg>
+        <span class="header-btn-label">Fullscreen</span>
+      </button>
+    </div>
+  </header>
+
+  <main class="mountain-main-container">
+    <div id="globalQuoteHost" class="global-quote-host"></div>
+
+    <section class="expedition-overview-card">
+      <div class="expedition-head-row">
+        <div class="expedition-title-group">
+          <span class="expedition-kicker">Sagarmatha / Chomolungma · South Col Route</span>
+          <h2 class="expedition-heading">Mount Everest Expedition Diorama</h2>
+          <p class="expedition-sub">True metric East–North–Elevation projection from 377 GPS track vertices (Base Camp through Khumbu Icefall, Western Cwm, Lhotse Face, South Col &amp; Hillary Step).</p>
+        </div>
+      </div>
+
+      <div class="expedition-stats-grid">
+        <div class="exp-stat-box">
+          <div class="exp-stat-label">Climber Altitude</div>
+          <div class="exp-stat-val" id="statClimberEle">5,364 m</div>
+        </div>
+        <div class="exp-stat-box">
+          <div class="exp-stat-label">Study Focus</div>
+          <div class="exp-stat-val" id="statStudyHours">0h 0m</div>
+        </div>
+        <div class="exp-stat-box">
+          <div class="exp-stat-label">Distance Climbed</div>
+          <div class="exp-stat-val" id="statClimberDist">0.84 / 14.12 km</div>
+        </div>
+        <div class="exp-stat-box">
+          <div class="exp-stat-label">Next Milestone</div>
+          <div class="exp-stat-val" id="statNextCamp">Khumbu Icefall</div>
+        </div>
+      </div>
+
+      <div class="climber-progress-strip">
+        <div class="climber-progress-head">
+          <span id="climberProgressHeadline">Base Camp Staging · 0% to Summit (8,849 m)</span>
+          <span id="climberLiveTimerBadge" class="climber-live-badge" style="display:none;">
+            <span class="climber-live-dot" aria-hidden="true"></span>
+            <span id="climberLiveTimerText">Timer Active</span>
+          </span>
+        </div>
+        <div class="climber-progress-track">
+          <div id="climberProgressFill" class="climber-progress-fill"></div>
+        </div>
+        <div class="climber-progress-meta">
+          <span id="climberProgressSub">Log focus sessions in Study Charts or Nepal Forest to ascend toward Peak.</span>
+          <span id="climberTargetSummary">Goal: 50h for Summit</span>
+        </div>
+      </div>
+
+      <div class="expedition-controls-row">
+        <div class="exp-pill-group" role="group" aria-label="Study timeframe for expedition climb">
+          <span class="exp-control-label">Climb From:</span>
+          <button type="button" class="exp-pill-btn active" data-climb-scope="all" onclick="setClimbScope('all')">All Time</button>
+          <button type="button" class="exp-pill-btn" data-climb-scope="week" onclick="setClimbScope('week')">This Week</button>
+          <button type="button" class="exp-pill-btn" data-climb-scope="today" onclick="setClimbScope('today')">Today</button>
+        </div>
+
+        <div class="exp-pill-group">
+          <label for="summitGoalHoursSelect" class="exp-control-label">Summit Target:</label>
+          <select id="summitGoalHoursSelect" class="exp-target-select" onchange="setSummitTargetHours(this.value)">
+            <option value="2">2 hours</option>
+            <option value="4">4 hours</option>
+            <option value="10">10 hours</option>
+            <option value="25">25 hours</option>
+            <option value="50" selected>50 hours</option>
+            <option value="100">100 hours</option>
+            <option value="200">200 hours</option>
+          </select>
+        </div>
+      </div>
+    </section>
+
+    <section id="mountainDioramaStage" aria-label="Interactive 3D Mount Everest Expedition Diorama"></section>
+
+    <section class="elevation-profile-card">
+      <div class="section-header-row">
+        <div>
+          <h3 class="section-title">Expedition Elevation Profile</h3>
+          <p class="section-hint">Click any camp below or on the 3D terrain to inspect exact GPS coordinates, elevation, and route leg.</p>
+        </div>
+      </div>
+      <div id="mountainElevationProfile"></div>
+      <div id="mountainCampList" class="camp-list-grid"></div>
+    </section>
+  </main>
+
+  <script src="/js/storage.js"></script>
+  <script src="/js/mountain-diorama.js"></script>
+  <script src="/js/mountain.js"></script>
+  <script src="/js/quotes.js"></script>
+  <script src="/js/pwa.js"></script>
+</body>
+</html>

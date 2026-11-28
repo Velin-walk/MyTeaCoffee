@@ -162,6 +162,10 @@ function openForestApp() {
   window.location.href = '/forest.html';
 }
 
+function openMountainApp() {
+  window.location.href = '/mountain.html';
+}
+
 function toggleTopForestTab() {
   const currentTab = (typeof safeStorageGet === 'function' ? safeStorageGet('studyFlowActiveTab', 'charts') : 'charts') || 'charts';
   if (currentTab === 'forest') {

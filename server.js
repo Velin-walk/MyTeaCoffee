@@ -160,8 +160,8 @@ app.use((req, res, next) => {
   next();
 });
 
-// Serve static assets with strict no-cache
-app.use(express.static(__dirname, {
+// Serve public assets at root (e.g. /assets/aistudio/*) and root static files with strict no-cache
+const noCacheStaticOpts = {
   etag: false,
   lastModified: false,
   setHeaders: (res) => {
@@ -169,7 +169,9 @@ app.use(express.static(__dirname, {
     res.setHeader('Pragma', 'no-cache');
     res.setHeader('Expires', '0');
   }
-}));
+};
+app.use(express.static(path.join(__dirname, 'public'), noCacheStaticOpts));
+app.use(express.static(__dirname, noCacheStaticOpts));
 
 // Ensure manifest.json and Manifest.json can both be requested
 app.get(['/manifest.json', '/Manifest.json'], (req, res) => {
@@ -179,6 +181,11 @@ app.get(['/manifest.json', '/Manifest.json'], (req, res) => {
 // Dedicated Forest App route
 app.get('/forest', (req, res) => {
   res.sendFile(path.join(__dirname, 'forest.html'));
+});
+
+// Dedicated Mountain App route
+app.get('/mountain', (req, res) => {
+  res.sendFile(path.join(__dirname, 'mountain.html'));
 });
 
 // Single Page Application fallback to index.html

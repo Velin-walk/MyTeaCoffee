@@ -5,12 +5,15 @@ const APP_SHELL_URLS = [
   '/',
   '/forest',
   '/forest.html',
+  '/mountain',
+  '/mountain.html',
   '/manifest.json',
   '/icon-192.png',
   '/icon-512.png',
   '/apple-touch-icon.png',
   '/css/style.css',
   '/css/forest.css',
+  '/css/mountain.css',
   '/css/quotes.css',
   '/js/config.js',
   '/js/storage.js',
@@ -20,8 +23,11 @@ const APP_SHELL_URLS = [
   '/js/forest-diorama.js',
   '/js/forest-tab.js',
   '/js/forest.js',
+  '/js/mountain-diorama.js',
+  '/js/mountain.js',
   '/js/quotes.js',
   '/js/pwa.js',
+  '/assets/aistudio/Everest_f80aa1b8.json',
   '/plants/rhododendron.js',
   '/plants/peepal.js',
   '/plants/banyan.js',
@@ -115,6 +121,9 @@ self.addEventListener('fetch', (event) => {
           if (req.mode === 'navigate') {
             if (url.pathname.startsWith('/forest')) {
               return (await caches.match('/forest')) || (await caches.match('/forest.html')) || caches.match('/');
+            }
+            if (url.pathname.startsWith('/mountain')) {
+              return (await caches.match('/mountain')) || (await caches.match('/mountain.html')) || caches.match('/');
             }
             return caches.match('/');
           }
